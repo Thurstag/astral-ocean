@@ -4,7 +4,12 @@
 
 namespace ao {
 	namespace vk {
-		// TODO: REMOVE ME
-		int plus(int a, int b);
+		class Engine {
+		public:
+			Engine();
+			~Engine();
+
+			virtual void run();
+		};
 	}
 }

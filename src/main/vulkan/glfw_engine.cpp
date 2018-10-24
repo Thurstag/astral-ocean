@@ -18,7 +18,7 @@ void ao::vk::GLFWEngine::initWindow() {
 }
 
 void ao::vk::GLFWEngine::freeWindow() {
-	ao::vk::Engine::freeWindow();
+	ao::vk::AOEngine::freeWindow();
 
 	glfwDestroyWindow(this->window);
 	glfwTerminate();
@@ -35,6 +35,5 @@ std::vector<char const*> ao::vk::GLFWEngine::instanceExtensions() {
 
 	// Get extensions
 	char const** extensions = glfwGetRequiredInstanceExtensions(&count);
-
 	return std::vector<char const*>(extensions, extensions + count);
 }

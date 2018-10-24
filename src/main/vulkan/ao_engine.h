@@ -1,27 +1,27 @@
 #pragma once
 
 #include "boost/throw_exception.hpp"
-
 #include "engine_settings.h"
 #include "vulkan/vulkan.h"
+#include "ao_device.h"
 #include "utilities.h"
 
 namespace ao {
 	namespace vk {
 		/// <summary>
-		/// Engine class
+		/// AOEngine class
 		/// </summary>
-		class Engine {
+		class AOEngine {
 		public:
 			/// <summary>
 			/// Constructor
 			/// </summary>
 			/// <param name="settings">Settings</param>
-			Engine(EngineSettings settings);
+			AOEngine(EngineSettings settings);
 			/// <summary>
 			/// Destructor
 			/// </summary>
-			virtual ~Engine();
+			virtual ~AOEngine();
 
 			/// <summary>
 			/// Methdo to run engine
@@ -59,8 +59,16 @@ namespace ao {
 			/// <returns>Extensions</returns>
 			virtual std::vector<char const*> instanceExtensions() = 0;
 
+			/// <summary>
+			/// Method to select a VkPhysicalDevice
+			/// </summary>
+			/// <param name="devices">VkPhysicalDevices</param>
+			/// <returns>Index</returns>
+			virtual uint64_t selectVkPhysicalDevice(std::vector<VkPhysicalDevice>& devices);
+
 		private:
 			VkInstance instance;
+			AODevice device;
 		};
 	}
 }

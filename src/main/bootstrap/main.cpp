@@ -8,7 +8,7 @@
 int main(int argc, char* argv[]) {
 	// Define settings
 	ao::vk::EngineSettings settings = { true, "TEST", 1280, 720 };
-	ao::vk::Engine* engine;
+	ao::vk::AOEngine* engine;
 
 	try {
 		// Run engine

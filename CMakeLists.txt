@@ -4,16 +4,26 @@ cmake_policy(VERSION 2.8)
 # Define variables
 set(PROJECT_NAME "astral-ocean")
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake")
+set(SUBMODULES_DIR "${CMAKE_BINARY_DIR}/submodules")
+set(GLFW_INCLUDE_DIR "${SUBMODULES_DIR}/glfw/include")
 set(DEPENDENCIES
 	Vulkan
 	Threads
 	Boost
 )
+set(SUBMODULES
+	glfw	
+)
+
+# Disable GLFW unwanted builds
+set(GLFW_BUILD_DOCS OFF CACHE BOOL "" FORCE)
+set(GLFW_BUILD_TESTS OFF CACHE BOOL "" FORCE)
+set(GLFW_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
 
 # Define output folders
-set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
-set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
+set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib")
+set(CMAKE_LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib")
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin")
 
 # Force c++ version
 set(CMAKE_CXX_STANDARD 11)
@@ -43,9 +53,16 @@ foreach(DEPENDENCY ${DEPENDENCIES})
 	ENDIF()
 endforeach(DEPENDENCY)
 
+# Add submodules
+foreach(SUBMODULE ${SUBMODULES})
+	message("Include ${SUBMODULE} submodule")
+	add_subdirectory("${SUBMODULES_DIR}/${SUBMODULE}")
+endforeach(SUBMODULE)
+
 # Include headers
 include_directories(${Boost_INCLUDE_DIR})
 include_directories(${Vulkan_INCLUDE_DIR})
+include_directories(${GLFW_INCLUDE_DIR})
 include_directories("src/main/vulkan")
 
 # Include sub-projects

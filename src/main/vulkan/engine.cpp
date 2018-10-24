@@ -1,16 +1,32 @@
 #include "engine.h"
 
-/// <summary>
-/// Constructor
-/// </summary>
-ao::vk::Engine::Engine() {}
+ao::vk::Engine::Engine(EngineSettings settings) {
+	this->settings = settings;
 
-/// <summary>
-/// Destructor
-/// </summary>
-ao::vk::Engine::~Engine() {}
+	this->instance = {};
+}
 
-/// <summary>
-/// Methdo to run engine
-/// </summary>
-void ao::vk::Engine::run() {}
+ao::vk::Engine::~Engine() {
+	this->freeVulkan();
+	this->freeWindow();
+}
+
+void ao::vk::Engine::run() {
+	this->initWindow();
+	this->initVulkan();
+
+	this->loop();
+}
+
+void ao::vk::Engine::initVulkan() {
+	// Create instance
+	ao::vk::utilities::vkAssert(ao::vk::utilities::createVkInstance(this->settings, this->instance, this->instanceExtensions()), "Fail to create instance");
+
+	// TODO: Set-up debugging if validation layer
+}
+
+void ao::vk::Engine::freeVulkan() {
+	vkDestroyInstance(this->instance, nullptr);
+}
+
+void ao::vk::Engine::freeWindow() {}

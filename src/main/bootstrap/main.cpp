@@ -2,13 +2,24 @@
 
 #include <iostream>
 
-#include "engine.h"
+#include "boost/exception/diagnostic_information.hpp"
+#include "glfw_engine.h"
 
 int main(int argc, char* argv[]) {
-	// Run engine
-	ao::vk::Engine* engine = new ao::vk::Engine();
-	engine->run();
+	// Define settings
+	ao::vk::EngineSettings settings = { true, "TEST", 1280, 720 };
+	ao::vk::Engine* engine;
 
-	// Free engine
+	try {
+		// Run engine
+		engine = new ao::vk::GLFWEngine(settings);
+		engine->run();
+	} catch (boost::exception & e) {
+		std::cerr << boost::diagnostic_information(e);
+	} catch (...) {
+		std::cerr << "Unknown exception" << std::endl;
+	}
+
+    // Free engine
 	delete engine;
 }

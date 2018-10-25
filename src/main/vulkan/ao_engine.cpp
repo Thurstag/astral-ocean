@@ -34,17 +34,67 @@ void ao::vk::AOEngine::initVulkan() {
 	}
 
 	// Select a VkPhysicalDevice & wrap it
-	AODevice device(devices[this->selectVkPhysicalDevice(devices)]);
+	this->device = new AODevice(devices[this->selectVkPhysicalDevice(devices)]);
 
-	LOGGER << LogLevel::DEBUG << "Select logical device: " << device.properties.deviceName; 
+	LOGGER << LogLevel::DEBUG << "Select physical device: " << this->device->properties.deviceName;
+
+	// Init logical device
+	ao::vk::utilities::vkAssert(this->device->initLogicalDevice(this->deviceExtensions(), this->queueFlags(), this->commandPoolFlags()), "Fail to init logical device");
+
+	// TODO: depth format
 }
 
 void ao::vk::AOEngine::freeVulkan() {
+    /* TODO: Clean up Vulkan resources
+	swapChain.cleanup();
+	if (descriptorPool != VK_NULL_HANDLE) {
+		vkDestroyDescriptorPool(device, descriptorPool, nullptr);
+	}
+	destroyCommandBuffers();
+	vkDestroyRenderPass(device, renderPass, nullptr);
+	for (uint32_t i = 0; i < frameBuffers.size(); i++) {
+		vkDestroyFramebuffer(device, frameBuffers[i], nullptr);
+	}
+
+	for (auto& shaderModule : shaderModules) {
+		vkDestroyShaderModule(device, shaderModule, nullptr);
+	}
+	vkDestroyImageView(device, depthStencil.view, nullptr);
+	vkDestroyImage(device, depthStencil.image, nullptr);
+	vkFreeMemory(device, depthStencil.mem, nullptr);
+
+	vkDestroyPipelineCache(device, pipelineCache, nullptr);
+
+	vkDestroyCommandPool(device, cmdPool, nullptr);
+
+	vkDestroySemaphore(device, semaphores.presentComplete, nullptr);
+	vkDestroySemaphore(device, semaphores.renderComplete, nullptr);
+	for (auto& fence : waitFences) {
+		vkDestroyFence(device, fence, nullptr);
+	}
+
+	if (settings.overlay) {
+		UIOverlay.freeResources();
+	} */
+
+	delete this->device;
 	vkDestroyInstance(this->instance, nullptr);
 }
 
 void ao::vk::AOEngine::freeWindow() {}
 
-uint64_t ao::vk::AOEngine::selectVkPhysicalDevice(std::vector<VkPhysicalDevice>& devices) {
+std::vector<char const*> ao::vk::AOEngine::deviceExtensions() {
+	return std::vector<char const*>();
+}
+
+VkQueueFlags ao::vk::AOEngine::queueFlags() {
+	return VkQueueFlagBits::VK_QUEUE_GRAPHICS_BIT | VkQueueFlagBits::VK_QUEUE_COMPUTE_BIT;
+}
+
+VkCommandPoolCreateFlags ao::vk::AOEngine::commandPoolFlags() {
+	return VkCommandPoolCreateFlagBits::VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
+}
+
+uint8_t ao::vk::AOEngine::selectVkPhysicalDevice(std::vector<VkPhysicalDevice>& devices) {
 	return 0;    // First device
 }

@@ -2,12 +2,16 @@
 
 #include <core/exception.h>
 #include <vulkan/vulkan.h>
+#include <core/logger.h>
+#include <numeric>
+#include <bitset>
 #include <vector>
 
 #include "engine_settings.h"
 
 namespace ao {
 	namespace vk {
+		struct Utilities {};
 		namespace utilities {
 
 			/// <summary>
@@ -139,6 +143,39 @@ namespace ao {
 				// Get VkQueueFamilyProperties
 				vkEnumerateDeviceExtensionProperties(device, nullptr, &count, extensions.data());
 				return extensions;
+			}
+
+			/// <summary>
+			/// Method to find a queue familly index that supports flag
+			/// </summary>
+			/// <param name="queueFamilyProperties">queueFamilyProperties</param>
+			/// <param name="flag">Flag</param>
+			inline uint32_t findQueueFamilyIndex(std::vector<VkQueueFamilyProperties>& queueFamilyProperties, VkQueueFlagBits flag) {
+				std::vector<VkQueueFlagBits> flags = { VK_QUEUE_COMPUTE_BIT, VK_QUEUE_TRANSFER_BIT, VK_QUEUE_GRAPHICS_BIT };
+
+				// Calculate value of flags whitout flag parameter
+				VkQueueFlags other = std::accumulate(flags.begin(), flags.end(), 0, [flag](VkQueueFlags result, VkQueueFlagBits f) { 
+					if (f != flag) {
+						return result | f;
+					}
+					return result;
+				});
+
+				// Try to find a queue familly designed only for flag parameter
+				for (uint32_t i = 0; i < queueFamilyProperties.size(); i++) {
+					if ((queueFamilyProperties[i].queueFlags & flag) && ((queueFamilyProperties[i].queueFlags & other) == 0)) {
+						ao::core::Logger::getInstance<Utilities>() << LogLevel::DEBUG << "Found a queueFamily that only support: " << std::bitset<8>(flag);
+						return i;
+					}
+				}
+
+				// Try to find a queue familly that supports flag parameter
+				for (uint32_t i = 0; i < queueFamilyProperties.size(); i++) {
+					if (queueFamilyProperties[i].queueFlags & flag) {
+						return i;
+					}
+				}
+				return -1;
 			}
 		}
 	}

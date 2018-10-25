@@ -4,7 +4,6 @@
 #include <core/exception.h>
 #include <core/logger.h>
 #include <iostream>
-#include <conio.h>
 
 struct Main{};
 
@@ -45,5 +44,5 @@ void onError() {
 	std::cout << "Press enter to exit...";
 
 	// Wait input
-	getch();
+	getchar();
 }

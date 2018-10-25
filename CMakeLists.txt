@@ -6,13 +6,15 @@ set(PROJECT_NAME "astral-ocean")
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake")
 set(SUBMODULES_DIR "${CMAKE_BINARY_DIR}/submodules")
 set(GLFW_INCLUDE_DIR "${SUBMODULES_DIR}/glfw/include")
+set(LOG4CPP_INCLUDE_DIR "${SUBMODULES_DIR}/log4cpp/include")
 set(DEPENDENCIES
 	Vulkan
 	Threads
 	Boost
 )
 set(SUBMODULES
-	glfw	
+	glfw
+	log4cpp
 )
 
 # Disable GLFW unwanted builds
@@ -63,8 +65,10 @@ endforeach(SUBMODULE)
 include_directories(${Boost_INCLUDE_DIR})
 include_directories(${Vulkan_INCLUDE_DIR})
 include_directories(${GLFW_INCLUDE_DIR})
-include_directories("src/main/vulkan")
+include_directories(${LOG4CPP_INCLUDE_DIR})
+include_directories("src/main")
 
 # Include sub-projects
 add_subdirectory("src/main/vulkan")
+add_subdirectory("src/main/core")
 add_subdirectory("src/main/bootstrap")

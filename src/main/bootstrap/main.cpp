@@ -1,11 +1,11 @@
 #pragma once
 
+#include <boost/exception/diagnostic_information.hpp>
+#include <vulkan/glfw_engine.h>
 #include <iostream>
 
-#include "boost/exception/diagnostic_information.hpp"
-#include "glfw_engine.h"
-
 int main(int argc, char* argv[]) {
+
 	// Define settings
 	ao::vk::EngineSettings settings = { true, "TEST", 1280, 720 };
 	ao::vk::AOEngine* engine;

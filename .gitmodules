@@ -2,3 +2,7 @@
 	path = submodules/glfw
 	url = https://github.com/glfw/glfw.git
 	ignore = dirty
+[submodule "submodules/log4cpp"]
+	path = submodules/log4cpp
+	url = https://github.com/orocos-toolchain/log4cpp.git
+	ignore = dirty

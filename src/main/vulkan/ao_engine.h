@@ -1,10 +1,12 @@
 #pragma once
 
-#include "boost/throw_exception.hpp"
+#include <boost/throw_exception.hpp>
+#include <vulkan/vulkan.h>
+#include <core/logger.h>
+
 #include "engine_settings.h"
-#include "vulkan/vulkan.h"
+#include "vk_utilities.h"
 #include "ao_device.h"
-#include "utilities.h"
 
 namespace ao {
 	namespace vk {
@@ -28,6 +30,7 @@ namespace ao {
 			/// </summary>
 			virtual void run();
 		protected:
+			ao::core::Logger LOGGER = ao::core::Logger::getInstance<AOEngine>();
 			EngineSettings settings;
 
 			/// <summary>

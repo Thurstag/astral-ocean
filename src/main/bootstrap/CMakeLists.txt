@@ -7,5 +7,5 @@ file(GLOB SOURCE *.cpp ${VK_HEADERS})
 add_executable(bootstrap ${MAIN_CPP} ${SOURCE})
 
 # Import libraries
-target_link_libraries(bootstrap vulkan)
+target_link_libraries(bootstrap vulkan core)
 install(TARGETS bootstrap DESTINATION "${CMAKE_INSTALL_BINDIR}/bin")

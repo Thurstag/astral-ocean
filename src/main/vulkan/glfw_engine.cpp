@@ -10,11 +10,14 @@ ao::vk::GLFWEngine::~GLFWEngine() {
 void ao::vk::GLFWEngine::initWindow() {
 	glfwInit();
 
+	// Define properties
 	glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
 	glfwWindowHint(GLFW_RESIZABLE, this->settings.winSettings.rezisable ? GLFW_TRUE : GLFW_FALSE);
 
-	// TODO: The monitor to use for full screen mode, or NULL for windowed mode (http://www.glfw.org/docs/latest/group__window.html#ga5c336fddf2cbb5b92f65f10fb6043344)
+	// Create window
 	this->window = glfwCreateWindow((int)this->settings.winSettings.width, (int)this->settings.winSettings.height, this->settings.winSettings.name.c_str(), nullptr, nullptr);
+
+	LOGGER << LogLevel::DEBUG << "Init window(" << this->settings.winSettings.width << "x" << this->settings.winSettings.height << ")";
 }
 
 void ao::vk::GLFWEngine::freeWindow() {
@@ -31,9 +34,5 @@ void ao::vk::GLFWEngine::loop() {
 }
 
 std::vector<char const*> ao::vk::GLFWEngine::instanceExtensions() {
-	uint32_t count;
-
-	// Get extensions
-	char const** extensions = glfwGetRequiredInstanceExtensions(&count);
-	return std::vector<char const*>(extensions, extensions + count);
+	return ao::glfw::utilities::getExtensions();
 }

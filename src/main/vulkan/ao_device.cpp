@@ -21,7 +21,7 @@ ao::vk::AODevice::AODevice(VkPhysicalDevice& device) {
 
 	// Check count
 	if (this->extensions.empty()) {
-		// TODO: WARNING
+		LOGGER << LogLevel::WARN << "Extensions vector is empty";
 	}
 
 	// TODO: Create logical device

@@ -1,7 +1,8 @@
 #pragma once
 
-#include "GLFW/glfw3.h"
+#include <GLFW/glfw3.h>
 
+#include "glfw_utilities.h"
 #include "ao_engine.h"
 
 namespace ao {

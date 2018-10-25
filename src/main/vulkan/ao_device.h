@@ -1,13 +1,15 @@
 #pragma once
 
+#include <core/logger.h>
+#include <vulkan/vulkan.h>
 #include <vector>
 
-#include "vulkan/vulkan.h"
-#include "utilities.h"
+#include "vk_utilities.h"
 
 namespace ao {
 	namespace vk {
 		struct AODevice {
+		public:
 			/* FIELDS */
 			std::vector<VkQueueFamilyProperties> queueFamilyProperties;
 
@@ -33,6 +35,9 @@ namespace ao {
 			AODevice(VkPhysicalDevice& device);
 
 			/* METHODS */
+
+		protected:
+			ao::core::Logger LOGGER = ao::core::Logger::getInstance<AODevice>();
 		};
 	}
 }

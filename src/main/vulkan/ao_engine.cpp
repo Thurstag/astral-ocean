@@ -2,8 +2,6 @@
 
 ao::vk::AOEngine::AOEngine(EngineSettings settings) {
 	this->settings = settings;
-
-	this->instance = {};
 }
 
 ao::vk::AOEngine::~AOEngine() {
@@ -37,6 +35,8 @@ void ao::vk::AOEngine::initVulkan() {
 
 	// Select a VkPhysicalDevice & wrap it
 	AODevice device(devices[this->selectVkPhysicalDevice(devices)]);
+
+	LOGGER << LogLevel::DEBUG << "Select logical device: " << device.properties.deviceName; 
 }
 
 void ao::vk::AOEngine::freeVulkan() {

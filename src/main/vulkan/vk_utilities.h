@@ -1,6 +1,6 @@
 #pragma once
 
-#include <boost/throw_exception.hpp>
+#include <core/exception.h>
 #include <vulkan/vulkan.h>
 #include <vector>
 
@@ -26,7 +26,7 @@ namespace ao {
 			/// <param name="message">Exception's message on failure</param>
 			inline void vkAssert(VkResult result, std::string message) {
 				if (!vkCheck(result)) {
-					BOOST_THROW_EXCEPTION(std::exception((message + ". Reason: " + std::to_string(result)).c_str()));
+					throw ao::core::Exception(message + ". Reason: " + std::to_string(result));
 				}
 			}
 

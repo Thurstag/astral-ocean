@@ -35,5 +35,5 @@ ao::core::Logger::~Logger() {
 }
 
 log4cpp::CategoryStream ao::core::Logger::operator<<(log4cpp::Priority::Value priority) {
-	return this->category->getStream(priority); // TODO: Add a custom class to support exceptions
+	return this->category->getStream(priority);
 }

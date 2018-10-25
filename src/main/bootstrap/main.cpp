@@ -1,10 +1,20 @@
 #pragma once
 
-#include <boost/exception/diagnostic_information.hpp>
 #include <vulkan/glfw_engine.h>
+#include <core/exception.h>
+#include <core/logger.h>
 #include <iostream>
+#include <conio.h>
+
+struct Main{};
+
+void onError();
 
 int main(int argc, char* argv[]) {
+	std::string buffer;
+
+	// Get LOGGER
+	ao::core::Logger LOGGER = ao::core::Logger::getInstance<Main>();
 
 	// Define settings
 	ao::vk::EngineSettings settings = { true, "TEST", 1280, 720 };
@@ -14,12 +24,26 @@ int main(int argc, char* argv[]) {
 		// Run engine
 		engine = new ao::vk::GLFWEngine(settings);
 		engine->run();
-	} catch (boost::exception & e) {
-		std::cerr << boost::diagnostic_information(e);
+	} catch (ao::core::Exception & e) {
+		LOGGER << LogLevel::FATAL << e;
+		LOGGER << LogLevel::FATAL << e;
+		onError();
+	} catch (std::exception& e) {
+		LOGGER << LogLevel::FATAL << ao::core::Exception(e);
+		onError();
 	} catch (...) {
-		std::cerr << "Unknown exception" << std::endl;
+		LOGGER << LogLevel::FATAL << "Unknown exception";
+		onError();
 	}
 
-    // Free engine
+	// Free engine
 	delete engine;
+}
+
+void onError() {
+	// Display a message
+	std::cout << "Press enter to exit...";
+
+	// Wait input
+	getch();
 }

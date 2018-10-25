@@ -1,6 +1,6 @@
 #pragma once
 
-#include <boost/throw_exception.hpp>
+#include <core/exception.h>
 #include <vulkan/vulkan.h>
 #include <core/logger.h>
 

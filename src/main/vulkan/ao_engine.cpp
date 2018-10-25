@@ -30,7 +30,7 @@ void ao::vk::AOEngine::initVulkan() {
 
 	// Check count
 	if (devices.empty()) {
-		BOOST_THROW_EXCEPTION(std::exception("Unable to find GPUs"));
+		throw ao::core::Exception("Unable to find GPUs");
 	}
 
 	// Select a VkPhysicalDevice & wrap it

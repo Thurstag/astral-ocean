@@ -40,7 +40,7 @@ namespace ao {
 			/// Method to define << operator
 			/// </summary>
 			/// <param name="priority">Priority</param>
-			/// <returns>log4cpp::CategoryStream</returns>
+			/// <returns>CategoryStream</returns>
 			log4cpp::CategoryStream operator<<(log4cpp::Priority::Value priority);
 		private:
 			log4cpp::Category* category;

@@ -1,7 +1,8 @@
 #pragma once
 
-#include <core/logger.h>
+#include <core/exception.h>
 #include <vulkan/vulkan.h>
+#include <core/logger.h>
 #include <vector>
 
 #include "vk_utilities.h"

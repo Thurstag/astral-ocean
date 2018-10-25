@@ -13,7 +13,7 @@ ao::vk::AODevice::AODevice(VkPhysicalDevice& device) {
 
 	// Check count
 	if (this->queueFamilyProperties.empty()) {
-		BOOST_THROW_EXCEPTION(std::exception("Empty queueFamilyProperties"));
+		throw ao::core::Exception("Empty queueFamilyProperties");
 	}
 
 	// Get supported extensions

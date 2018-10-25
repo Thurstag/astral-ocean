@@ -22,6 +22,9 @@ set(GLFW_BUILD_DOCS OFF CACHE BOOL "" FORCE)
 set(GLFW_BUILD_TESTS OFF CACHE BOOL "" FORCE)
 set(GLFW_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
 
+# Compilation options
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O3")
+
 # Define output folders
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib")
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib")
@@ -71,4 +74,4 @@ include_directories("src/main")
 # Include sub-projects
 add_subdirectory("src/main/vulkan")
 add_subdirectory("src/main/core")
-add_subdirectory("src/main/bootstrap")
+add_subdirectory("src/main/win-bootstrap")

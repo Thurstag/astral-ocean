@@ -5,12 +5,18 @@
 #include <core/logger.h>
 #include <iostream>
 
-struct Main{};
+#include <stdlib.h>
+#include <crtdbg.h>
 
-void onError();
+#define _CRTDBG_MAP_ALLOC 1
+
+struct Main{};
 
 int main(int argc, char* argv[]) {
 	std::string buffer;
+
+	// Activate memory leak debugger
+	_CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF);
 
 	// Get LOGGER
 	ao::core::Logger LOGGER = ao::core::Logger::getInstance<Main>();
@@ -26,23 +32,13 @@ int main(int argc, char* argv[]) {
 	} catch (ao::core::Exception & e) {
 		LOGGER << LogLevel::FATAL << e;
 		LOGGER << LogLevel::FATAL << e;
-		onError();
 	} catch (std::exception& e) {
 		LOGGER << LogLevel::FATAL << ao::core::Exception(e);
-		onError();
 	} catch (...) {
 		LOGGER << LogLevel::FATAL << "Unknown exception";
-		onError();
 	}
 
 	// Free engine
 	delete engine;
-}
-
-void onError() {
-	// Display a message
-	std::cout << "Press enter to exit...";
-
-	// Wait input
-	getchar();
+	return 0;
 }

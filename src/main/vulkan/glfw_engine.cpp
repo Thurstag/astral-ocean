@@ -4,7 +4,7 @@
 /// Destructor
 /// </summary>
 ao::vk::GLFWEngine::~GLFWEngine() {
-
+	this->freeWindow();
 }
 
 void ao::vk::GLFWEngine::initWindow() {
@@ -21,8 +21,6 @@ void ao::vk::GLFWEngine::initWindow() {
 }
 
 void ao::vk::GLFWEngine::freeWindow() {
-	ao::vk::AOEngine::freeWindow();
-
 	glfwDestroyWindow(this->window);
 	glfwTerminate();
 }

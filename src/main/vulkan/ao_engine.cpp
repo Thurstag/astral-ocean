@@ -6,7 +6,6 @@ ao::vk::AOEngine::AOEngine(EngineSettings settings) {
 
 ao::vk::AOEngine::~AOEngine() {
 	this->freeVulkan();
-	this->freeWindow();
 }
 
 void ao::vk::AOEngine::run() {
@@ -80,8 +79,6 @@ void ao::vk::AOEngine::freeVulkan() {
 	delete this->device;
 	vkDestroyInstance(this->instance, nullptr);
 }
-
-void ao::vk::AOEngine::freeWindow() {}
 
 std::vector<char const*> ao::vk::AOEngine::deviceExtensions() {
 	return std::vector<char const*>();

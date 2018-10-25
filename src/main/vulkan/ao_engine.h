@@ -49,7 +49,7 @@ namespace ao {
 			/// <summary>
 			/// Method to clean-up window
 			/// </summary>
-			virtual void freeWindow();
+			virtual void freeWindow() = 0;
 
 			/// <summary>
 			/// Method to define main loop

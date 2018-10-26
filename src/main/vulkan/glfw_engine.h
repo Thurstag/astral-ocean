@@ -15,7 +15,7 @@ namespace ao {
 
 		protected:
 			void initWindow() override;
-			VkSurfaceKHR& initSurface() override;
+			void initSurface(VkSurfaceKHR& surface) override;
 			void freeWindow() override;
 
 			void loop() override;

@@ -225,22 +225,65 @@ namespace ao {
 			/// </summary>
 			/// <param name="device">Device</param>
 			/// <param name="surface">Surface</param>
-			/// <param name="fpGetPhysicalDeviceSurfaceFormatsKHR">Function pointer</param>
 			/// <returns>Surface formats</returns>
-			inline std::vector<VkSurfaceFormatKHR> surfaceFormatKHRs(VkPhysicalDevice& device, VkSurfaceKHR& surface, PFN_vkGetPhysicalDeviceSurfaceFormatsKHR& fpGetPhysicalDeviceSurfaceFormatsKHR) {
+			inline std::vector<VkSurfaceFormatKHR> surfaceFormatKHRs(VkPhysicalDevice& device, VkSurfaceKHR& surface) {
 				std::string error = "Fail to get supported surface formats";
 				std::vector<VkSurfaceFormatKHR> formats;
 				uint32_t count;
 
 				// Get count
-				vkAssert(fpGetPhysicalDeviceSurfaceFormatsKHR(device, surface, &count, nullptr), error);
+				vkAssert(vkGetPhysicalDeviceSurfaceFormatsKHR(device, surface, &count, nullptr), error);
 
 				// Adapt vector
 				formats.resize(count);
 
-				// Get VkQueueFamilyProperties
-				vkAssert(fpGetPhysicalDeviceSurfaceFormatsKHR(device, surface, &count, formats.data()), error);
+				// Get VkSurfaceFormatKHRs
+				vkAssert(vkGetPhysicalDeviceSurfaceFormatsKHR(device, surface, &count, formats.data()), error);
 				return formats;
+			}
+
+			/// <summary>
+			/// Method to get present modes
+			/// </summary>
+			/// <param name="device">Device</param>
+			/// <param name="surface">Surface</param>
+			/// <returns>Present modes</returns>
+			inline std::vector<VkPresentModeKHR> presentModeKHRs(VkPhysicalDevice& device, VkSurfaceKHR& surface) {
+				std::string error = "Fail to get present modes";
+				std::vector<VkPresentModeKHR> modes;
+				uint32_t count;
+
+				// Get count
+				vkAssert(vkGetPhysicalDeviceSurfacePresentModesKHR(device, surface, &count, nullptr), error);
+
+				// Adapt vector
+				modes.resize(count);
+
+				// Get VkPresentModeKHR
+				vkAssert(vkGetPhysicalDeviceSurfacePresentModesKHR(device, surface, &count, modes.data()), error);
+				return modes;
+			}
+
+			/// <summary>
+			/// Method to get swap chain images
+			/// </summary>
+			/// <param name="device">Device</param>
+			/// <param name="swapChain">Swap chain</param>
+			/// <returns>Images</returns>
+			inline std::vector<VkImage> swapChainImages(VkDevice& device, VkSwapchainKHR& swapChain) {
+				std::string error = "Fail to get swap chain images";
+				std::vector<VkImage> images;
+				uint32_t count;
+
+				// Get count
+				vkAssert(vkGetSwapchainImagesKHR(device, swapChain, &count, nullptr), error);
+
+				// Adapt vector
+				images.resize(count);
+
+				// Get VkImages
+				vkAssert(vkGetSwapchainImagesKHR(device, swapChain, &count, images.data()), error);
+				return images;
 			}
 		}
 	}

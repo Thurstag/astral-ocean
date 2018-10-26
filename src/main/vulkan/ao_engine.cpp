@@ -12,6 +12,8 @@ void ao::vk::AOEngine::run() {
 	this->initWindow();
 	this->initVulkan();
 
+	this->prepareVulkan();
+
 	this->loop();
 }
 
@@ -73,8 +75,6 @@ void ao::vk::AOEngine::freeVulkan() {
 
 	vkDestroyPipelineCache(device, pipelineCache, nullptr);	*/
 
-	//vkDestroyCommandPool(this->device->logicalDevice, this->commandPool, nullptr);
-
 	vkDestroySemaphore(this->device->logicalDevice, this->semaphores.first, nullptr);
 	vkDestroySemaphore(this->device->logicalDevice, this->semaphores.second, nullptr);
 	
@@ -97,9 +97,16 @@ void ao::vk::AOEngine::prepareVulkan() {
 	}*/
 
 	// Init surface
-	this->swapchain->initSurface(this->initSurface());
+	this->initSurface(this->swapchain->surface);
+	this->swapchain->initSurface();
 
-	// TODO: Create command pool
+	// Init command pool
+	this->swapchain->initCommandPool();
+
+	// Init swap chain
+	this->swapchain->init(this->settings.winSettings.width, this->settings.winSettings.height);
+
+	// TODO: Create command buffers
 }
 
 std::vector<char const*> ao::vk::AOEngine::deviceExtensions() {

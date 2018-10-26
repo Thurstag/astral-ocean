@@ -59,8 +59,8 @@ namespace ao {
 			/// <summary>
 			/// Method to init surface
 			/// </summary>
-			/// <returns>Surface</returns>
-			virtual VkSurfaceKHR& initSurface() = 0;
+			/// <param name="surface">Surface reference</param>
+			virtual void initSurface(VkSurfaceKHR& surface) = 0;
 			/// <summary>
 			/// Method to init window
 			/// </summary>

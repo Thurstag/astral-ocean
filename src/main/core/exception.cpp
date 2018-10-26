@@ -11,7 +11,7 @@ ao::core::Exception::Exception(std::exception & e) : ao::core::Exception(e.what(
 }
 
 ao::core::Exception::~Exception() {
-	if (this->stack != nullptr) {
+	if (this->stack) {
 		delete this->stack;
 	}
 }

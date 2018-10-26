@@ -40,12 +40,23 @@ void ao::vk::AOEngine::initVulkan() {
 	// Init logical device
 	ao::vk::utilities::vkAssert(this->device->initLogicalDevice(this->deviceExtensions(), this->queueFlags(), this->commandPoolFlags()), "Fail to init logical device");
 
-	// TODO: depth format
+	// Find suitable depth format
+	ao::vk::utilities::vkAssert(ao::vk::utilities::getSupportedDepthFormat(this->device->device, this->device->depthFormat), "Fail to find suitable depth format");
+
+	// Create swapChain
+	this->swapchain = new AOSwapChain(&this->instance, this->device);
+
+	// Create semaphores
+	VkSemaphoreCreateInfo semaphoreInfo = { VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO };
+	ao::vk::utilities::vkAssert(vkCreateSemaphore(this->device->logicalDevice, &semaphoreInfo, nullptr, &this->semaphores.first), "Fail to create present semaphore");
+	ao::vk::utilities::vkAssert(vkCreateSemaphore(this->device->logicalDevice, &semaphoreInfo, nullptr, &this->semaphores.second), "Fail to create render semaphore");
+
+	// Create submit info
 }
 
 void ao::vk::AOEngine::freeVulkan() {
+	delete this->swapchain;
     /* TODO: Clean up Vulkan resources
-	swapChain.cleanup();
 	if (descriptorPool != VK_NULL_HANDLE) {
 		vkDestroyDescriptorPool(device, descriptorPool, nullptr);
 	}
@@ -62,12 +73,14 @@ void ao::vk::AOEngine::freeVulkan() {
 	vkDestroyImage(device, depthStencil.image, nullptr);
 	vkFreeMemory(device, depthStencil.mem, nullptr);
 
-	vkDestroyPipelineCache(device, pipelineCache, nullptr);
+	vkDestroyPipelineCache(device, pipelineCache, nullptr);	*/
 
-	vkDestroyCommandPool(device, cmdPool, nullptr);
+	vkDestroyCommandPool(this->device->logicalDevice, this->device->commandPool, nullptr);
 
-	vkDestroySemaphore(device, semaphores.presentComplete, nullptr);
-	vkDestroySemaphore(device, semaphores.renderComplete, nullptr);
+	vkDestroySemaphore(this->device->logicalDevice, this->semaphores.first, nullptr);
+	vkDestroySemaphore(this->device->logicalDevice, this->semaphores.second, nullptr);
+	
+	/* TODO Clean up Vulkan resources
 	for (auto& fence : waitFences) {
 		vkDestroyFence(device, fence, nullptr);
 	}
@@ -78,6 +91,15 @@ void ao::vk::AOEngine::freeVulkan() {
 
 	delete this->device;
 	vkDestroyInstance(this->instance, nullptr);
+}
+
+void ao::vk::AOEngine::prepareVulkan() {
+	/*if (this->device.debugMarkers) {
+	   // TODO
+	}*/
+
+	// TODO: Init surface (https://vulkan-tutorial.com/code/05_window_surface.cpp) & VulkanSwapChain::initSurface()
+	// this->initSurface();
 }
 
 std::vector<char const*> ao::vk::AOEngine::deviceExtensions() {

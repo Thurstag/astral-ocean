@@ -15,7 +15,7 @@ struct Main{};
 int main(int argc, char* argv[]) {
 	std::string buffer;
 
-	// Activate memory leak debugger
+	// Activate memory leaks detection
 	_CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF);
 
 	// Get LOGGER

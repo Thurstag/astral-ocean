@@ -177,6 +177,50 @@ namespace ao {
 				}
 				return -1;
 			}
+
+			/// <summary>
+			/// Method to get supported depth format
+			/// </summary>
+			/// <param name="physicalDevice">VkPhysicalDevice</param>
+			/// <param name="format">Format reference</param>
+			/// <returns>VkResult</returns>
+			inline VkResult getSupportedDepthFormat(VkPhysicalDevice& physicalDevice, VkFormat& format) {
+				VkFormatProperties formatProps;
+				std::vector<VkFormat> formats = {
+					VK_FORMAT_D32_SFLOAT_S8_UINT,
+					VK_FORMAT_D32_SFLOAT,
+					VK_FORMAT_D24_UNORM_S8_UINT,
+					VK_FORMAT_D16_UNORM_S8_UINT,
+					VK_FORMAT_D16_UNORM
+				};
+
+				for (VkFormat _format : formats) {
+					vkGetPhysicalDeviceFormatProperties(physicalDevice, _format, &formatProps);
+
+					// Check properties
+					if (formatProps.optimalTilingFeatures & VK_FORMAT_FEATURE_DEPTH_STENCIL_ATTACHMENT_BIT) {
+						format = _format;
+						return VkResult::VK_SUCCESS;
+					}
+				}
+				return VkResult::VK_INCOMPLETE;
+			}
+
+			/// <summary>
+			/// Method to get instance proc addr
+			/// </summary>
+			template<class T>
+			inline T instanceProcAddr(VkInstance& instance, std::string name) {
+				return reinterpret_cast<T>(vkGetInstanceProcAddr(instance, name.c_str()));
+			}
+
+			/// <summary>
+			/// Method to get device proc addr
+			/// </summary>
+			template<class T>
+			inline T deviceProcAddr(VkDevice& device, std::string name) {
+				return reinterpret_cast<T>(vkGetDeviceProcAddr(device, name.c_str()));
+			}
 		}
 	}
 }

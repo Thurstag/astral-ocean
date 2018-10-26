@@ -3,8 +3,10 @@
 #include <core/exception.h>
 #include <vulkan/vulkan.h>
 #include <core/logger.h>
+#include <tuple>
 
 #include "engine_settings.h"
+#include "ao_swapchain.h"
 #include "vk_utilities.h"
 #include "ao_device.h"
 
@@ -52,6 +54,11 @@ namespace ao {
 			virtual void freeWindow() = 0;
 
 			/// <summary>
+			/// Method to prepare vulkan before running
+			/// </summary>
+			void prepareVulkan();
+
+			/// <summary>
 			/// Method to define main loop
 			/// </summary>
 			virtual void loop() = 0;
@@ -85,8 +92,11 @@ namespace ao {
 			virtual uint8_t selectVkPhysicalDevice(std::vector<VkPhysicalDevice>& devices);
 
 		private:
+			AOSwapChain* swapchain;
 			VkInstance instance;
 			AODevice* device;
+
+			std::pair<VkSemaphore, VkSemaphore> semaphores;
 		};
 	}
 }

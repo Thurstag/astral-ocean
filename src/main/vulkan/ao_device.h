@@ -15,6 +15,9 @@
 
 namespace ao {
 	namespace vk {
+		/// <summary>
+		/// VkDevice wrapper
+		/// </summary>
 		struct AODevice {
 		public:
 			/* FIELDS */
@@ -29,6 +32,7 @@ namespace ao {
 			VkDevice logicalDevice;
 
 			VkCommandPool commandPool;
+			VkFormat depthFormat;
 
 			std::vector<VkExtensionProperties> extensions;
 

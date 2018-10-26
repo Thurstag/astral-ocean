@@ -20,6 +20,12 @@ void ao::vk::GLFWEngine::initWindow() {
 	LOGGER << LogLevel::DEBUG << "Init window(" << this->settings.winSettings.width << "x" << this->settings.winSettings.height << ")";
 }
 
+VkSurfaceKHR& ao::vk::GLFWEngine::initSurface() {
+	VkSurfaceKHR surface;
+	ao::vk::utilities::vkAssert(glfwCreateWindowSurface(this->instance, this->window, nullptr, &surface), "Fail to create surface");
+	return surface;
+}
+
 void ao::vk::GLFWEngine::freeWindow() {
 	glfwDestroyWindow(this->window);
 	glfwTerminate();

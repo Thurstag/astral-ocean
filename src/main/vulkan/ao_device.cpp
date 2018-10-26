@@ -47,9 +47,8 @@ VkResult ao::vk::AODevice::initLogicalDevice(std::vector<char const*> deviceExte
 			throw ao::core::Exception("Fail to find a queueFamily that supports VK_QUEUE_GRAPHICS_BIT");
 		}
 
-		VkDeviceQueueCreateInfo queueInfo{};
+		VkDeviceQueueCreateInfo queueInfo = { VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO };
 		queueInfo.queueFamilyIndex = std::get<AO_GRAPHICS_QUEUE_INDEX>(this->queueFamilyIndices);
-		queueInfo.sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
 		queueInfo.pQueuePriorities = &DEFAULT_QUEUE_PRIORITY;
 		queueInfo.queueCount = 1;
 
@@ -71,8 +70,7 @@ VkResult ao::vk::AODevice::initLogicalDevice(std::vector<char const*> deviceExte
 
 		// Create info if it's a new queue
 		if (std::get<AO_COMPUTE_QUEUE_INDEX>(this->queueFamilyIndices) != std::get<AO_GRAPHICS_QUEUE_INDEX>(this->queueFamilyIndices)) {
-			VkDeviceQueueCreateInfo queueInfo{};
-			queueInfo.sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
+			VkDeviceQueueCreateInfo queueInfo = { VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO };
 			queueInfo.queueFamilyIndex = std::get<AO_COMPUTE_QUEUE_INDEX>(this->queueFamilyIndices);
 			queueInfo.pQueuePriorities = &DEFAULT_QUEUE_PRIORITY;
 			queueInfo.queueCount = 1;
@@ -96,8 +94,7 @@ VkResult ao::vk::AODevice::initLogicalDevice(std::vector<char const*> deviceExte
 
 		// Create info if it's a new queue
 		if (std::get<AO_TRANSFER_QUEUE_INDEX>(this->queueFamilyIndices) != std::get<AO_GRAPHICS_QUEUE_INDEX>(this->queueFamilyIndices) && std::get<AO_TRANSFER_QUEUE_INDEX>(this->queueFamilyIndices) != std::get<AO_COMPUTE_QUEUE_INDEX>(this->queueFamilyIndices)) {
-			VkDeviceQueueCreateInfo queueInfo{};
-			queueInfo.sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
+			VkDeviceQueueCreateInfo queueInfo{ VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO };
 			queueInfo.queueFamilyIndex = std::get<AO_TRANSFER_QUEUE_INDEX>(this->queueFamilyIndices);
 			queueInfo.pQueuePriorities = &DEFAULT_QUEUE_PRIORITY;
 			queueInfo.queueCount = 1;
@@ -115,8 +112,7 @@ VkResult ao::vk::AODevice::initLogicalDevice(std::vector<char const*> deviceExte
 		deviceExtensions.push_back(VK_KHR_SWAPCHAIN_EXTENSION_NAME);
 	}
 
-	VkDeviceCreateInfo deviceCreateInfo = {};
-	deviceCreateInfo.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
+	VkDeviceCreateInfo deviceCreateInfo = { VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO };
 	deviceCreateInfo.queueCreateInfoCount = static_cast<uint32_t>(queueCreateInfos.size());
 	deviceCreateInfo.pQueueCreateInfos = queueCreateInfos.data();
 	deviceCreateInfo.pEnabledFeatures = &this->features;
@@ -140,8 +136,7 @@ VkResult ao::vk::AODevice::initLogicalDevice(std::vector<char const*> deviceExte
 }
 
 VkResult ao::vk::AODevice::initCommandPool(VkCommandPoolCreateFlags flags) {
-	VkCommandPoolCreateInfo cmdPoolInfo = {};
-	cmdPoolInfo.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
+	VkCommandPoolCreateInfo cmdPoolInfo = { VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO };
 	cmdPoolInfo.queueFamilyIndex = std::get<AO_GRAPHICS_QUEUE_INDEX>(this->queueFamilyIndices);
 	cmdPoolInfo.flags = flags;
 

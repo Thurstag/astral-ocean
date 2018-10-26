@@ -33,17 +33,34 @@ namespace ao {
 			virtual void run();
 		protected:
 			ao::core::Logger LOGGER = ao::core::Logger::getInstance<AOEngine>();
+			
+			std::pair<VkSemaphore, VkSemaphore> semaphores; // First = Present semaphore & Second = Render semaphore
+
 			EngineSettings settings;
+
+			AOSwapChain* swapchain;
+			VkInstance instance;
+			AODevice* device;
+
 
 			/// <summary>
 			/// Method to init vulkan
 			/// </summary>
 			void initVulkan();
 			/// <summary>
+			/// Method to prepare vulkan before running
+			/// </summary>
+			void prepareVulkan();
+			/// <summary>
 			/// Method to clean-up vulkan
 			/// </summary>
 			void freeVulkan();
 
+			/// <summary>
+			/// Method to init surface
+			/// </summary>
+			/// <returns>Surface</returns>
+			virtual VkSurfaceKHR& initSurface() = 0;
 			/// <summary>
 			/// Method to init window
 			/// </summary>
@@ -52,11 +69,6 @@ namespace ao {
 			/// Method to clean-up window
 			/// </summary>
 			virtual void freeWindow() = 0;
-
-			/// <summary>
-			/// Method to prepare vulkan before running
-			/// </summary>
-			void prepareVulkan();
 
 			/// <summary>
 			/// Method to define main loop
@@ -90,13 +102,6 @@ namespace ao {
 			/// <param name="devices">VkPhysicalDevices</param>
 			/// <returns>Index</returns>
 			virtual uint8_t selectVkPhysicalDevice(std::vector<VkPhysicalDevice>& devices);
-
-		private:
-			AOSwapChain* swapchain;
-			VkInstance instance;
-			AODevice* device;
-
-			std::pair<VkSemaphore, VkSemaphore> semaphores;
 		};
 	}
 }

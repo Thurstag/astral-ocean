@@ -10,8 +10,13 @@ namespace ao {
 		/// VkSwapChain	wrapper
 		/// </summary>
 		struct AOSwapChain {
+		public:
 		    /* FIELDS */
 
+			VkColorSpaceKHR colorSpace;
+			VkSurfaceKHR surface;
+			uint32_t queueIndex;
+			VkFormat colorFormat;
 			
 			/* CON/DESTRUCTORS */
 
@@ -29,7 +34,15 @@ namespace ao {
 
 			/* METHODS */
 
+			/// <summary>
+			/// Method to check function pointers
+			/// </summary>
 			void checkPFNs();
+			/// <summary>
+			/// Method to init surface
+			/// </summary>
+			/// <param name="device">Device</param>
+			void initSurface(VkSurfaceKHR& surface);
 		private:
 			VkInstance* instance;
 			AODevice* device;

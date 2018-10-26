@@ -45,8 +45,7 @@ namespace ao {
 				std::vector<char const*> validationLayer{ "VK_LAYER_LUNARG_standard_validation" };
 
 				// Create app info
-				VkApplicationInfo appInfo = {};
-				appInfo.sType = VK_STRUCTURE_TYPE_APPLICATION_INFO;
+				VkApplicationInfo appInfo = { VK_STRUCTURE_TYPE_APPLICATION_INFO };
 				appInfo.apiVersion = VK_API_VERSION_1_0;
 
 				// TODO: Optimize this part (retrieve info in settings) !!!
@@ -56,8 +55,7 @@ namespace ao {
 				appInfo.engineVersion = VK_MAKE_VERSION(1, 0, 0);
 
 				// Create instance info
-				VkInstanceCreateInfo instanceInfo = {};
-				instanceInfo.sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
+				VkInstanceCreateInfo instanceInfo = { VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO };
 				instanceInfo.pApplicationInfo = &appInfo;
 
 				// Check validation
@@ -194,7 +192,7 @@ namespace ao {
 					VK_FORMAT_D16_UNORM
 				};
 
-				for (VkFormat _format : formats) {
+				for (VkFormat& _format : formats) {
 					vkGetPhysicalDeviceFormatProperties(physicalDevice, _format, &formatProps);
 
 					// Check properties
@@ -220,6 +218,29 @@ namespace ao {
 			template<class T>
 			inline T deviceProcAddr(VkDevice& device, std::string name) {
 				return reinterpret_cast<T>(vkGetDeviceProcAddr(device, name.c_str()));
+			}
+
+			/// <summary>
+			/// Method to get surface formats
+			/// </summary>
+			/// <param name="device">Device</param>
+			/// <param name="surface">Surface</param>
+			/// <param name="fpGetPhysicalDeviceSurfaceFormatsKHR">Function pointer</param>
+			/// <returns>Surface formats</returns>
+			inline std::vector<VkSurfaceFormatKHR> surfaceFormatKHRs(VkPhysicalDevice& device, VkSurfaceKHR& surface, PFN_vkGetPhysicalDeviceSurfaceFormatsKHR& fpGetPhysicalDeviceSurfaceFormatsKHR) {
+				std::string error = "Fail to get supported surface formats";
+				std::vector<VkSurfaceFormatKHR> formats;
+				uint32_t count;
+
+				// Get count
+				vkAssert(fpGetPhysicalDeviceSurfaceFormatsKHR(device, surface, &count, nullptr), error);
+
+				// Adapt vector
+				formats.resize(count);
+
+				// Get VkQueueFamilyProperties
+				vkAssert(fpGetPhysicalDeviceSurfaceFormatsKHR(device, surface, &count, formats.data()), error);
+				return formats;
 			}
 		}
 	}

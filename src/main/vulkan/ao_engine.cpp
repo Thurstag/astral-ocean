@@ -50,8 +50,6 @@ void ao::vk::AOEngine::initVulkan() {
 	VkSemaphoreCreateInfo semaphoreInfo = { VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO };
 	ao::vk::utilities::vkAssert(vkCreateSemaphore(this->device->logicalDevice, &semaphoreInfo, nullptr, &this->semaphores.first), "Fail to create present semaphore");
 	ao::vk::utilities::vkAssert(vkCreateSemaphore(this->device->logicalDevice, &semaphoreInfo, nullptr, &this->semaphores.second), "Fail to create render semaphore");
-
-	// Create submit info
 }
 
 void ao::vk::AOEngine::freeVulkan() {
@@ -75,7 +73,7 @@ void ao::vk::AOEngine::freeVulkan() {
 
 	vkDestroyPipelineCache(device, pipelineCache, nullptr);	*/
 
-	vkDestroyCommandPool(this->device->logicalDevice, this->device->commandPool, nullptr);
+	//vkDestroyCommandPool(this->device->logicalDevice, this->commandPool, nullptr);
 
 	vkDestroySemaphore(this->device->logicalDevice, this->semaphores.first, nullptr);
 	vkDestroySemaphore(this->device->logicalDevice, this->semaphores.second, nullptr);
@@ -98,8 +96,10 @@ void ao::vk::AOEngine::prepareVulkan() {
 	   // TODO
 	}*/
 
-	// TODO: Init surface (https://vulkan-tutorial.com/code/05_window_surface.cpp) & VulkanSwapChain::initSurface()
-	// this->initSurface();
+	// Init surface
+	this->swapchain->initSurface(this->initSurface());
+
+	// TODO: Create command pool
 }
 
 std::vector<char const*> ao::vk::AOEngine::deviceExtensions() {

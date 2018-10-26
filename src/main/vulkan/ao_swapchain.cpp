@@ -64,3 +64,74 @@ void ao::vk::AOSwapChain::checkPFNs() {
 		throw ao::core::Exception("Fail to get vkQueuePresentKHR()");
 	}
 }
+
+void ao::vk::AOSwapChain::initSurface(VkSurfaceKHR& surface) {
+	this->surface = surface;
+
+	// Detect if a queue supports present
+	std::vector<VkBool32> supportsPresent(this->device->queueFamilyProperties.size());
+	for (uint32_t i = 0; i < supportsPresent.size(); i++) {
+		fpGetPhysicalDeviceSurfaceSupportKHR(this->device->device, i, this->surface, &supportsPresent[i]);
+	}
+
+	// Try to find a queue that support graphics & present
+	int graphicsQueueIndex = -1, presentQueueIndex = -1;
+	for (size_t i = 0; i < this->device->queueFamilyProperties.size(); i++) {
+		if (this->device->queueFamilyProperties[i].queueFlags & VkQueueFlagBits::VK_QUEUE_GRAPHICS_BIT) {
+			if (graphicsQueueIndex == -1) {
+				graphicsQueueIndex = (int)i;
+			}
+
+			if (supportsPresent[i] == VK_TRUE) {
+				graphicsQueueIndex = presentQueueIndex = (int)i;
+				break;
+			}
+		}
+	}
+
+	// Try to find separate queues
+	if (presentQueueIndex == -1) {
+		for (size_t i = 0; i < supportsPresent.size(); i++) {
+			if (supportsPresent[i] == VK_TRUE) {
+				presentQueueIndex = (int)i;
+				break;
+			}
+		}
+	}
+
+	// Check indexes
+	if (graphicsQueueIndex == -1 || presentQueueIndex == -1) {
+		throw ao::core::Exception("Fail to find a queue that supports graphics & present");
+	}
+	if (graphicsQueueIndex != presentQueueIndex) {
+		throw ao::core::Exception("Separate queue for graphics & present is not supported"); // TODO: Add support
+	}
+	this->queueIndex = graphicsQueueIndex;
+
+	// Get surface formats
+	std::vector<VkSurfaceFormatKHR> formats = ao::vk::utilities::surfaceFormatKHRs(this->device->device, this->surface, this->fpGetPhysicalDeviceSurfaceFormatsKHR);
+
+	// No prefered format case
+	if (formats.size() == 1 && formats.front().format == VkFormat::VK_FORMAT_UNDEFINED) {
+		this->colorFormat = VkFormat::VK_FORMAT_B8G8R8A8_UNORM;
+		this->colorSpace = formats.front().colorSpace;
+	}
+	else { // Find VK_FORMAT_B8G8R8A8_UNORM
+		bool found = false;
+
+		for (VkSurfaceFormatKHR& format : formats) {
+			if (format.format == VkFormat::VK_FORMAT_B8G8R8A8_UNORM) {
+				colorFormat = format.format;
+				colorSpace = format.colorSpace;
+				found = true;
+				break;
+			}
+		}
+
+		// Select the first format
+		if (!found) {
+			this->colorFormat = formats.front().format;
+			this->colorSpace = formats.front().colorSpace;
+		}
+	}
+}

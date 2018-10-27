@@ -285,6 +285,17 @@ void ao::vk::AOEngine::prepareVulkan() {
 	this->swapchain->initCommandBuffers(this->frameBuffers, this->renderPass, this->settings.winSettings);
 }
 
+void ao::vk::AOEngine::loop() {
+	while (this->loopingCondition()) {
+		this->onLoopIteration();
+
+		// Render frame
+		this->render();
+	}
+}
+
+void ao::vk::AOEngine::onLoopIteration() {}
+
 void ao::vk::AOEngine::render() {
 	vkDeviceWaitIdle(this->device->logicalDevice);
 

@@ -100,7 +100,16 @@ namespace ao {
 			/// <summary>
 			/// Method to define main loop
 			/// </summary>
-			virtual void loop() = 0;
+			void loop();
+			/// <summary>
+			/// Method to define a loop condition
+			/// </summary>
+			/// <returns>True = continue to loop & False = stop looping</returns>
+			virtual bool loopingCondition() = 0;
+			/// <summary>
+			/// Method executed on each loop iteration
+			/// </summary>
+			virtual void onLoopIteration();
 
 			/// <summary>
 			/// Method to render a frame

@@ -67,6 +67,9 @@ foreach(SUBMODULE ${SUBMODULES})
 	add_subdirectory("${SUBMODULES_DIR}/${SUBMODULE}")
 endforeach(SUBMODULE)
 
+# Force folder creation
+set_target_properties(log4cpp PROPERTIES FOLDER "LOG4C++")
+
 # Include headers
 include_directories(${Boost_INCLUDE_DIR})
 include_directories(${Vulkan_INCLUDE_DIR})

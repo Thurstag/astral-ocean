@@ -18,7 +18,8 @@ namespace ao {
 			void initSurface(VkSurfaceKHR& surface) override;
 			void freeWindow() override;
 
-			void loop() override;
+			bool loopingCondition() override;
+			void onLoopIteration() override;
 
 			std::vector<char const*> instanceExtensions() override;
 			

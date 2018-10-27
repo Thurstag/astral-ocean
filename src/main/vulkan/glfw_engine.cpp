@@ -29,13 +29,14 @@ void ao::vk::GLFWEngine::freeWindow() {
 	glfwTerminate();
 }
 
-void ao::vk::GLFWEngine::loop() {
-	while (!glfwWindowShouldClose(window)) {
-		glfwPollEvents();
+bool ao::vk::GLFWEngine::loopingCondition() {
+	return !glfwWindowShouldClose(this->window);
+}
 
-		// Render frame
-		this->render();
-	}
+void ao::vk::GLFWEngine::onLoopIteration() {
+	ao::vk::AOEngine::onLoopIteration();
+
+	glfwPollEvents();
 }
 
 std::vector<char const*> ao::vk::GLFWEngine::instanceExtensions() {

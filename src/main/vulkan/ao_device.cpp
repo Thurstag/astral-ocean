@@ -1,15 +1,15 @@
 #include "ao_device.h"
 
 ao::vk::AODevice::AODevice(VkPhysicalDevice& device) {
-	this->device = device;
+	this->physical = device;
 
 	// Get properties
-	vkGetPhysicalDeviceProperties(this->device, &this->properties);
-	vkGetPhysicalDeviceFeatures(this->device, &this->features);
-	vkGetPhysicalDeviceMemoryProperties(this->device, &this->memoryProperties);
+	vkGetPhysicalDeviceProperties(this->physical, &this->properties);
+	vkGetPhysicalDeviceFeatures(this->physical, &this->features);
+	vkGetPhysicalDeviceMemoryProperties(this->physical, &this->memoryProperties);
 
 	// Get QueueFamilyProperties
-	this->queueFamilyProperties = ao::vk::utilities::vkQueueFamilyProperties(this->device);
+	this->queueFamilyProperties = ao::vk::utilities::vkQueueFamilyProperties(this->physical);
 
 	// Check count
 	if (this->queueFamilyProperties.empty()) {
@@ -17,7 +17,7 @@ ao::vk::AODevice::AODevice(VkPhysicalDevice& device) {
 	}
 
 	// Get supported extensions
-	this->extensions = ao::vk::utilities::vkExtensionProperties(this->device);
+	this->extensions = ao::vk::utilities::vkExtensionProperties(this->physical);
 
 	// Check count
 	if (this->extensions.empty()) {
@@ -27,10 +27,10 @@ ao::vk::AODevice::AODevice(VkPhysicalDevice& device) {
 
 ao::vk::AODevice::~AODevice() {
 	if (this->commandPool) {
-		vkDestroyCommandPool(this->logicalDevice, this->commandPool, nullptr);
+		vkDestroyCommandPool(this->logical, this->commandPool, nullptr);
 	}
-	if (this->logicalDevice) {
-		vkDestroyDevice(this->logicalDevice, nullptr);
+	if (this->logical) {
+		vkDestroyDevice(this->logical, nullptr);
 	}
 }
 
@@ -129,7 +129,7 @@ VkResult ao::vk::AODevice::initLogicalDevice(std::vector<char const*> deviceExte
 	}
 
 	// Create device
-	ao::vk::utilities::vkAssert(vkCreateDevice(this->device, &deviceCreateInfo, nullptr, &this->logicalDevice), "Fail to create logical device");
+	ao::vk::utilities::vkAssert(vkCreateDevice(this->physical, &deviceCreateInfo, nullptr, &this->logical), "Fail to create logical device");
 
 	// Create command pool
 	return this->initCommandPool(cflags);
@@ -140,7 +140,7 @@ VkResult ao::vk::AODevice::initCommandPool(VkCommandPoolCreateFlags flags) {
 	cmdPoolInfo.queueFamilyIndex = std::get<AO_GRAPHICS_QUEUE_INDEX>(this->queueFamilyIndices);
 	cmdPoolInfo.flags = flags;
 
-	return vkCreateCommandPool(logicalDevice, &cmdPoolInfo, nullptr, &this->commandPool);
+	return vkCreateCommandPool(logical, &cmdPoolInfo, nullptr, &this->commandPool);
 }
 
 uint32_t ao::vk::AODevice::memoryType(uint32_t typeBits, VkMemoryPropertyFlags properties) {

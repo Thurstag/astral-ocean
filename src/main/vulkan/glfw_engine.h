@@ -17,6 +17,7 @@ namespace ao {
 			void initWindow() override;
 			void initSurface(VkSurfaceKHR& surface) override;
 			void freeWindow() override;
+			bool isIconified() override;
 
 			bool loopingCondition() override;
 			void onLoopIteration() override;

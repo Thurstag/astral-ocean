@@ -12,12 +12,12 @@ void ao::vk::GLFWEngine::initWindow() {
 
 	// Define properties
 	glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
-	glfwWindowHint(GLFW_RESIZABLE, this->settings.winSettings.rezisable ? GLFW_TRUE : GLFW_FALSE);
+	glfwWindowHint(GLFW_RESIZABLE, this->settings.window.rezisable ? GLFW_TRUE : GLFW_FALSE);
 
 	// Create window
-	this->window = glfwCreateWindow((int)this->settings.winSettings.width, (int)this->settings.winSettings.height, this->settings.winSettings.name.c_str(), nullptr, nullptr);
+	this->window = glfwCreateWindow((int)this->settings.window.width, (int)this->settings.window.height, this->settings.window.name.c_str(), nullptr, nullptr);
 
-	LOGGER << LogLevel::DEBUG << "Init window(" << this->settings.winSettings.width << "x" << this->settings.winSettings.height << ")";
+	LOGGER << LogLevel::DEBUG << "Init " << this->settings.window.width << "x" << this->settings.window.height << " window";
 }
 
 void ao::vk::GLFWEngine::initSurface(VkSurfaceKHR& surface) {
@@ -27,6 +27,10 @@ void ao::vk::GLFWEngine::initSurface(VkSurfaceKHR& surface) {
 void ao::vk::GLFWEngine::freeWindow() {
 	glfwDestroyWindow(this->window);
 	glfwTerminate();
+}
+
+bool ao::vk::GLFWEngine::isIconified() {
+	return glfwGetWindowAttrib(window, GLFW_ICONIFIED);
 }
 
 bool ao::vk::GLFWEngine::loopingCondition() {

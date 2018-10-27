@@ -46,7 +46,7 @@ namespace ao {
 			/// <param name="width">Width</param>
 			/// <param name="height">Height</param>
 			/// <param name="vsync">Vsync enabled or not</param>
-			void init(uint64_t& width, uint64_t& height, bool vsync = false);
+			void init(uint64_t& width, uint64_t& height, bool vsync = false); // TODO: Remove vsync = false and search in AOEngine::settings.window
 			/// <summary>
 			/// Method to init surface
 			/// </summary>
@@ -67,6 +67,10 @@ namespace ao {
 			/// <param name="renderPass">Render pass</param>
 			/// <param name="winSettings">Window settings</param>
 			void initCommandBuffers(std::vector<VkFramebuffer>& frameBuffers, VkRenderPass& renderPass, WindowSettings& winSettings);
+			/// <summary>
+			/// Method to free command buffers
+			/// </summary>
+			void freeCommandBuffers();
 
 			/// <summary>
 			/// Method to get next image

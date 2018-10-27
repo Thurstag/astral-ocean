@@ -8,17 +8,17 @@ ao::vk::AOSwapChain::AOSwapChain(VkInstance* instance, AODevice* device) {
 ao::vk::AOSwapChain::~AOSwapChain() {
 	if (this->swapChain) {
 		for (auto buffer : this->buffers) {
-			vkDestroyImageView(this->device->logicalDevice, buffer.second, nullptr);
+			vkDestroyImageView(this->device->logical, buffer.second, nullptr);
 		}
 	}
 	
 	if (this->surface) {
-		vkDestroySwapchainKHR(this->device->logicalDevice, swapChain, nullptr);
+		vkDestroySwapchainKHR(this->device->logical, swapChain, nullptr);
 		vkDestroySurfaceKHR(*this->instance, surface, nullptr);
 	}
 
-	vkFreeCommandBuffers(this->device->logicalDevice, this->commandPool, (uint32_t)this->commandBuffers.size(), this->commandBuffers.data());
-	vkDestroyCommandPool(this->device->logicalDevice, this->commandPool, nullptr);
+	this->freeCommandBuffers();
+	vkDestroyCommandPool(this->device->logical, this->commandPool, nullptr);
 }
 
 void ao::vk::AOSwapChain::init(uint64_t & width, uint64_t & height, bool vsync) {
@@ -27,7 +27,7 @@ void ao::vk::AOSwapChain::init(uint64_t & width, uint64_t & height, bool vsync) 
 
 	// Get physical device surface properties and formats
 	VkSurfaceCapabilitiesKHR capabilities;
-	ao::vk::utilities::vkAssert(vkGetPhysicalDeviceSurfaceCapabilitiesKHR(this->device->device, surface, &capabilities), "Fail to get physical device surface properties and formats");
+	ao::vk::utilities::vkAssert(vkGetPhysicalDeviceSurfaceCapabilitiesKHR(this->device->physical, surface, &capabilities), "Fail to get physical device surface properties and formats");
 
 	// Find best swap chain size
 	VkExtent2D swapchainExtent;
@@ -51,7 +51,7 @@ void ao::vk::AOSwapChain::init(uint64_t & width, uint64_t & height, bool vsync) 
 	}
 	else {
 		// Get present modes
-		std::vector<VkPresentModeKHR> presentModes = ao::vk::utilities::presentModeKHRs(this->device->device, this->surface);
+		std::vector<VkPresentModeKHR> presentModes = ao::vk::utilities::presentModeKHRs(this->device->physical, this->surface);
 
 		// Check size
 		if (presentModes.empty()) {
@@ -126,18 +126,18 @@ void ao::vk::AOSwapChain::init(uint64_t & width, uint64_t & height, bool vsync) 
 	}
 
 	// Create swap chain
-	ao::vk::utilities::vkAssert(vkCreateSwapchainKHR(this->device->logicalDevice, &createInfo, nullptr, &this->swapChain), "Fail to create swap chain");
+	ao::vk::utilities::vkAssert(vkCreateSwapchainKHR(this->device->logical, &createInfo, nullptr, &this->swapChain), "Fail to create swap chain");
 	
 	// Free old swap chain
 	if (old) {
 		for (auto& buffer : this->buffers) {
-			vkDestroyImageView(this->device->logicalDevice, buffer.second, nullptr);
+			vkDestroyImageView(this->device->logical, buffer.second, nullptr);
 		}
-		vkDestroySwapchainKHR(this->device->logicalDevice, this->swapChain, nullptr);
+		vkDestroySwapchainKHR(this->device->logical, old, nullptr);
 	}
 
 	// Get images
-	std::vector<VkImage> images = ao::vk::utilities::swapChainImages(this->device->logicalDevice, this->swapChain);
+	std::vector<VkImage> images = ao::vk::utilities::swapChainImages(this->device->logical, this->swapChain);
 
 	// Resize buffer vector
 	this->buffers.resize(images.size());
@@ -166,7 +166,7 @@ void ao::vk::AOSwapChain::init(uint64_t & width, uint64_t & height, bool vsync) 
 		buffers[i].first = images[i];
 
 		// Create view
-		ao::vk::utilities::vkAssert(vkCreateImageView(this->device->logicalDevice, &colorCreateInfo, nullptr, &this->buffers[i].second), "Fail to create image view " + std::to_string(i));
+		ao::vk::utilities::vkAssert(vkCreateImageView(this->device->logical, &colorCreateInfo, nullptr, &this->buffers[i].second), "Fail to create image view " + std::to_string(i));
 	}
 
 	LOGGER << LogLevel::DEBUG << "Set-up a swap chain with a buffer of " << buffers.size() << " image(s)";
@@ -176,7 +176,7 @@ void ao::vk::AOSwapChain::initSurface() {
 	// Detect if a queue supports present
 	std::vector<VkBool32> supportsPresent(this->device->queueFamilyProperties.size());
 	for (uint32_t i = 0; i < supportsPresent.size(); i++) {
-		vkGetPhysicalDeviceSurfaceSupportKHR(this->device->device, i, this->surface, &supportsPresent[i]);
+		vkGetPhysicalDeviceSurfaceSupportKHR(this->device->physical, i, this->surface, &supportsPresent[i]);
 	}
 
 	// Try to find a queue that support graphics & present
@@ -214,7 +214,7 @@ void ao::vk::AOSwapChain::initSurface() {
 	this->queueIndex = graphicsQueueIndex;
 
 	// Get surface formats
-	std::vector<VkSurfaceFormatKHR> formats = ao::vk::utilities::surfaceFormatKHRs(this->device->device, this->surface);
+	std::vector<VkSurfaceFormatKHR> formats = ao::vk::utilities::surfaceFormatKHRs(this->device->physical, this->surface);
 
 	// Check size
 	if (formats.empty()) {
@@ -253,7 +253,7 @@ void ao::vk::AOSwapChain::initCommandPool() {
 	cmdPoolInfo.flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
 
 	// Create command pool
-	ao::vk::utilities::vkAssert(vkCreateCommandPool(this->device->logicalDevice, &cmdPoolInfo, nullptr, &this->commandPool), "Fail to create command pool");
+	ao::vk::utilities::vkAssert(vkCreateCommandPool(this->device->logical, &cmdPoolInfo, nullptr, &this->commandPool), "Fail to create command pool");
 }
 
 void ao::vk::AOSwapChain::createCommandBuffers() {
@@ -267,7 +267,7 @@ void ao::vk::AOSwapChain::createCommandBuffers() {
 	this->commandBuffers.resize(this->buffers.size());
 
 	// Allocate buffers
-	ao::vk::utilities::vkAssert(vkAllocateCommandBuffers(this->device->logicalDevice, &commandBufferAllocateInfo, this->commandBuffers.data()), "Fail to allocate command buffers");
+	ao::vk::utilities::vkAssert(vkAllocateCommandBuffers(this->device->logical, &commandBufferAllocateInfo, this->commandBuffers.data()), "Fail to allocate command buffers");
 }
 
 void ao::vk::AOSwapChain::initCommandBuffers(std::vector<VkFramebuffer>& frameBuffers, VkRenderPass& renderPass, ao::vk::WindowSettings& winSettings) {
@@ -314,8 +314,12 @@ void ao::vk::AOSwapChain::initCommandBuffers(std::vector<VkFramebuffer>& frameBu
 	}
 }
 
+void ao::vk::AOSwapChain::freeCommandBuffers() {
+	vkFreeCommandBuffers(this->device->logical, this->commandPool, (uint32_t)this->commandBuffers.size(), this->commandBuffers.data());
+}
+
 VkResult ao::vk::AOSwapChain::nextImage(VkSemaphore& present, uint32_t& imageIndex) {
-	return vkAcquireNextImageKHR(this->device->logicalDevice, swapChain, UINT64_MAX, present, nullptr, &imageIndex);
+	return vkAcquireNextImageKHR(this->device->logical, swapChain, UINT64_MAX, present, nullptr, &imageIndex);
 }
 
 VkResult ao::vk::AOSwapChain::enqueueImage(VkQueue & queue, uint32_t & imageIndex, VkSemaphore & render) {

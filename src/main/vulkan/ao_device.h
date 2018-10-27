@@ -28,8 +28,8 @@ namespace ao {
 			VkPhysicalDeviceProperties properties;
 			VkPhysicalDeviceFeatures features;
 
-			VkPhysicalDevice device;
-			VkDevice logicalDevice;
+			VkPhysicalDevice physical;
+			VkDevice logical;
 
 			VkCommandPool commandPool;
 			VkFormat depthFormat;

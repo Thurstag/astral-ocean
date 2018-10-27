@@ -82,6 +82,10 @@ namespace ao {
 			/// Method to set-up frame buffers
 			/// </summary>
 			void setUpFrameBuffers();
+			/// <summary>
+			/// Method to re-create swap chain
+			/// </summary>
+			void recreateSwapChain();
 
 			/// <summary>
 			/// Method to init surface
@@ -96,6 +100,11 @@ namespace ao {
 			/// Method to clean-up window
 			/// </summary>
 			virtual void freeWindow() = 0;
+			/// <summary>
+			/// Method to know if window is iconified
+			/// </summary>
+			/// <returns></returns>
+			virtual bool isIconified() = 0;
 
 			/// <summary>
 			/// Method to define main loop

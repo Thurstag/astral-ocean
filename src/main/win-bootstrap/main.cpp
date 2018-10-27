@@ -26,7 +26,7 @@ int main(int argc, char* argv[]) {
 	ao::core::Logger LOGGER = ao::core::Logger::getInstance<Main>();
 
 	// Define settings
-	ao::vk::EngineSettings settings = { true, "TEST", 1280, 720 };
+	ao::vk::EngineSettings settings = { true, "TEST", 1280, 720, true };
 	ao::vk::AOEngine* engine;
 
 	try {

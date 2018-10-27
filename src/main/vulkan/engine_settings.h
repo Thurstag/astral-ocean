@@ -18,7 +18,7 @@ namespace ao {
 			bool vkValidationLayers = false;
 
 			/* WINDOW SECTION */
-			WindowSettings winSettings;
+			WindowSettings window;
 		};
 	}
 }

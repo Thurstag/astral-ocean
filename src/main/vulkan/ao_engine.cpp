@@ -42,6 +42,9 @@ void ao::vk::AOEngine::initVulkan() {
 	// Init logical device
 	ao::vk::utilities::vkAssert(this->device->initLogicalDevice(this->deviceExtensions(), this->queueFlags(), this->commandPoolFlags()), "Fail to init logical device");
 
+	// Get a graphics queue from the device
+	vkGetDeviceQueue(this->device->logicalDevice, std::get<AO_GRAPHICS_QUEUE_INDEX>(this->device->queueFamilyIndices), 0, &this->queue);
+
 	// Find suitable depth format
 	ao::vk::utilities::vkAssert(ao::vk::utilities::getSupportedDepthFormat(this->device->device, this->device->depthFormat), "Fail to find suitable depth format");
 
@@ -52,6 +55,14 @@ void ao::vk::AOEngine::initVulkan() {
 	VkSemaphoreCreateInfo semaphoreInfo = { VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO };
 	ao::vk::utilities::vkAssert(vkCreateSemaphore(this->device->logicalDevice, &semaphoreInfo, nullptr, &this->semaphores.first), "Fail to create present semaphore");
 	ao::vk::utilities::vkAssert(vkCreateSemaphore(this->device->logicalDevice, &semaphoreInfo, nullptr, &this->semaphores.second), "Fail to create render semaphore");
+
+	// Create submit info
+	this->submitInfo = { VK_STRUCTURE_TYPE_SUBMIT_INFO };
+	this->submitInfo.pWaitDstStageMask = &this->submitPipelineStages;
+	this->submitInfo.waitSemaphoreCount = 1;
+	this->submitInfo.pWaitSemaphores = &this->semaphores.first;
+	this->submitInfo.signalSemaphoreCount = 1;
+	this->submitInfo.pSignalSemaphores = &this->semaphores.second;
 }
 
 void ao::vk::AOEngine::freeVulkan() {
@@ -269,9 +280,58 @@ void ao::vk::AOEngine::prepareVulkan() {
 
 	// Set-up frame buffer
 	this->setUpFrameBuffers();
+
+	// Init command buffers
+	this->swapchain->initCommandBuffers(this->frameBuffers, this->renderPass, this->settings.winSettings);
 }
 
-void ao::vk::AOEngine::render() {}
+void ao::vk::AOEngine::render() {
+	vkDeviceWaitIdle(this->device->logicalDevice);
+
+	// Prepare frame
+	this->prepareFrame();
+
+	// Edit submit info
+	this->submitInfo.commandBufferCount = 1;
+	this->submitInfo.pCommandBuffers = &this->swapchain->commandBuffers[this->frameBufferIndex];
+
+	// Submit to queue
+	ao::vk::utilities::vkAssert(vkQueueSubmit(this->queue, 1, &this->submitInfo, nullptr), "Fail to submit to queue");
+
+	// Submit frame
+	this->submitFrame();
+
+	vkDeviceWaitIdle(this->device->logicalDevice);
+}
+
+void ao::vk::AOEngine::prepareFrame() {
+	VkResult result = this->swapchain->nextImage(this->semaphores.first, this->frameBufferIndex);
+
+	// Check result
+	if (result == VkResult::VK_ERROR_OUT_OF_DATE_KHR || result == VkResult::VK_SUBOPTIMAL_KHR) {
+		LOGGER << LogLevel::DEBUG << "Swap chain is no longer compatible, re-create it";
+
+		// TODO
+		return;
+	}
+	ao::vk::utilities::vkAssert(result, "Fail to get next image from swap chain");
+}
+
+void ao::vk::AOEngine::submitFrame() {
+	VkResult result = this->swapchain->enqueueImage(this->queue, this->frameBufferIndex, this->semaphores.second);
+
+	// Check result
+	if (result == VkResult::VK_ERROR_OUT_OF_DATE_KHR) {
+		LOGGER << LogLevel::DEBUG << "Swap chain is no longer compatible, re-create it";
+
+	    // TODO
+		return;
+	}
+	else if (result == VkResult::VK_SUCCESS || result == VkResult::VK_SUBOPTIMAL_KHR) {
+		ao::vk::utilities::vkAssert(vkQueueWaitIdle(this->queue), "Fail to wait queue idle");
+	}
+	ao::vk::utilities::vkAssert(result, "Fail to enqueue image");
+}
 
 std::vector<char const*> ao::vk::AOEngine::deviceExtensions() {
 	return std::vector<char const*>();

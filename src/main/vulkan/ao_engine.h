@@ -35,9 +35,15 @@ namespace ao {
 			ao::core::Logger LOGGER = ao::core::Logger::getInstance<AOEngine>();
 			
 			std::pair<VkSemaphore, VkSemaphore> semaphores; // First = Present semaphore & Second = Render semaphore
-			std::tuple<VkImage, VkDeviceMemory, VkImageView> stencilBuffer;
-			std::vector<VkFramebuffer>frameBuffers;
 			std::vector<VkFence> waitingFences;
+			VkQueue queue;
+
+			std::tuple<VkImage, VkDeviceMemory, VkImageView> stencilBuffer;
+			std::vector<VkFramebuffer> frameBuffers;
+			uint32_t frameBufferIndex = 0;
+
+			VkPipelineStageFlags submitPipelineStages = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+			VkSubmitInfo submitInfo;
 
 			EngineSettings settings;
 
@@ -46,7 +52,6 @@ namespace ao {
 			AOSwapChain* swapchain;
 			VkInstance instance;
 			AODevice* device;
-
 
 			/// <summary>
 			/// Method to init vulkan
@@ -96,10 +101,19 @@ namespace ao {
 			/// Method to define main loop
 			/// </summary>
 			virtual void loop() = 0;
+
 			/// <summary>
 			/// Method to render a frame
 			/// </summary>
 			void render();
+			/// <summary>
+			/// Method to prepare frame
+			/// </summary>
+			void prepareFrame();
+			/// <summary>
+			/// Method to submit frame
+			/// </summary>
+			void submitFrame();
 
 			/// <summary>
 			/// Method to get vkInstance extensions

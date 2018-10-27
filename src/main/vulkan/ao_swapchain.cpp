@@ -269,3 +269,64 @@ void ao::vk::AOSwapChain::createCommandBuffers() {
 	// Allocate buffers
 	ao::vk::utilities::vkAssert(vkAllocateCommandBuffers(this->device->logicalDevice, &commandBufferAllocateInfo, this->commandBuffers.data()), "Fail to allocate command buffers");
 }
+
+void ao::vk::AOSwapChain::initCommandBuffers(std::vector<VkFramebuffer>& frameBuffers, VkRenderPass& renderPass, ao::vk::WindowSettings& winSettings) {
+	VkCommandBufferBeginInfo cmdBufInfo = { VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO };
+
+	// Define clear values for all framebuffer attachments with
+	std::array<VkClearValue, 2> clearValues;
+	clearValues[0].color = { { 0.0f, 0.0f, 0.0f, 1.0f } };
+	clearValues[1].depthStencil = { 1, 0 };
+
+	VkRenderPassBeginInfo renderPassBeginInfo = { VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO };
+	renderPassBeginInfo.renderPass = renderPass;
+	renderPassBeginInfo.renderArea.offset.x = 0;
+	renderPassBeginInfo.renderArea.offset.y = 0;
+	renderPassBeginInfo.renderArea.extent.width = (uint32_t)winSettings.width;
+	renderPassBeginInfo.renderArea.extent.height = (uint32_t)winSettings.height;
+	renderPassBeginInfo.clearValueCount = 2;
+	renderPassBeginInfo.pClearValues = clearValues.data();
+
+	for (int32_t i = 0; i < this->commandBuffers.size(); ++i) {
+		// Set target frame buffer
+		renderPassBeginInfo.framebuffer = frameBuffers[i];
+
+		// Begin command buffer
+		ao::vk::utilities::vkAssert(vkBeginCommandBuffer(this->commandBuffers[i], &cmdBufInfo), "Fail to begin command buffer");
+
+		// Start the first sub pass specified in our default render pass setup by the base class
+		// This will clear the color and depth attachment
+		vkCmdBeginRenderPass(this->commandBuffers[i], &renderPassBeginInfo, VK_SUBPASS_CONTENTS_INLINE);
+
+		// Update dynamic viewport state
+		VkViewport viewport = { 0, 0, (float)winSettings.width, (float)winSettings.height, 0.0f, 1.0f };
+		vkCmdSetViewport(this->commandBuffers[i], 0, 1, &viewport);
+
+		// Update dynamic scissor state
+		VkRect2D scissor = { 0, 0, (uint32_t)winSettings.width, (uint32_t)winSettings.height };
+		vkCmdSetScissor(this->commandBuffers[i], 0, 1, &scissor);
+
+		// TODO: Execute a function
+
+		// End render pass & command buffer
+		vkCmdEndRenderPass(this->commandBuffers[i]);
+		ao::vk::utilities::vkAssert(vkEndCommandBuffer(this->commandBuffers[i]), "Fail to end command buffer");
+	}
+}
+
+VkResult ao::vk::AOSwapChain::nextImage(VkSemaphore& present, uint32_t& imageIndex) {
+	return vkAcquireNextImageKHR(this->device->logicalDevice, swapChain, UINT64_MAX, present, nullptr, &imageIndex);
+}
+
+VkResult ao::vk::AOSwapChain::enqueueImage(VkQueue & queue, uint32_t & imageIndex, VkSemaphore & render) {
+	VkPresentInfoKHR presentInfo = { 
+		VK_STRUCTURE_TYPE_PRESENT_INFO_KHR, 
+		nullptr,
+		1,
+		&render,
+		1,
+		&swapChain,
+		&imageIndex
+	};
+	return vkQueuePresentKHR(queue, &presentInfo);
+}

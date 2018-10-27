@@ -60,6 +60,23 @@ namespace ao {
 			/// Method to create command buffers
 			/// </summary>
 			void createCommandBuffers();
+			/// <summary>
+			/// Method to init command buffers
+			/// </summary>
+			/// <param name="frameBuffers">Frame buffers</param>
+			/// <param name="renderPass">Render pass</param>
+			/// <param name="winSettings">Window settings</param>
+			void initCommandBuffers(std::vector<VkFramebuffer>& frameBuffers, VkRenderPass& renderPass, WindowSettings& winSettings);
+
+			/// <summary>
+			/// Method to get next image
+			/// </summary>
+			VkResult nextImage(VkSemaphore& present, uint32_t& imageIndex);
+			/// <summary>
+			/// Method to enqueue an image
+			/// </summary>
+			/// <returns></returns>
+			VkResult enqueueImage(VkQueue& queue, uint32_t& imageIndex, VkSemaphore& render);
 		protected:
 			ao::core::Logger LOGGER = ao::core::Logger::getInstance<AOSwapChain>();
 		private:

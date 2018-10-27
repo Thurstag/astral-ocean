@@ -32,6 +32,9 @@ void ao::vk::GLFWEngine::freeWindow() {
 void ao::vk::GLFWEngine::loop() {
 	while (!glfwWindowShouldClose(window)) {
 		glfwPollEvents();
+
+		// Render frame
+		this->render();
 	}
 }
 

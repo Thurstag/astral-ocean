@@ -17,6 +17,7 @@ namespace ao {
 			VkSwapchainKHR swapChain = nullptr;
 
 			std::vector<std::pair<VkImage, VkImageView>> buffers;
+			std::vector<VkCommandBuffer> commandBuffers;
 
 			VkColorSpaceKHR colorSpace;
 			VkSurfaceKHR surface;
@@ -54,6 +55,11 @@ namespace ao {
 			/// Method to init command pool
 			/// </summary>
 			void initCommandPool();
+
+			/// <summary>
+			/// Method to create command buffers
+			/// </summary>
+			void createCommandBuffers();
 		protected:
 			ao::core::Logger LOGGER = ao::core::Logger::getInstance<AOSwapChain>();
 		private:

@@ -142,3 +142,15 @@ VkResult ao::vk::AODevice::initCommandPool(VkCommandPoolCreateFlags flags) {
 
 	return vkCreateCommandPool(logicalDevice, &cmdPoolInfo, nullptr, &this->commandPool);
 }
+
+uint32_t ao::vk::AODevice::memoryType(uint32_t typeBits, VkMemoryPropertyFlags properties) {
+	for (uint32_t i = 0; i < memoryProperties.memoryTypeCount; i++) {
+		if ((typeBits & 1) == 1) {
+			if ((memoryProperties.memoryTypes[i].propertyFlags & properties) == properties) {
+				return i;
+			}
+		}
+		typeBits >>= 1;
+	}
+	throw ao::core::Exception("Fail to find a matching memory type");
+}

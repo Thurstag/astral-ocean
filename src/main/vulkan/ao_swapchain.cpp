@@ -17,6 +17,7 @@ ao::vk::AOSwapChain::~AOSwapChain() {
 		vkDestroySurfaceKHR(*this->instance, surface, nullptr);
 	}
 
+	vkFreeCommandBuffers(this->device->logicalDevice, this->commandPool, (uint32_t)this->commandBuffers.size(), this->commandBuffers.data());
 	vkDestroyCommandPool(this->device->logicalDevice, this->commandPool, nullptr);
 }
 
@@ -253,4 +254,18 @@ void ao::vk::AOSwapChain::initCommandPool() {
 
 	// Create command pool
 	ao::vk::utilities::vkAssert(vkCreateCommandPool(this->device->logicalDevice, &cmdPoolInfo, nullptr, &this->commandPool), "Fail to create command pool");
+}
+
+void ao::vk::AOSwapChain::createCommandBuffers() {
+	// Create info
+	VkCommandBufferAllocateInfo commandBufferAllocateInfo = { VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO };
+	commandBufferAllocateInfo.commandPool = commandPool;
+	commandBufferAllocateInfo.level = VkCommandBufferLevel::VK_COMMAND_BUFFER_LEVEL_PRIMARY;
+	commandBufferAllocateInfo.commandBufferCount = (uint32_t)this->buffers.size();
+
+	// Resize buffer vector
+	this->commandBuffers.resize(this->buffers.size());
+
+	// Allocate buffers
+	ao::vk::utilities::vkAssert(vkAllocateCommandBuffers(this->device->logicalDevice, &commandBufferAllocateInfo, this->commandBuffers.data()), "Fail to allocate command buffers");
 }

@@ -70,6 +70,14 @@ namespace ao {
 			/// <param name="flags">Flags</param>
 			/// <returns>VkResult</returns>
 			VkResult initCommandPool(VkCommandPoolCreateFlags flags);
+
+			/// <summary>
+			/// Method to get memory type
+			/// </summary>
+			/// <param name="typeBits">Type bits</param>
+			/// <param name="properties">Properties</param>
+			/// <returns>Index or</returns>
+			uint32_t memoryType(uint32_t typeBits, VkMemoryPropertyFlags properties);
 		protected:
 			ao::core::Logger LOGGER = ao::core::Logger::getInstance<AODevice>();
 		};

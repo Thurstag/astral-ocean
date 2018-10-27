@@ -5,18 +5,22 @@
 #include <core/logger.h>
 #include <iostream>
 
+#ifdef WIN32
 #include <stdlib.h>
 #include <crtdbg.h>
 
 #define _CRTDBG_MAP_ALLOC 1
+#endif // WIN32
 
 struct Main{};
 
 int main(int argc, char* argv[]) {
 	std::string buffer;
 
+#ifdef WIN32
 	// Activate memory leaks detection
 	_CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF);
+#endif // WIN32
 
 	// Get LOGGER
 	ao::core::Logger LOGGER = ao::core::Logger::getInstance<Main>();

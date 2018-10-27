@@ -35,9 +35,14 @@ namespace ao {
 			ao::core::Logger LOGGER = ao::core::Logger::getInstance<AOEngine>();
 			
 			std::pair<VkSemaphore, VkSemaphore> semaphores; // First = Present semaphore & Second = Render semaphore
+			std::tuple<VkImage, VkDeviceMemory, VkImageView> stencilBuffer;
+			std::vector<VkFramebuffer>frameBuffers;
+			std::vector<VkFence> waitingFences;
 
 			EngineSettings settings;
 
+			VkPipelineCache pipelineCache;
+			VkRenderPass renderPass;
 			AOSwapChain* swapchain;
 			VkInstance instance;
 			AODevice* device;
@@ -57,6 +62,23 @@ namespace ao {
 			void freeVulkan();
 
 			/// <summary>
+			/// Method to create waiting fences
+			/// </summary>
+			void createWaitingFences();
+			/// <summary>
+			/// Method to create stencil buffer
+			/// </summary>
+			void createStencilBuffer();
+			/// <summary>
+			/// Method to set-up render pass
+			/// </summary>
+			void setUpRenderPass();
+			/// <summary>
+			/// Method to set-up frame buffers
+			/// </summary>
+			void setUpFrameBuffers();
+
+			/// <summary>
 			/// Method to init surface
 			/// </summary>
 			/// <param name="surface">Surface reference</param>
@@ -74,6 +96,10 @@ namespace ao {
 			/// Method to define main loop
 			/// </summary>
 			virtual void loop() = 0;
+			/// <summary>
+			/// Method to render a frame
+			/// </summary>
+			void render();
 
 			/// <summary>
 			/// Method to get vkInstance extensions

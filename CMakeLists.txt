@@ -24,6 +24,9 @@ set(GLFW_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
 
 # Compilation options
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O3")
+IF (WIN32)
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -EHsc") # Fix issues with log4cpp compilation / TODO: Search if there is an issue on other operating systems
+ENDIF()
 
 # Define output folders
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib")

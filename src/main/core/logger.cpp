@@ -1,16 +1,13 @@
 #include "logger.h"
 
 ao::core::Logger::Logger(std::type_info const& type) {
-	std::vector<std::string> prefixes = { "class", "struct" };
+	std::vector<std::string> prefixes = { "class ", "struct " };
 	std::string name = boost::core::demangle(type.name());
 
 	// Optimize name
 	for (std::string prefix : prefixes) {
-		if (boost::starts_with(name, prefix)) {
-			name = boost::lexical_cast<std::string>(name.c_str() + prefix.size());
-		}
+		boost::replace_all(name, prefix, "");
 	}
-	boost::trim(name);
 
 	// Create logger
 	this->category = &log4cpp::Category::getInstance(name);

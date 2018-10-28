@@ -1,11 +1,9 @@
 #pragma once
 
-#include <boost/algorithm/string/predicate.hpp>
 #include <log4cpp/OstreamAppender.hh>
 #include <boost/algorithm/string.hpp>
 #include <log4cpp/PatternLayout.hh>
 #include <boost/core/demangle.hpp>
-#include <boost/lexical_cast.hpp>
 #include <log4cpp/Appender.hh>
 #include <log4cpp/Category.hh>
 

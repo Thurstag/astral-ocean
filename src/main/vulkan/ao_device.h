@@ -51,7 +51,7 @@ namespace ao {
 			/// <summary>
 			/// Destructor
 			/// </summary>
-			~AODevice();
+			virtual ~AODevice();
 
 			/* METHODS */ 
 			
@@ -79,7 +79,7 @@ namespace ao {
 			/// <returns>Index or</returns>
 			uint32_t memoryType(uint32_t typeBits, VkMemoryPropertyFlags properties);
 		protected:
-			ao::core::Logger LOGGER = ao::core::Logger::getInstance<AODevice>();
+			core::Logger LOGGER = core::Logger::getInstance<AODevice>();
 		};
 	}
 }

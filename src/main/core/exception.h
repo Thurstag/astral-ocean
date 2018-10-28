@@ -22,7 +22,7 @@ namespace ao {
 			/// <summary>
 			/// Destructor
 			/// </summary>
-			~Exception();
+			virtual ~Exception();
 
 			/// <summary>
 			/// Method to define << operator

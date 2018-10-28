@@ -11,8 +11,9 @@ namespace ao {
 		class GLFWEngine : public virtual AOEngine {
 		public:
 			GLFWEngine(EngineSettings settings) : AOEngine(settings) {};
-			~GLFWEngine() override;
+			virtual ~GLFWEngine();
 
+			void setWindowTitle(std::string title) override;
 		protected:
 			void initWindow() override;
 			void initSurface(VkSurfaceKHR& surface) override;

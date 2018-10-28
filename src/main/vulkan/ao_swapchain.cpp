@@ -35,7 +35,7 @@ void ao::vk::AOSwapChain::init(uint64_t & width, uint64_t & height, bool vsync) 
 		swapchainExtent = { (uint32_t)width, (uint32_t)height };
 	}
 	else {
-		if (capabilities.currentExtent.width != width && capabilities.currentExtent.height != height) {
+		if (capabilities.currentExtent.width != width || capabilities.currentExtent.height != height) {
 			LOGGER << LogLevel::WARN << "Surface size is defined, change reference size from " << width << "x" << height << " to " << capabilities.currentExtent.width << "x" << capabilities.currentExtent.height;
 		}
 

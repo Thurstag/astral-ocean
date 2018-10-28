@@ -1,11 +1,21 @@
 #include "ao_engine.h"
 
 ao::vk::AOEngine::AOEngine(EngineSettings settings) {
-	this->settings = settings;
+	this->_settings = settings;
 }
 
 ao::vk::AOEngine::~AOEngine() {
+	// Execute plugins' onInit()
+	this->pluginsMutex.lock();
+	{
+		for (size_t i = 0; i < this->plugins.size(); i++) {
+			this->plugins[i]->BeforeDestroy();
+		}
+	}
+	this->pluginsMutex.unlock();
+
 	this->freeVulkan();
+	this->freePlugins();
 }
 
 void ao::vk::AOEngine::run() {
@@ -14,15 +24,32 @@ void ao::vk::AOEngine::run() {
 
 	this->prepareVulkan();
 
+	// Execute plugins' onInit()
+	this->pluginsMutex.lock();
+	{
+		for (size_t i = 0; i < this->plugins.size(); i++) {
+			this->plugins[i]->onInit();
+		}
+	}
+	this->pluginsMutex.unlock();
+
 	this->loop();
+}
+
+void ao::vk::AOEngine::add(ao::core::Plugin<AOEngine> * plugin) {
+	this->pluginsMutex.lock();
+	{
+		this->plugins.push_back(plugin);
+	}
+	this->pluginsMutex.unlock();
 }
 
 void ao::vk::AOEngine::initVulkan() {
 	// Create instance
-	ao::vk::utilities::vkAssert(ao::vk::utilities::createVkInstance(this->settings, this->instance, this->instanceExtensions()), "Fail to create instance");
+	ao::vk::utilities::vkAssert(ao::vk::utilities::createVkInstance(this->_settings, this->instance, this->instanceExtensions()), "Fail to create instance");
 
 	// TODO: Set-up debugging if validation layer is enabled
-	if (this->settings.vkValidationLayers) {
+	if (this->_settings.vkValidationLayers) {
 		ao::vk::utilities::initDebugging(this->instance, VkDebugReportFlagBitsEXT::VK_DEBUG_REPORT_ERROR_BIT_EXT | VkDebugReportFlagBitsEXT::VK_DEBUG_REPORT_WARNING_BIT_EXT, VK_NULL_HANDLE);
 	}
 
@@ -122,7 +149,7 @@ void ao::vk::AOEngine::createStencilBuffer() {
 		0,
 		VK_IMAGE_TYPE_2D,
 		this->device->depthFormat,
-		{ (uint32_t)this->settings.window.width, (uint32_t)this->settings.window.height, 1 },
+		{ (uint32_t)this->_settings.window.width, (uint32_t)this->_settings.window.height, 1 },
 		1,
 		1,
 		VkSampleCountFlagBits::VK_SAMPLE_COUNT_1_BIT,
@@ -235,8 +262,8 @@ void ao::vk::AOEngine::setUpFrameBuffers() {
 	frameBufferCreateInfo.renderPass = renderPass;
 	frameBufferCreateInfo.attachmentCount = 2;
 	frameBufferCreateInfo.pAttachments = attachments.data();
-	frameBufferCreateInfo.width = (uint32_t)this->settings.window.width;
-	frameBufferCreateInfo.height = (uint32_t)this->settings.window.height;
+	frameBufferCreateInfo.width = (uint32_t)this->_settings.window.width;
+	frameBufferCreateInfo.height = (uint32_t)this->_settings.window.height;
 	frameBufferCreateInfo.layers = 1;
 
 	// Create frame buffers
@@ -252,7 +279,7 @@ void ao::vk::AOEngine::recreateSwapChain() {
 	vkDeviceWaitIdle(this->device->logical);
 
 	// Init swap chain
-	this->swapchain->init(this->settings.window.width, this->settings.window.height, this->settings.window.vsync);
+	this->swapchain->init(this->_settings.window.width, this->_settings.window.height, this->_settings.window.vsync);
 
 	// Destroy stencil buffer
 	vkDestroyImage(this->device->logical, std::get<0>(this->stencilBuffer), nullptr);
@@ -275,7 +302,7 @@ void ao::vk::AOEngine::recreateSwapChain() {
 
 	// Re-create command buffers
 	this->swapchain->createCommandBuffers();
-	this->swapchain->initCommandBuffers(this->frameBuffers, this->renderPass, this->settings.window);
+	this->swapchain->initCommandBuffers(this->frameBuffers, this->renderPass, this->_settings.window);
 
 	// Wait device idle
 	vkDeviceWaitIdle(this->device->logical);
@@ -296,7 +323,7 @@ void ao::vk::AOEngine::prepareVulkan() {
 	this->swapchain->initCommandPool();
 
 	// Init swap chain
-	this->swapchain->init(this->settings.window.width, this->settings.window.height, this->settings.window.vsync);
+	this->swapchain->init(this->_settings.window.width, this->_settings.window.height, this->_settings.window.vsync);
 
 	// Create command buffers
 	this->swapchain->createCommandBuffers();
@@ -318,7 +345,15 @@ void ao::vk::AOEngine::prepareVulkan() {
 	this->setUpFrameBuffers();
 
 	// Init command buffers
-	this->swapchain->initCommandBuffers(this->frameBuffers, this->renderPass, this->settings.window);
+	this->swapchain->initCommandBuffers(this->frameBuffers, this->renderPass, this->_settings.window);
+}
+
+void ao::vk::AOEngine::setWindowTitle(std::string title) {
+	this->_settings.window.name = title;
+}
+
+ao::vk::EngineSettings ao::vk::AOEngine::settings() {
+	return this->_settings;
 }
 
 void ao::vk::AOEngine::loop() {
@@ -332,7 +367,16 @@ void ao::vk::AOEngine::loop() {
 	}
 }
 
-void ao::vk::AOEngine::onLoopIteration() {}
+void ao::vk::AOEngine::onLoopIteration() {
+	// Execute plugins' onUpdate()
+	this->pluginsMutex.lock();
+	{
+		for (size_t i = 0; i < this->plugins.size(); i++) {
+			this->plugins[i]->onUpdate();
+		}
+	}
+	this->pluginsMutex.unlock();
+}
 
 void ao::vk::AOEngine::render() {
 	vkDeviceWaitIdle(this->device->logical);
@@ -396,4 +440,15 @@ VkCommandPoolCreateFlags ao::vk::AOEngine::commandPoolFlags() {
 
 uint8_t ao::vk::AOEngine::selectVkPhysicalDevice(std::vector<VkPhysicalDevice>& devices) {
 	return 0;    // First device
+}
+
+void ao::vk::AOEngine::freePlugins() {
+	this->pluginsMutex.lock();
+	{
+		for (size_t i = 0; i < this->plugins.size(); i++) {
+			delete this->plugins[i];
+		}
+		this->plugins.clear();
+	}
+	this->pluginsMutex.unlock();
 }

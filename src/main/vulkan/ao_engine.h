@@ -2,7 +2,9 @@
 
 #include <core/exception.h>
 #include <vulkan/vulkan.h>
+#include <core/plugin.h>
 #include <core/logger.h>
+#include <mutex>
 #include <tuple>
 
 #include "engine_settings.h"
@@ -31,8 +33,26 @@ namespace ao {
 			/// Methdo to run engine
 			/// </summary>
 			virtual void run();
+
+			/// <summary>
+			/// Method to add a plugin
+			/// </summary>
+			/// <param name="plugin">Plugin</param>
+			void add(core::Plugin<AOEngine>* plugin);
+
+			/// <summary>
+			/// Method to set window's title
+			/// </summary>
+			/// <param name="title"></param>
+			virtual void setWindowTitle(std::string title);
+
+			/// <summary>
+			/// Method to get settings
+			/// </summary>
+			/// <returns>Settings</returns>
+			EngineSettings settings();
 		protected:
-			ao::core::Logger LOGGER = ao::core::Logger::getInstance<AOEngine>();
+			core::Logger LOGGER = core::Logger::getInstance<AOEngine>();
 			
 			std::pair<VkSemaphore, VkSemaphore> semaphores; // First = Present semaphore & Second = Render semaphore
 			std::vector<VkFence> waitingFences;
@@ -45,7 +65,7 @@ namespace ao {
 			VkPipelineStageFlags submitPipelineStages = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
 			VkSubmitInfo submitInfo;
 
-			EngineSettings settings;
+			EngineSettings _settings;
 
 			VkPipelineCache pipelineCache;
 			VkRenderPass renderPass;
@@ -160,6 +180,15 @@ namespace ao {
 			/// <param name="devices">VkPhysicalDevices</param>
 			/// <returns>Index</returns>
 			virtual uint8_t selectVkPhysicalDevice(std::vector<VkPhysicalDevice>& devices);
+
+		private:
+			std::vector<core::Plugin<AOEngine>*> plugins;
+			std::mutex pluginsMutex;
+
+			/// <summary>
+			/// Method to free plugins
+			/// </summary>
+			void freePlugins();
 		};
 	}
 }

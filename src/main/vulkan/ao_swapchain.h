@@ -36,7 +36,7 @@ namespace ao {
 			/// <summary>
 			/// Destructor
 			/// </summary>
-			~AOSwapChain();
+			virtual ~AOSwapChain();
 
 			/* METHODS */
 

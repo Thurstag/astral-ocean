@@ -46,7 +46,7 @@ namespace ao {
 			/// <param name="width">Width</param>
 			/// <param name="height">Height</param>
 			/// <param name="vsync">Vsync enabled or not</param>
-			void init(uint64_t& width, uint64_t& height, bool vsync = false); // TODO: Remove vsync = false and search in AOEngine::settings.window
+			void init(uint64_t& width, uint64_t& height, bool vsync);
 			/// <summary>
 			/// Method to init surface
 			/// </summary>

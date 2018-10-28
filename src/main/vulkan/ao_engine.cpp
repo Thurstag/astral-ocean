@@ -252,7 +252,7 @@ void ao::vk::AOEngine::recreateSwapChain() {
 	vkDeviceWaitIdle(this->device->logical);
 
 	// Init swap chain
-	this->swapchain->init(this->settings.window.width, this->settings.window.height);
+	this->swapchain->init(this->settings.window.width, this->settings.window.height, this->settings.window.vsync);
 
 	// Destroy stencil buffer
 	vkDestroyImage(this->device->logical, std::get<0>(this->stencilBuffer), nullptr);
@@ -296,7 +296,7 @@ void ao::vk::AOEngine::prepareVulkan() {
 	this->swapchain->initCommandPool();
 
 	// Init swap chain
-	this->swapchain->init(this->settings.window.width, this->settings.window.height);
+	this->swapchain->init(this->settings.window.width, this->settings.window.height, this->settings.window.vsync);
 
 	// Create command buffers
 	this->swapchain->createCommandBuffers();

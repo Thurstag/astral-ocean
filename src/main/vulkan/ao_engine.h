@@ -109,7 +109,7 @@ namespace ao {
 			/// <summary>
 			/// Method to define main loop
 			/// </summary>
-			void loop();
+			virtual void loop();
 			/// <summary>
 			/// Method to define a loop condition
 			/// </summary>

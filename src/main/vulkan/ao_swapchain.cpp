@@ -75,7 +75,7 @@ void ao::vk::AOSwapChain::init(uint64_t & width, uint64_t & height, bool vsync) 
 		}
 	}
 
-	LOGGER << LogLevel::DEBUG << "Use present mode: " << presentMode;
+	LOGGER << LogLevel::DEBUG << "Use present mode: " << ao::vk::enums::to_string(presentMode);
 
 	// Determine surface image capacity
 	uint32_t countSurfaceImages = capabilities.minImageCount + 1;

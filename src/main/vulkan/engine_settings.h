@@ -11,6 +11,7 @@ namespace ao {
 			uint64_t height;
 
 			bool rezisable = false;
+			bool vsync = false;
 		};
 
 		struct EngineSettings {

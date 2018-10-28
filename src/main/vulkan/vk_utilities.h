@@ -8,6 +8,7 @@
 #include <vector>
 
 #include "engine_settings.h"
+#include "vk_enums.h"
 
 namespace ao {
 	namespace vk {
@@ -30,7 +31,7 @@ namespace ao {
 			/// <param name="message">Exception's message on failure</param>
 			inline void vkAssert(VkResult result, std::string message) {
 				if (!vkCheck(result)) {
-					throw ao::core::Exception(message + ". Reason: " + std::to_string(result)); // TODO: Create a function to get string enum
+					throw ao::core::Exception(message + ". Reason: " + ao::vk::enums::to_string(result));
 				}
 			}
 

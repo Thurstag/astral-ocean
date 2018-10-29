@@ -11,6 +11,11 @@ TODO
 
 ## Installation
 
+### Requirements
+
+* CMake (>= 2.8.0)
+* C++ (>= standard 11)
+
 ### Linux
 
 ```
@@ -25,12 +30,12 @@ TODO
 
 ## Dependencies
 
-| Project       | Version      |
-| ------------- |:-------------:|
-| Vulkan | `TODO`        |
-| Boost | `TODO`        |
-| GLFW  | `TODO`        |
-| LOG4CPP | `TODO`        |
+| Project       | Version           |
+| ------------- |:-----------------:|
+| Vulkan        | **1.1.85.0**      |
+| Boost         | **1.68.0**        |
+| GLFW          | **3.2.1**@245461e |
+| LOG4CPP       | **2.9.0**@683cbb7 |
 
 ## Special thanks
 

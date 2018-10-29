@@ -358,11 +358,15 @@ ao::vk::EngineSettings ao::vk::AOEngine::settings() {
 
 void ao::vk::AOEngine::loop() {
 	while (this->loopingCondition()) {
-		this->onLoopIteration();
-
-		// Render frame
 		if (!this->isIconified()) {
+			// Execute plugins...
+			this->onLoopIteration();
+
+			// Render frame
 			this->render();
+		}
+		else {
+			this->waitMaximized();
 		}
 	}
 }

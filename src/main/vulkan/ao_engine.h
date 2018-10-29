@@ -139,6 +139,10 @@ namespace ao {
 			/// Method executed on each loop iteration
 			/// </summary>
 			virtual void onLoopIteration();
+			/// <summary>
+			/// Method to wait until window is maximized
+			/// </summary>
+			virtual void waitMaximized() = 0;
 
 			/// <summary>
 			/// Method to render a frame

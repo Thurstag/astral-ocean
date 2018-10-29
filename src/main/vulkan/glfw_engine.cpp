@@ -48,6 +48,10 @@ void ao::vk::GLFWEngine::onLoopIteration() {
 	glfwPollEvents();
 }
 
+void ao::vk::GLFWEngine::waitMaximized() {
+	glfwWaitEvents();
+}
+
 std::vector<char const*> ao::vk::GLFWEngine::instanceExtensions() {
 	return ao::glfw::utilities::getExtensions();
 }

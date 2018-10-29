@@ -22,6 +22,7 @@ namespace ao {
 
 			bool loopingCondition() override;
 			void onLoopIteration() override;
+			void waitMaximized() override;
 
 			std::vector<char const*> instanceExtensions() override;
 			

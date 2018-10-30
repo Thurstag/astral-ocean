@@ -1,9 +1,10 @@
 #pragma once
 
-#include <boost/stacktrace.hpp>
-#include <sstream>
 #include <exception>
+#include <sstream>
 #include <string>
+
+#include <boost/stacktrace.hpp>
 
 namespace ao {
 	namespace core {

@@ -1,18 +1,17 @@
 #pragma once
 
-#include <vulkan/glfw_engine.h>
-#include <vulkan/plugins/title_fps_plugin.h>
-#include <core/exception.h>
-#include <core/logger.h>
 #include <iostream>
-
 #ifdef WIN32
 #include <stdlib.h>
 #include <crtdbg.h>
-
-#define _CRTDBG_MAP_ALLOC 1
 #endif // WIN32
 
+#include <ao/vulkan/plugins/title_fps_plugin.h>
+#include <ao/vulkan/glfw_engine.h>
+#include <ao/core/exception.h>
+#include <ao/core/logger.h>
+
+#define _CRTDBG_MAP_ALLOC 1
 struct Main{};
 
 int main(int argc, char* argv[]) {

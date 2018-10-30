@@ -7,6 +7,7 @@ set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake")
 set(SUBMODULES_DIR "${CMAKE_BINARY_DIR}/submodules")
 set(GLFW_INCLUDE_DIR "${SUBMODULES_DIR}/glfw/include")
 set(LOG4CPP_INCLUDE_DIR "${SUBMODULES_DIR}/log4cpp/include")
+set(AO_INCLUDE_DIR "${CMAKE_SOURCE_DIR}/include")
 set(DEPENDENCIES
 	Vulkan
 	Threads
@@ -23,9 +24,13 @@ set(GLFW_BUILD_TESTS OFF CACHE BOOL "" FORCE)
 set(GLFW_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
 
 # Compilation options
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O3")
 IF (WIN32)
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -EHsc") # Fix issues with log4cpp compilation / TODO: Search if there is an issue on other operating systems
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /EHsc /O2") 
+  
+  # '/EHsc' Fix issues with log4cpp compilation
+  # TODO: Search if there is an issue on other operating systems
+ELSE()
+	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O3")
 ENDIF()
 
 # Define output folders
@@ -37,18 +42,19 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin")
 set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
+# Define project name
 project("${PROJECT_NAME}")
 
 # Try to find libraries
-if (NOT CMAKE_VERSION VERSION_LESS 3.7.0)
-	foreach(DEPENDENCY ${DEPENDENCIES})
+IF (NOT CMAKE_VERSION VERSION_LESS 3.7.0)
+	FOREACH(DEPENDENCY ${DEPENDENCIES})
 		message("Using module to find ${DEPENDENCY} library")
 		find_package(${DEPENDENCY})
-	endforeach(DEPENDENCY)
-endif()
+	ENDFOREACH(DEPENDENCY)
+ENDIF()
 
 # Check all libs
-foreach(DEPENDENCY ${DEPENDENCIES})
+FOREACH(DEPENDENCY ${DEPENDENCIES})
 	IF(NOT ${${DEPENDENCY}_FOUND})
 		message(FATAL_ERROR "Could not find ${DEPENDENCY} library!")
 	ELSE()
@@ -59,13 +65,13 @@ foreach(DEPENDENCY ${DEPENDENCIES})
 			message("${DEPENDENCY} library found: '${${DEPENDENCY}_LIBRARY}'")
 		ENDIF()
 	ENDIF()
-endforeach(DEPENDENCY)
+ENDFOREACH(DEPENDENCY)
 
 # Add submodules
-foreach(SUBMODULE ${SUBMODULES})
+FOREACH(SUBMODULE ${SUBMODULES})
 	message("Include ${SUBMODULE} submodule")
 	add_subdirectory("${SUBMODULES_DIR}/${SUBMODULE}")
-endforeach(SUBMODULE)
+ENDFOREACH(SUBMODULE)
 
 # Force folder creation
 set_target_properties(log4cpp PROPERTIES FOLDER "LOG4C++")
@@ -75,7 +81,7 @@ include_directories(${Boost_INCLUDE_DIR})
 include_directories(${Vulkan_INCLUDE_DIR})
 include_directories(${GLFW_INCLUDE_DIR})
 include_directories(${LOG4CPP_INCLUDE_DIR})
-include_directories("src/main")
+include_directories(${AO_INCLUDE_DIR})
 
 # Include sub-projects
 add_subdirectory("src/main/vulkan")

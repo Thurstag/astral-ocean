@@ -1,7 +1,8 @@
 #pragma once
 
-#include <GLFW/glfw3.h>
 #include <vector>
+
+#include <GLFW/glfw3.h>
 
 namespace ao {
 	namespace glfw {

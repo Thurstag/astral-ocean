@@ -7,7 +7,7 @@
 #include "ao_engine.h"
 
 namespace ao {
-	namespace vk {
+	namespace vulkan {
 		class GLFWEngine : public virtual AOEngine {
 		public:
 			GLFWEngine(EngineSettings settings) : AOEngine(settings) {};
@@ -16,7 +16,7 @@ namespace ao {
 			void setWindowTitle(std::string title) override;
 		protected:
 			void initWindow() override;
-			void initSurface(VkSurfaceKHR& surface) override;
+			void initSurface(vk::SurfaceKHR& surface) override;
 			void freeWindow() override;
 			bool isIconified() override;
 

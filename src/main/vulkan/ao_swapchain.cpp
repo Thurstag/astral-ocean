@@ -1,38 +1,38 @@
 #include "ao_swapchain.h"
 
-ao::vk::AOSwapChain::AOSwapChain(VkInstance* instance, AODevice* device) {
+ao::vulkan::AOSwapChain::AOSwapChain(vk::Instance* instance, AODevice* device) {
 	this->instance = instance;
 	this->device = device;
 }
 
-ao::vk::AOSwapChain::~AOSwapChain() {
+ao::vulkan::AOSwapChain::~AOSwapChain() {
 	if (this->swapChain) {
 		for (auto buffer : this->buffers) {
-			vkDestroyImageView(this->device->logical, buffer.second, nullptr);
+			this->device->logical.destroyImageView(buffer.second);
 		}
+		this->buffers.clear();
 	}
 	
 	if (this->surface) {
-		vkDestroySwapchainKHR(this->device->logical, swapChain, nullptr);
-		vkDestroySurfaceKHR(*this->instance, surface, nullptr);
+		this->device->logical.destroySwapchainKHR(this->swapChain);
+		this->instance->destroySurfaceKHR(this->surface);
 	}
 
 	this->freeCommandBuffers();
-	vkDestroyCommandPool(this->device->logical, this->commandPool, nullptr);
+	this->device->logical.destroyCommandPool(this->commandPool);
 }
 
-void ao::vk::AOSwapChain::init(uint64_t & width, uint64_t & height, bool vsync) {
+void ao::vulkan::AOSwapChain::init(uint64_t & width, uint64_t & height, bool vsync) {
 	// Back-up swap chain
-	VkSwapchainKHR old = this->swapChain;
+	vk::SwapchainKHR old = this->swapChain;
 
 	// Get physical device surface properties and formats
-	VkSurfaceCapabilitiesKHR capabilities;
-	ao::vk::utilities::vkAssert(vkGetPhysicalDeviceSurfaceCapabilitiesKHR(this->device->physical, surface, &capabilities), "Fail to get physical device surface properties and formats");
+	vk::SurfaceCapabilitiesKHR capabilities = this->device->physical.getSurfaceCapabilitiesKHR(this->surface);
 
 	// Find best swap chain size
-	VkExtent2D swapchainExtent;
+	vk::Extent2D swapchainExtent;
 	if (capabilities.currentExtent.width == (uint32_t)-1) {
-		swapchainExtent = { (uint32_t)width, (uint32_t)height };
+		swapchainExtent = vk::Extent2D(static_cast<uint32_t>(width), static_cast<uint32_t>(height));
 	}
 	else {
 		if (capabilities.currentExtent.width != width || capabilities.currentExtent.height != height) {
@@ -45,37 +45,31 @@ void ao::vk::AOSwapChain::init(uint64_t & width, uint64_t & height, bool vsync) 
 	}
 
 	// Select best present mode
-	VkPresentModeKHR presentMode = VkPresentModeKHR::VK_PRESENT_MODE_MAX_ENUM_KHR;
+	vk::PresentModeKHR presentMode = vk::PresentModeKHR::eFifo;
 	if (vsync) {
-		presentMode = VkPresentModeKHR::VK_PRESENT_MODE_FIFO_KHR;
+		presentMode = vk::PresentModeKHR::eFifo;
 	}
 	else {
 		// Get present modes
-		std::vector<VkPresentModeKHR> presentModes = ao::vk::utilities::presentModeKHRs(this->device->physical, this->surface);
+		std::vector<vk::PresentModeKHR> presentModes = ao::vulkan::utilities::presentModeKHRs(this->device->physical, this->surface);
 
 		// Check size
 		if (presentModes.empty()) {
-			throw ao::core::Exception("VkPresentModeKHR vector is empty");
+			throw ao::core::Exception("vk::PresentModeKHR vector is empty");
 		}
 
-		for (VkPresentModeKHR& mode : presentModes) {
-			if (mode == VkPresentModeKHR::VK_PRESENT_MODE_MAILBOX_KHR) {
-				presentMode = VkPresentModeKHR::VK_PRESENT_MODE_MAILBOX_KHR;
+		for (vk::PresentModeKHR& mode : presentModes) {
+			if (mode == vk::PresentModeKHR::eMailbox) {
+				presentMode = vk::PresentModeKHR::eMailbox;
 				break;
 			}
-			if (mode == VkPresentModeKHR::VK_PRESENT_MODE_IMMEDIATE_KHR) {
-				presentMode = VkPresentModeKHR::VK_PRESENT_MODE_IMMEDIATE_KHR;
+			if (mode == vk::PresentModeKHR::eImmediate) {
+				presentMode = vk::PresentModeKHR::eImmediate;
 			}
-		}
-
-		// Check mode
-		if (presentMode == VkPresentModeKHR::VK_PRESENT_MODE_MAX_ENUM_KHR) {
-			LOGGER << LogLevel::WARN << "Fail to find a suitable present mode, use VkPresentModeKHR::VK_PRESENT_MODE_FIFO_KHR";
-			presentMode = VkPresentModeKHR::VK_PRESENT_MODE_FIFO_KHR;
 		}
 	}
 
-	LOGGER << LogLevel::DEBUG << "Use present mode: " << ao::vk::enums::to_string(presentMode);
+	LOGGER << LogLevel::INFO << "Use present mode: " << ao::vulkan::enums::to_string(presentMode);
 
 	// Determine surface image capacity
 	uint32_t countSurfaceImages = capabilities.minImageCount + 1;
@@ -84,14 +78,14 @@ void ao::vk::AOSwapChain::init(uint64_t & width, uint64_t & height, bool vsync) 
 	}
 
 	// Find the transformation of the surface
-	VkSurfaceTransformFlagsKHR transform = capabilities.currentTransform;
-	if (capabilities.supportedTransforms & VK_SURFACE_TRANSFORM_IDENTITY_BIT_KHR) {
-		transform = VK_SURFACE_TRANSFORM_IDENTITY_BIT_KHR;
+	vk::SurfaceTransformFlagBitsKHR transform = capabilities.currentTransform;
+	if (capabilities.supportedTransforms & vk::SurfaceTransformFlagBitsKHR::eIdentity) {
+		transform = vk::SurfaceTransformFlagBitsKHR::eIdentity;
 	}
 
 	// Find a supported composite alpha format
-	VkCompositeAlphaFlagBitsKHR compositeAlpha = VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR;
-	for (VkCompositeAlphaFlagBitsKHR composite : { VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR, VK_COMPOSITE_ALPHA_PRE_MULTIPLIED_BIT_KHR, VK_COMPOSITE_ALPHA_POST_MULTIPLIED_BIT_KHR, VK_COMPOSITE_ALPHA_INHERIT_BIT_KHR }) {
+	vk::CompositeAlphaFlagBitsKHR compositeAlpha = vk::CompositeAlphaFlagBitsKHR::eOpaque;
+	for (vk::CompositeAlphaFlagBitsKHR composite : { vk::CompositeAlphaFlagBitsKHR::eOpaque, vk::CompositeAlphaFlagBitsKHR::ePreMultiplied, vk::CompositeAlphaFlagBitsKHR::ePostMultiplied, vk::CompositeAlphaFlagBitsKHR::eInherit }) {
 		if (capabilities.supportedCompositeAlpha & composite) {
 			compositeAlpha = composite;
 			break;
@@ -99,45 +93,36 @@ void ao::vk::AOSwapChain::init(uint64_t & width, uint64_t & height, bool vsync) 
 	}
 
 	// Create info
-	VkSwapchainCreateInfoKHR createInfo = { VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR };
-	createInfo.surface = surface;
-	createInfo.minImageCount = countSurfaceImages;
-	createInfo.imageFormat = colorFormat;
-	createInfo.imageColorSpace = colorSpace;
-	createInfo.imageExtent = { swapchainExtent.width, swapchainExtent.height };
-	createInfo.imageUsage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
-	createInfo.preTransform = (VkSurfaceTransformFlagBitsKHR)transform;
-	createInfo.imageArrayLayers = 1;
-	createInfo.imageSharingMode = VK_SHARING_MODE_EXCLUSIVE;
-	createInfo.queueFamilyIndexCount = 0;
-	createInfo.presentMode = presentMode;
-	createInfo.oldSwapchain = old;
-	createInfo.clipped = VK_TRUE;
-	createInfo.compositeAlpha = compositeAlpha;
+	vk::SwapchainCreateInfoKHR createInfo(
+		vk::SwapchainCreateFlagsKHR(), surface, countSurfaceImages,
+		colorFormat, colorSpace, vk::Extent2D(swapchainExtent.width, swapchainExtent.height),
+		1, vk::ImageUsageFlagBits::eColorAttachment, vk::SharingMode::eExclusive, 0, nullptr,
+		transform, compositeAlpha, presentMode, true, old
+	);
 
 	// Enable transfer source
-	if (capabilities.supportedUsageFlags & VK_IMAGE_USAGE_TRANSFER_SRC_BIT) {
-		createInfo.imageUsage |= VK_IMAGE_USAGE_TRANSFER_SRC_BIT;
+	if (capabilities.supportedUsageFlags & vk::ImageUsageFlagBits::eTransferSrc) {
+		createInfo.imageUsage |= vk::ImageUsageFlagBits::eTransferSrc;
 	}
 
 	// Enable transfer destination
-	if (capabilities.supportedUsageFlags & VK_IMAGE_USAGE_TRANSFER_DST_BIT) {
-		createInfo.imageUsage |= VK_IMAGE_USAGE_TRANSFER_DST_BIT;
+	if (capabilities.supportedUsageFlags & vk::ImageUsageFlagBits::eTransferDst) {
+		createInfo.imageUsage |= vk::ImageUsageFlagBits::eTransferDst;
 	}
 
 	// Create swap chain
-	ao::vk::utilities::vkAssert(vkCreateSwapchainKHR(this->device->logical, &createInfo, nullptr, &this->swapChain), "Fail to create swap chain");
+	this->swapChain = this->device->logical.createSwapchainKHR(createInfo);
 	
 	// Free old swap chain
 	if (old) {
 		for (auto& buffer : this->buffers) {
-			vkDestroyImageView(this->device->logical, buffer.second, nullptr);
+			this->device->logical.destroyImageView(buffer.second);
 		}
-		vkDestroySwapchainKHR(this->device->logical, old, nullptr);
+		this->device->logical.destroySwapchainKHR(old);
 	}
 
 	// Get images
-	std::vector<VkImage> images = ao::vk::utilities::swapChainImages(this->device->logical, this->swapChain);
+	std::vector<vk::Image> images = ao::vulkan::utilities::swapChainImages(this->device->logical, this->swapChain);
 
 	// Resize buffer vector
 	this->buffers.resize(images.size());
@@ -145,50 +130,39 @@ void ao::vk::AOSwapChain::init(uint64_t & width, uint64_t & height, bool vsync) 
 	// Fill buffer vector
 	for (size_t i = 0; i < images.size(); i++) {
 		// Create info
-		VkImageViewCreateInfo colorCreateInfo = { VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO };
-		colorCreateInfo.format = colorFormat;
-		colorCreateInfo.components = {
-			VK_COMPONENT_SWIZZLE_R,
-			VK_COMPONENT_SWIZZLE_G,
-			VK_COMPONENT_SWIZZLE_B,
-			VK_COMPONENT_SWIZZLE_A
-		};
-		colorCreateInfo.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
-		colorCreateInfo.subresourceRange.baseMipLevel = 0;
-		colorCreateInfo.subresourceRange.levelCount = 1;
-		colorCreateInfo.subresourceRange.baseArrayLayer = 0;
-		colorCreateInfo.subresourceRange.layerCount = 1;
-		colorCreateInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
-		colorCreateInfo.flags = 0;
-		colorCreateInfo.image = images[i];
+		vk::ImageViewCreateInfo colorCreateInfo(
+			vk::ImageViewCreateFlags(), images[i], vk::ImageViewType::e2D, colorFormat,
+			vk::ComponentMapping(vk::ComponentSwizzle::eR, vk::ComponentSwizzle::eG, vk::ComponentSwizzle::eB, vk::ComponentSwizzle::eA),
+			vk::ImageSubresourceRange(vk::ImageAspectFlagBits::eColor, 0, 1, 0, 1)
+		);
 
 		// Add in buffer
 		buffers[i].first = images[i];
 
 		// Create view
-		ao::vk::utilities::vkAssert(vkCreateImageView(this->device->logical, &colorCreateInfo, nullptr, &this->buffers[i].second), "Fail to create image view " + std::to_string(i));
+		this->buffers[i].second = this->device->logical.createImageView(colorCreateInfo);
 	}
 
 	LOGGER << LogLevel::DEBUG << "Set-up a swap chain with a buffer of " << buffers.size() << " image(s)";
 }
 
-void ao::vk::AOSwapChain::initSurface() {
+void ao::vulkan::AOSwapChain::initSurface() {
 	// Detect if a queue supports present
-	std::vector<VkBool32> supportsPresent(this->device->queueFamilyProperties.size());
+	std::vector<vk::Bool32> supportsPresent(this->device->queueFamilyProperties.size());
 	for (uint32_t i = 0; i < supportsPresent.size(); i++) {
-		vkGetPhysicalDeviceSurfaceSupportKHR(this->device->physical, i, this->surface, &supportsPresent[i]);
+		supportsPresent[i] = this->device->physical.getSurfaceSupportKHR(i, this->surface);
 	}
 
 	// Try to find a queue that support graphics & present
 	int graphicsQueueIndex = -1, presentQueueIndex = -1;
 	for (size_t i = 0; i < this->device->queueFamilyProperties.size(); i++) {
-		if (this->device->queueFamilyProperties[i].queueFlags & VkQueueFlagBits::VK_QUEUE_GRAPHICS_BIT) {
+		if (this->device->queueFamilyProperties[i].queueFlags & vk::QueueFlagBits::eGraphics) {
 			if (graphicsQueueIndex == -1) {
-				graphicsQueueIndex = (int)i;
+				graphicsQueueIndex = static_cast<int>(i);
 			}
 
 			if (supportsPresent[i] == VK_TRUE) {
-				graphicsQueueIndex = presentQueueIndex = (int)i;
+				graphicsQueueIndex = presentQueueIndex = static_cast<int>(i);
 				break;
 			}
 		}
@@ -198,7 +172,7 @@ void ao::vk::AOSwapChain::initSurface() {
 	if (presentQueueIndex == -1) {
 		for (size_t i = 0; i < supportsPresent.size(); i++) {
 			if (supportsPresent[i] == VK_TRUE) {
-				presentQueueIndex = (int)i;
+				presentQueueIndex = static_cast<int>(i);
 				break;
 			}
 		}
@@ -214,23 +188,23 @@ void ao::vk::AOSwapChain::initSurface() {
 	this->queueIndex = graphicsQueueIndex;
 
 	// Get surface formats
-	std::vector<VkSurfaceFormatKHR> formats = ao::vk::utilities::surfaceFormatKHRs(this->device->physical, this->surface);
+	std::vector<vk::SurfaceFormatKHR> formats = ao::vulkan::utilities::surfaceFormatKHRs(this->device->physical, this->surface);
 
 	// Check size
 	if (formats.empty()) {
-		throw ao::core::Exception("VkSurfaceFormatKHR vector is empty");
+		throw ao::core::Exception("vk::SurfaceFormatKHR vector is empty");
 	}
 
 	// No prefered format case
-	if (formats.size() == 1 && formats.front().format == VkFormat::VK_FORMAT_UNDEFINED) {
-		this->colorFormat = VkFormat::VK_FORMAT_B8G8R8A8_UNORM;
+	if (formats.size() == 1 && formats.front().format == vk::Format::eUndefined) {
+		this->colorFormat = vk::Format::eB8G8R8A8Unorm;
 		this->colorSpace = formats.front().colorSpace;
 	}
 	else { // Find VK_FORMAT_B8G8R8A8_UNORM
 		bool found = false;
 
-		for (VkSurfaceFormatKHR& format : formats) {
-			if (format.format == VkFormat::VK_FORMAT_B8G8R8A8_UNORM) {
+		for (vk::SurfaceFormatKHR& format : formats) {
+			if (format.format == vk::Format::eB8G8R8A8Unorm) {
 				colorFormat = format.format;
 				colorSpace = format.colorSpace;
 				found = true;
@@ -246,91 +220,62 @@ void ao::vk::AOSwapChain::initSurface() {
 	}
 }
 
-void ao::vk::AOSwapChain::initCommandPool() {
-	// Create info
-	VkCommandPoolCreateInfo cmdPoolInfo = { VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO };
-	cmdPoolInfo.queueFamilyIndex = this->queueIndex;
-	cmdPoolInfo.flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
-
-	// Create command pool
-	ao::vk::utilities::vkAssert(vkCreateCommandPool(this->device->logical, &cmdPoolInfo, nullptr, &this->commandPool), "Fail to create command pool");
+void ao::vulkan::AOSwapChain::initCommandPool() {
+	this->commandPool = this->device->logical.createCommandPool(vk::CommandPoolCreateInfo(vk::CommandPoolCreateFlagBits::eResetCommandBuffer, this->queueIndex));
 }
 
-void ao::vk::AOSwapChain::createCommandBuffers() {
-	// Create info
-	VkCommandBufferAllocateInfo commandBufferAllocateInfo = { VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO };
-	commandBufferAllocateInfo.commandPool = commandPool;
-	commandBufferAllocateInfo.level = VkCommandBufferLevel::VK_COMMAND_BUFFER_LEVEL_PRIMARY;
-	commandBufferAllocateInfo.commandBufferCount = (uint32_t)this->buffers.size();
-
-	// Resize buffer vector
-	this->commandBuffers.resize(this->buffers.size());
-
-	// Allocate buffers
-	ao::vk::utilities::vkAssert(vkAllocateCommandBuffers(this->device->logical, &commandBufferAllocateInfo, this->commandBuffers.data()), "Fail to allocate command buffers");
+void ao::vulkan::AOSwapChain::createCommandBuffers() {
+	this->commandBuffers = this->device->logical.allocateCommandBuffers(vk::CommandBufferAllocateInfo(this->commandPool, vk::CommandBufferLevel::ePrimary, static_cast<uint32_t>(this->buffers.size())));
 }
 
-void ao::vk::AOSwapChain::initCommandBuffers(std::vector<VkFramebuffer>& frameBuffers, VkRenderPass& renderPass, ao::vk::WindowSettings& winSettings) {
-	VkCommandBufferBeginInfo cmdBufInfo = { VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO };
-
+void ao::vulkan::AOSwapChain::initCommandBuffers(std::vector<vk::Framebuffer>& frameBuffers, vk::RenderPass& renderPass, ao::vulkan::WindowSettings& winSettings) {
 	// Define clear values for all framebuffer attachments with
-	std::array<VkClearValue, 2> clearValues;
-	clearValues[0].color = { { 0.0f, 0.0f, 0.0f, 1.0f } };
-	clearValues[1].depthStencil = { 1, 0 };
+	std::array<vk::ClearValue, 2> clearValues;
+	clearValues[0].color = vk::ClearColorValue();
+	clearValues[1].depthStencil = vk::ClearDepthStencilValue(1);
 
-	VkRenderPassBeginInfo renderPassBeginInfo = { VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO };
-	renderPassBeginInfo.renderPass = renderPass;
-	renderPassBeginInfo.renderArea.offset.x = 0;
-	renderPassBeginInfo.renderArea.offset.y = 0;
-	renderPassBeginInfo.renderArea.extent.width = (uint32_t)winSettings.width;
-	renderPassBeginInfo.renderArea.extent.height = (uint32_t)winSettings.height;
-	renderPassBeginInfo.clearValueCount = 2;
-	renderPassBeginInfo.pClearValues = clearValues.data();
+	vk::RenderPassBeginInfo renderPassBeginInfo(
+		renderPass, vk::Framebuffer(),
+		vk::Rect2D(vk::Offset2D(), vk::Extent2D(static_cast<uint32_t>(winSettings.width), static_cast<uint32_t>(winSettings.height))),
+		static_cast<uint32_t>(clearValues.size()), clearValues.data()
+	);
 
 	for (int32_t i = 0; i < this->commandBuffers.size(); ++i) {
 		// Set target frame buffer
 		renderPassBeginInfo.framebuffer = frameBuffers[i];
 
 		// Begin command buffer
-		ao::vk::utilities::vkAssert(vkBeginCommandBuffer(this->commandBuffers[i], &cmdBufInfo), "Fail to begin command buffer");
+		this->commandBuffers[i].begin(vk::CommandBufferBeginInfo());
 
 		// Start the first sub pass specified in our default render pass setup by the base class
 		// This will clear the color and depth attachment
-		vkCmdBeginRenderPass(this->commandBuffers[i], &renderPassBeginInfo, VK_SUBPASS_CONTENTS_INLINE);
+		this->commandBuffers[i].beginRenderPass(&renderPassBeginInfo, vk::SubpassContents::eInline);
 
 		// Update dynamic viewport state
-		VkViewport viewport = { 0, 0, (float)winSettings.width, (float)winSettings.height, 0.0f, 1.0f };
-		vkCmdSetViewport(this->commandBuffers[i], 0, 1, &viewport);
+		this->commandBuffers[i].setViewport(0, vk::Viewport(0, 0, static_cast<float>(winSettings.width), static_cast<float>(winSettings.height), 0, 1));
 
 		// Update dynamic scissor state
-		VkRect2D scissor = { 0, 0, (uint32_t)winSettings.width, (uint32_t)winSettings.height };
-		vkCmdSetScissor(this->commandBuffers[i], 0, 1, &scissor);
+		this->commandBuffers[i].setScissor(0, vk::Rect2D(vk::Offset2D(), vk::Extent2D(static_cast<uint32_t>(winSettings.width), static_cast<uint32_t>(winSettings.height))));
 
 		// TODO: Execute a function
 
 		// End render pass & command buffer
-		vkCmdEndRenderPass(this->commandBuffers[i]);
-		ao::vk::utilities::vkAssert(vkEndCommandBuffer(this->commandBuffers[i]), "Fail to end command buffer");
+		this->commandBuffers[i].endRenderPass();
+		this->commandBuffers[i].end();
 	}
 }
 
-void ao::vk::AOSwapChain::freeCommandBuffers() {
-	vkFreeCommandBuffers(this->device->logical, this->commandPool, (uint32_t)this->commandBuffers.size(), this->commandBuffers.data());
+void ao::vulkan::AOSwapChain::freeCommandBuffers() {
+	this->device->logical.freeCommandBuffers(this->commandPool, this->commandBuffers);
 }
 
-VkResult ao::vk::AOSwapChain::nextImage(VkSemaphore& present, uint32_t& imageIndex) {
-	return vkAcquireNextImageKHR(this->device->logical, swapChain, UINT64_MAX, present, nullptr, &imageIndex);
+vk::Result ao::vulkan::AOSwapChain::nextImage(vk::Semaphore& present, uint32_t& imageIndex) {
+	return this->device->logical.acquireNextImageKHR(this->swapChain, UINT64_MAX, present, nullptr, &imageIndex);
 }
 
-VkResult ao::vk::AOSwapChain::enqueueImage(VkQueue & queue, uint32_t & imageIndex, VkSemaphore & render) {
-	VkPresentInfoKHR presentInfo = { 
-		VK_STRUCTURE_TYPE_PRESENT_INFO_KHR, 
-		nullptr,
-		1,
-		&render,
-		1,
-		&swapChain,
-		&imageIndex
-	};
-	return vkQueuePresentKHR(queue, &presentInfo);
+vk::Result ao::vulkan::AOSwapChain::enqueueImage(vk::Queue & queue, uint32_t & imageIndex, vk::Semaphore & render) {
+	vk::PresentInfoKHR presentInfo(1, &render, 1, &this->swapChain, &imageIndex);
+
+	// Pass a pointer to don't trigger an exception
+	return queue.presentKHR(&presentInfo);
 }

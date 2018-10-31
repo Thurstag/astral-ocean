@@ -3,11 +3,11 @@
 /// <summary>
 /// Destructor
 /// </summary>
-ao::vk::GLFWEngine::~GLFWEngine() {
+ao::vulkan::GLFWEngine::~GLFWEngine() {
 	this->freeWindow();
 }
 
-void ao::vk::GLFWEngine::initWindow() {
+void ao::vulkan::GLFWEngine::initWindow() {
 	glfwInit();
 
 	// Define properties
@@ -17,41 +17,44 @@ void ao::vk::GLFWEngine::initWindow() {
 	// Create window
 	this->window = glfwCreateWindow((int)this->_settings.window.width, (int)this->_settings.window.height, this->_settings.window.name.c_str(), nullptr, nullptr);
 
-	LOGGER << LogLevel::DEBUG << "Init " << this->_settings.window.width << "x" << this->_settings.window.height << " window";
+	LOGGER << LogLevel::INFO << "Init " << this->_settings.window.width << "x" << this->_settings.window.height << " window";
 }
 
-void ao::vk::GLFWEngine::initSurface(VkSurfaceKHR& surface) {
-	ao::vk::utilities::vkAssert(glfwCreateWindowSurface(this->instance, this->window, nullptr, &surface), "Fail to create surface");
+void ao::vulkan::GLFWEngine::initSurface(vk::SurfaceKHR& surface) {
+	VkSurfaceKHR _s;
+	ao::vulkan::utilities::vkAssert(glfwCreateWindowSurface(this->instance, this->window, nullptr, &_s), "Fail to create surface");
+
+	surface = _s;
 }
 
-void ao::vk::GLFWEngine::freeWindow() {
+void ao::vulkan::GLFWEngine::freeWindow() {
 	glfwDestroyWindow(this->window);
 	glfwTerminate();
 }
 
-bool ao::vk::GLFWEngine::isIconified() {
+bool ao::vulkan::GLFWEngine::isIconified() {
 	return glfwGetWindowAttrib(this->window, GLFW_ICONIFIED);
 }
 
-void ao::vk::GLFWEngine::setWindowTitle(std::string title) {
-	ao::vk::AOEngine::setWindowTitle(title);
+void ao::vulkan::GLFWEngine::setWindowTitle(std::string title) {
+	ao::vulkan::AOEngine::setWindowTitle(title);
 	glfwSetWindowTitle(this->window, title.c_str());
 }
 
-bool ao::vk::GLFWEngine::loopingCondition() {
+bool ao::vulkan::GLFWEngine::loopingCondition() {
 	return !glfwWindowShouldClose(this->window);
 }
 
-void ao::vk::GLFWEngine::onLoopIteration() {
-	ao::vk::AOEngine::onLoopIteration();
+void ao::vulkan::GLFWEngine::onLoopIteration() {
+	ao::vulkan::AOEngine::onLoopIteration();
 
 	glfwPollEvents();
 }
 
-void ao::vk::GLFWEngine::waitMaximized() {
+void ao::vulkan::GLFWEngine::waitMaximized() {
 	glfwWaitEvents();
 }
 
-std::vector<char const*> ao::vk::GLFWEngine::instanceExtensions() {
+std::vector<char const*> ao::vulkan::GLFWEngine::instanceExtensions() {
 	return ao::glfw::utilities::getExtensions();
 }

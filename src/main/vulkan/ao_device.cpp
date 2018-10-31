@@ -1,15 +1,10 @@
 #include "ao_device.h"
 
-ao::vk::AODevice::AODevice(VkPhysicalDevice& device) {
+ao::vulkan::AODevice::AODevice(vk::PhysicalDevice& device) {
 	this->physical = device;
 
-	// Get properties
-	vkGetPhysicalDeviceProperties(this->physical, &this->properties);
-	vkGetPhysicalDeviceFeatures(this->physical, &this->features);
-	vkGetPhysicalDeviceMemoryProperties(this->physical, &this->memoryProperties);
-
 	// Get QueueFamilyProperties
-	this->queueFamilyProperties = ao::vk::utilities::vkQueueFamilyProperties(this->physical);
+	this->queueFamilyProperties = this->physical.getQueueFamilyProperties();
 
 	// Check count
 	if (this->queueFamilyProperties.empty()) {
@@ -17,7 +12,7 @@ ao::vk::AODevice::AODevice(VkPhysicalDevice& device) {
 	}
 
 	// Get supported extensions
-	this->extensions = ao::vk::utilities::vkExtensionProperties(this->physical);
+	this->extensions = ao::vulkan::utilities::vkExtensionProperties(this->physical);
 
 	// Check count
 	if (this->extensions.empty()) {
@@ -25,58 +20,47 @@ ao::vk::AODevice::AODevice(VkPhysicalDevice& device) {
 	}
 }
 
-ao::vk::AODevice::~AODevice() {
+ao::vulkan::AODevice::~AODevice() {
 	if (this->commandPool) {
-		vkDestroyCommandPool(this->logical, this->commandPool, nullptr);
+		this->logical.destroyCommandPool(this->commandPool);
 	}
 	if (this->logical) {
-		vkDestroyDevice(this->logical, nullptr);
+		this->logical.destroy();
 	}
 }
 
-VkResult ao::vk::AODevice::initLogicalDevice(std::vector<char const*> deviceExtensions, VkQueueFlags qflags, VkCommandPoolCreateFlags cflags, bool swapChain) {
-	std::vector<VkDeviceQueueCreateInfo> queueCreateInfos;
+void ao::vulkan::AODevice::initLogicalDevice(std::vector<char const*> deviceExtensions, vk::QueueFlags qflags, vk::CommandPoolCreateFlags cflags, bool swapChain) {
+	std::vector<vk::DeviceQueueCreateInfo> queueCreateInfos;
 	float const DEFAULT_QUEUE_PRIORITY = 0.0f;
 
 	/* GRAPHICS QUEUE */
-	if (qflags & VkQueueFlagBits::VK_QUEUE_GRAPHICS_BIT) {
-		std::get<AO_GRAPHICS_QUEUE_INDEX>(this->queueFamilyIndices) = ao::vk::utilities::findQueueFamilyIndex(this->queueFamilyProperties, VkQueueFlagBits::VK_QUEUE_GRAPHICS_BIT);
+	if (qflags & vk::QueueFlagBits::eGraphics) {
+		std::get<AO_GRAPHICS_QUEUE_INDEX>(this->queueFamilyIndices) = ao::vulkan::utilities::findQueueFamilyIndex(this->queueFamilyProperties, vk::QueueFlagBits::eGraphics);
 
 		// Check result
 		if (std::get<AO_GRAPHICS_QUEUE_INDEX>(this->queueFamilyIndices) < 0) {
-			throw ao::core::Exception("Fail to find a queueFamily that supports VK_QUEUE_GRAPHICS_BIT");
+			throw ao::core::Exception("Fail to find a queueFamily that supports vk::QueueFlagBits::eGraphics");
 		}
 
-		VkDeviceQueueCreateInfo queueInfo = { VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO };
-		queueInfo.queueFamilyIndex = std::get<AO_GRAPHICS_QUEUE_INDEX>(this->queueFamilyIndices);
-		queueInfo.pQueuePriorities = &DEFAULT_QUEUE_PRIORITY;
-		queueInfo.queueCount = 1;
-
 		// Add info
-		queueCreateInfos.push_back(queueInfo);
+		queueCreateInfos.push_back(vk::DeviceQueueCreateInfo(vk::DeviceQueueCreateFlags(), std::get<AO_GRAPHICS_QUEUE_INDEX>(this->queueFamilyIndices), 1, &DEFAULT_QUEUE_PRIORITY));
 	}
 	else {
 		std::get<AO_GRAPHICS_QUEUE_INDEX>(this->queueFamilyIndices) = VK_NULL_HANDLE;
 	}
 
 	/* COMPUTE QUEUE */
-	if (qflags & VkQueueFlagBits::VK_QUEUE_COMPUTE_BIT) {
-		std::get<AO_COMPUTE_QUEUE_INDEX>(this->queueFamilyIndices) = ao::vk::utilities::findQueueFamilyIndex(this->queueFamilyProperties, VkQueueFlagBits::VK_QUEUE_COMPUTE_BIT);
+	if (qflags & vk::QueueFlagBits::eCompute) {
+		std::get<AO_COMPUTE_QUEUE_INDEX>(this->queueFamilyIndices) = ao::vulkan::utilities::findQueueFamilyIndex(this->queueFamilyProperties, vk::QueueFlagBits::eCompute);
 
 		// Check result
 		if (std::get<AO_COMPUTE_QUEUE_INDEX>(this->queueFamilyIndices) < 0) {
-			throw ao::core::Exception("Fail to find a queueFamily that supports AO_COMPUTE_QUEUE_INDEX");
+			throw ao::core::Exception("Fail to find a queueFamily that supports vk::QueueFlagBits::eCompute");
 		}
 
-		// Create info if it's a new queue
+		// Add info if it's a new queue
 		if (std::get<AO_COMPUTE_QUEUE_INDEX>(this->queueFamilyIndices) != std::get<AO_GRAPHICS_QUEUE_INDEX>(this->queueFamilyIndices)) {
-			VkDeviceQueueCreateInfo queueInfo = { VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO };
-			queueInfo.queueFamilyIndex = std::get<AO_COMPUTE_QUEUE_INDEX>(this->queueFamilyIndices);
-			queueInfo.pQueuePriorities = &DEFAULT_QUEUE_PRIORITY;
-			queueInfo.queueCount = 1;
-
-			// Add info
-			queueCreateInfos.push_back(queueInfo);
+			queueCreateInfos.push_back(vk::DeviceQueueCreateInfo(vk::DeviceQueueCreateFlags(), std::get<AO_COMPUTE_QUEUE_INDEX>(this->queueFamilyIndices), 1, &DEFAULT_QUEUE_PRIORITY));
 		}
 	}
 	else { // Use graphics queue
@@ -84,23 +68,17 @@ VkResult ao::vk::AODevice::initLogicalDevice(std::vector<char const*> deviceExte
 	}
 
 	/* TRANSFER QUEUE */
-	if (qflags & VkQueueFlagBits::VK_QUEUE_TRANSFER_BIT) {
-		std::get<AO_TRANSFER_QUEUE_INDEX>(this->queueFamilyIndices) = ao::vk::utilities::findQueueFamilyIndex(this->queueFamilyProperties, VkQueueFlagBits::VK_QUEUE_TRANSFER_BIT);
+	if (qflags & vk::QueueFlagBits::eTransfer) {
+		std::get<AO_TRANSFER_QUEUE_INDEX>(this->queueFamilyIndices) = ao::vulkan::utilities::findQueueFamilyIndex(this->queueFamilyProperties, vk::QueueFlagBits::eTransfer);
 
 		// Check result
 		if (std::get<AO_TRANSFER_QUEUE_INDEX>(this->queueFamilyIndices) < 0) {
-			throw ao::core::Exception("Fail to find a queueFamily that supports AO_TRANSFER_QUEUE_INDEX");
+			throw ao::core::Exception("Fail to find a queueFamily that supports vk::QueueFlagBits::eTransfer");
 		}
 
-		// Create info if it's a new queue
+		// Add info if it's a new queue
 		if (std::get<AO_TRANSFER_QUEUE_INDEX>(this->queueFamilyIndices) != std::get<AO_GRAPHICS_QUEUE_INDEX>(this->queueFamilyIndices) && std::get<AO_TRANSFER_QUEUE_INDEX>(this->queueFamilyIndices) != std::get<AO_COMPUTE_QUEUE_INDEX>(this->queueFamilyIndices)) {
-			VkDeviceQueueCreateInfo queueInfo{ VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO };
-			queueInfo.queueFamilyIndex = std::get<AO_TRANSFER_QUEUE_INDEX>(this->queueFamilyIndices);
-			queueInfo.pQueuePriorities = &DEFAULT_QUEUE_PRIORITY;
-			queueInfo.queueCount = 1;
-
-			// Add info
-			queueCreateInfos.push_back(queueInfo);
+			queueCreateInfos.push_back(vk::DeviceQueueCreateInfo(vk::DeviceQueueCreateFlags(), std::get<AO_TRANSFER_QUEUE_INDEX>(this->queueFamilyIndices), 1, &DEFAULT_QUEUE_PRIORITY));
 		}
 	}
 	else { // Use graphics queue
@@ -112,38 +90,32 @@ VkResult ao::vk::AODevice::initLogicalDevice(std::vector<char const*> deviceExte
 		deviceExtensions.push_back(VK_KHR_SWAPCHAIN_EXTENSION_NAME);
 	}
 
-	VkDeviceCreateInfo deviceCreateInfo = { VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO };
-	deviceCreateInfo.queueCreateInfoCount = static_cast<uint32_t>(queueCreateInfos.size());
-	deviceCreateInfo.pQueueCreateInfos = queueCreateInfos.data();
-	deviceCreateInfo.pEnabledFeatures = &this->features;
+	vk::DeviceCreateInfo deviceCreateInfo(vk::DeviceCreateFlags(), static_cast<uint32_t>(queueCreateInfos.size()), queueCreateInfos.data());
+	deviceCreateInfo.setPEnabledFeatures(&this->physical.getFeatures());
 
 	// Enable the debug marker extension if it is present
-	if (std::find_if(this->extensions.begin(), this->extensions.end(), [](VkExtensionProperties properties) { return properties.extensionName == VK_EXT_DEBUG_MARKER_EXTENSION_NAME; }) != this->extensions.end()) {
+	if (std::find_if(this->extensions.begin(), this->extensions.end(), [](vk::ExtensionProperties properties) { return properties.extensionName == VK_EXT_DEBUG_MARKER_EXTENSION_NAME; }) != this->extensions.end()) {
 		deviceExtensions.push_back(VK_EXT_DEBUG_MARKER_EXTENSION_NAME);
+		
 		// TODO
 	}
 
+	// Add extensions
 	if (!deviceExtensions.empty()) {
-		deviceCreateInfo.enabledExtensionCount = (uint32_t)deviceExtensions.size();
-		deviceCreateInfo.ppEnabledExtensionNames = deviceExtensions.data();
+		deviceCreateInfo.setEnabledExtensionCount(static_cast<uint32_t>(deviceExtensions.size()));
+		deviceCreateInfo.setPpEnabledExtensionNames(deviceExtensions.data());
 	}
 
 	// Create device
-	ao::vk::utilities::vkAssert(vkCreateDevice(this->physical, &deviceCreateInfo, nullptr, &this->logical), "Fail to create logical device");
+	this->logical = this->physical.createDevice(deviceCreateInfo);
 
 	// Create command pool
-	return this->initCommandPool(cflags);
+	this->commandPool = this->logical.createCommandPool(vk::CommandPoolCreateInfo(cflags, std::get<AO_GRAPHICS_QUEUE_INDEX>(this->queueFamilyIndices)));
 }
 
-VkResult ao::vk::AODevice::initCommandPool(VkCommandPoolCreateFlags flags) {
-	VkCommandPoolCreateInfo cmdPoolInfo = { VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO };
-	cmdPoolInfo.queueFamilyIndex = std::get<AO_GRAPHICS_QUEUE_INDEX>(this->queueFamilyIndices);
-	cmdPoolInfo.flags = flags;
+uint32_t ao::vulkan::AODevice::memoryType(uint32_t typeBits, vk::MemoryPropertyFlags properties) {
+	vk::PhysicalDeviceMemoryProperties memoryProperties = this->physical.getMemoryProperties();
 
-	return vkCreateCommandPool(logical, &cmdPoolInfo, nullptr, &this->commandPool);
-}
-
-uint32_t ao::vk::AODevice::memoryType(uint32_t typeBits, VkMemoryPropertyFlags properties) {
 	for (uint32_t i = 0; i < memoryProperties.memoryTypeCount; i++) {
 		if ((typeBits & 1) == 1) {
 			if ((memoryProperties.memoryTypes[i].propertyFlags & properties) == properties) {

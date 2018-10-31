@@ -6,7 +6,7 @@
 #include <ao/core/exception.h>
 #include <ao/core/plugin.h>
 #include <ao/core/logger.h>
-#include <vulkan/vulkan.h>
+#include <vulkan/vulkan.hpp>
 
 #include "engine_settings.h"
 #include "ao_swapchain.h"
@@ -14,7 +14,7 @@
 #include "ao_device.h"
 
 namespace ao {
-	namespace vk {
+	namespace vulkan {
 		/// <summary>
 		/// AOEngine class
 		/// </summary>
@@ -55,23 +55,23 @@ namespace ao {
 		protected:
 			core::Logger LOGGER = core::Logger::getInstance<AOEngine>();
 			
-			std::pair<VkSemaphore, VkSemaphore> semaphores; // First = Present semaphore & Second = Render semaphore
-			std::vector<VkFence> waitingFences;
-			VkQueue queue;
+			std::pair<vk::Semaphore, vk::Semaphore> semaphores; // First = Present semaphore & Second = Render semaphore
+			std::vector<vk::Fence> waitingFences;
+			vk::Queue queue;
 
-			std::tuple<VkImage, VkDeviceMemory, VkImageView> stencilBuffer;
-			std::vector<VkFramebuffer> frameBuffers;
+			std::tuple<vk::Image, vk::DeviceMemory, vk::ImageView> stencilBuffer;
+			std::vector<vk::Framebuffer> frameBuffers;
 			uint32_t frameBufferIndex = 0;
 
-			VkPipelineStageFlags submitPipelineStages = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
-			VkSubmitInfo submitInfo;
+			vk::PipelineStageFlags submitPipelineStages = vk::PipelineStageFlags(VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT);
+			vk::SubmitInfo submitInfo;
 
 			EngineSettings _settings;
 
-			VkPipelineCache pipelineCache;
-			VkRenderPass renderPass;
+			vk::PipelineCache pipelineCache;
+			vk::RenderPass renderPass;
 			AOSwapChain* swapchain;
-			VkInstance instance;
+			vk::Instance instance;
 			AODevice* device;
 
 			/// <summary>
@@ -112,7 +112,7 @@ namespace ao {
 			/// Method to init surface
 			/// </summary>
 			/// <param name="surface">Surface reference</param>
-			virtual void initSurface(VkSurfaceKHR& surface) = 0;
+			virtual void initSurface(vk::SurfaceKHR& surface) = 0;
 			/// <summary>
 			/// Method to init window
 			/// </summary>
@@ -172,20 +172,19 @@ namespace ao {
 			/// Method to define queue flags
 			/// </summary>
 			/// <returns>flags</returns>
-			virtual VkQueueFlags queueFlags();
+			virtual vk::QueueFlags queueFlags();
 			/// <summary>
 			/// Method to define command pool flags
 			/// </summary>
 			/// <returns>flags</returns>
-			virtual VkCommandPoolCreateFlags commandPoolFlags();
+			virtual vk::CommandPoolCreateFlags commandPoolFlags();
 
 			/// <summary>
-			/// Method to select a VkPhysicalDevice
+			/// Method to select a vk::PhysicalDevice
 			/// </summary>
-			/// <param name="devices">VkPhysicalDevices</param>
+			/// <param name="devices">vk::PhysicalDevice</param>
 			/// <returns>Index</returns>
-			virtual uint8_t selectVkPhysicalDevice(std::vector<VkPhysicalDevice>& devices);
-
+			virtual size_t selectVkPhysicalDevice(std::vector<vk::PhysicalDevice>& devices);  // TODO: Optimize this
 		private:
 			std::vector<core::Plugin<AOEngine>*> plugins;
 			std::mutex pluginsMutex;

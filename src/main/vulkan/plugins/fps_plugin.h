@@ -7,7 +7,7 @@
 #include "../ao_engine.h"
 
 namespace ao {
-	namespace vk {
+	namespace vulkan {
 		class FPSPlugin : public core::Plugin<AOEngine> {
 		public:
 			/// <summary>
@@ -19,7 +19,7 @@ namespace ao {
 
 			virtual void onInit() override;
 			virtual void onUpdate() override;
-			virtual void BeforeDestroy() override;
+			virtual void beforeDestroy() override;
 
 			/// <summary>
 			/// Method to display frame rate

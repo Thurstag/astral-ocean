@@ -6,13 +6,13 @@
 
 #include <ao/core/exception.h>
 #include <ao/core/logger.h>
-#include <vulkan/vulkan.h>
+#include <vulkan/vulkan.hpp>
 
 #include "engine_settings.h"
 #include "vk_enums.h"
 
 namespace ao {
-	namespace vk {
+	namespace vulkan {
 		struct Utilities {};
 		namespace utilities {
 
@@ -31,117 +31,96 @@ namespace ao {
 			/// <param name="result">VkResult</param>
 			/// <param name="message">Exception's message on failure</param>
 			inline void vkAssert(VkResult result, std::string message) {
-				if (!vkCheck(result)) {
-					throw ao::core::Exception(message + ". Reason: " + ao::vk::enums::to_string(result));
-				}
+				vk::createResultValue(ao::vulkan::enums::to_result(result), message.c_str());
 			}
 
 			/// <summary>
-			/// Method to create a VkInstance
+			/// Method to assert a vk::Result
+			/// </summary>
+			/// <param name="result">vk::Result</param>
+			/// <param name="message">Exception's message on failure</param>
+			inline void vkAssert(vk::Result result, std::string message) {
+				vk::createResultValue(result, message.c_str());
+			}
+
+			/// <summary>
+			/// Method to create a vk::Instance
 			/// </summary>
 			/// <param name="settings">Engine settings</param>
-			/// <param name="instance">VkInstance</param>
 			/// <param name="extensions">Extensions</param>
-			/// <returns>VkResult</returns>
-			inline VkResult createVkInstance(EngineSettings& settings, VkInstance& instance, std::vector<char const*>& extensions) {
+			/// <returns>vk::Instance</returns>
+			inline vk::Instance createVkInstance(EngineSettings& settings, std::vector<char const*>& extensions) {
 				std::vector<char const*> validationLayer{ "VK_LAYER_LUNARG_standard_validation" };
 
-				// Create app info
-				VkApplicationInfo appInfo = { VK_STRUCTURE_TYPE_APPLICATION_INFO };
-				appInfo.apiVersion = VK_API_VERSION_1_0;
+				// Create app info (TODO: Optimize this part (retrieve info in settings) !!!)
+				vk::ApplicationInfo appInfo("Hello Triangle", VK_MAKE_VERSION(1, 0, 0), "No Engine", VK_MAKE_VERSION(1, 0, 0), VK_API_VERSION_1_0);
 
-				// TODO: Optimize this part (retrieve info in settings) !!!
-				appInfo.pApplicationName = "Hello Triangle";
-				appInfo.applicationVersion = VK_MAKE_VERSION(1, 0, 0);
-				appInfo.pEngineName = "No Engine";
-				appInfo.engineVersion = VK_MAKE_VERSION(1, 0, 0);
 
 				// Create instance info
-				VkInstanceCreateInfo instanceInfo = { VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO };
-				instanceInfo.pApplicationInfo = &appInfo;
+				vk::InstanceCreateInfo instanceInfo(vk::InstanceCreateFlags(), &appInfo);
 
 				// Check validation
 				if (settings.vkValidationLayers) {
 					extensions.push_back(VK_EXT_DEBUG_REPORT_EXTENSION_NAME);
 
-					instanceInfo.enabledLayerCount = (uint32_t)validationLayer.size();
-					instanceInfo.ppEnabledLayerNames = validationLayer.data();
+					instanceInfo.setEnabledLayerCount(static_cast<uint32_t>(validationLayer.size()));
+					instanceInfo.setPpEnabledLayerNames(validationLayer.data());
 				}
-				instanceInfo.enabledExtensionCount = (uint32_t)extensions.size();
-				instanceInfo.ppEnabledExtensionNames = extensions.data();
+				instanceInfo.setEnabledExtensionCount(static_cast<uint32_t>(extensions.size()));
+				instanceInfo.setPpEnabledExtensionNames(extensions.data());
 
 				// Create instance
-				return vkCreateInstance(&instanceInfo, nullptr, &instance);
+				return vk::createInstance(instanceInfo);
 			}
 
 			/// <summary>
 			/// Method to init debugging
 			/// </summary>
-			/// <param name="instance">VkInstance</param>
+			/// <param name="instance">vk::Instance</param>
 			/// <param name="flags">Report flags</param>
 			/// <param name="callBack">Callback</param>
-			inline void initDebugging(VkInstance& instance, VkDebugReportFlagsEXT flags, VkDebugReportCallbackEXT callback) {
+			inline void initDebugging(vk::Instance& instance, vk::DebugReportFlagsEXT flags, vk::DebugReportCallbackEXT callback) {
 				// TODO
 			}
 
 			/// <summary>
-			/// Method to get all VkPhysicalDevices
+			/// Method to get all vk::PhysicalDevices
 			/// </summary>
-			/// <param name="instance">VkInstance</param>
+			/// <param name="instance">vk::Instance</param>
 			/// <returns>GPUs</returns>
-			inline std::vector<VkPhysicalDevice> vkPhysicalDevices(VkInstance& instance) {
-				std::string error = "Fail to enumerate VkPhysicalDevices";
-				std::vector<VkPhysicalDevice> devices;
+			inline std::vector<vk::PhysicalDevice> vkPhysicalDevices(vk::Instance& instance) {
+				std::string error = "Fail to enumerate vk::PhysicalDevices";
+				std::vector<vk::PhysicalDevice> devices;
 				uint32_t count;
 
 				// Get count
-				ao::vk::utilities::vkAssert(vkEnumeratePhysicalDevices(instance, &count, nullptr), error);
+				ao::vulkan::utilities::vkAssert(instance.enumeratePhysicalDevices(&count, nullptr), error);
 
 				// Adapt vector
 				devices.resize(count);
 
-                // Get VkPhysicalDevices
-				ao::vk::utilities::vkAssert(vkEnumeratePhysicalDevices(instance, &count, devices.data()), error);
+                // Get vk::PhysicalDevices
+				ao::vulkan::utilities::vkAssert(instance.enumeratePhysicalDevices(&count, devices.data()), error);
 				return devices;
 			}
 
 			/// <summary>
-			/// Method to get VkQueueFamilyProperties 
+			/// Method to get vk::ExtensionProperties
 			/// </summary>
 			/// <param name="device">VkInstance</param>
-			/// <returns>VkQueueFamilyProperties</returns>
-			inline std::vector<VkQueueFamilyProperties> vkQueueFamilyProperties(VkPhysicalDevice& device) {
-				std::vector<VkQueueFamilyProperties> properties;
+			/// <returns>vk::ExtensionProperties</returns>
+			inline std::vector<vk::ExtensionProperties> vkExtensionProperties(vk::PhysicalDevice& device) {
+				std::vector<vk::ExtensionProperties> extensions;
 				uint32_t count;
 
 				// Get count
-				vkGetPhysicalDeviceQueueFamilyProperties(device, &count, nullptr);
-
-				// Adapt vector
-				properties.resize(count);
-
-				// Get VkQueueFamilyProperties
-				vkGetPhysicalDeviceQueueFamilyProperties(device, &count, properties.data());
-				return properties;
-			}
-
-			/// <summary>
-			/// Method to get VkExtensionProperties
-			/// </summary>
-			/// <param name="device">VkInstance</param>
-			/// <returns>VkExtensionProperties</returns>
-			inline std::vector<VkExtensionProperties> vkExtensionProperties(VkPhysicalDevice& device) {
-				std::vector<VkExtensionProperties> extensions;
-				uint32_t count;
-
-				// Get count
-				vkEnumerateDeviceExtensionProperties(device, nullptr, &count, nullptr);
+				device.enumerateDeviceExtensionProperties(nullptr, &count, nullptr);
 
 				// Adapt vector
 				extensions.resize(count);
 
-				// Get VkQueueFamilyProperties
-				vkEnumerateDeviceExtensionProperties(device, nullptr, &count, extensions.data());
+				// Get vk::ExtensionProperties
+				device.enumerateDeviceExtensionProperties(nullptr, &count, extensions.data());
 				return extensions;
 			}
 
@@ -150,12 +129,12 @@ namespace ao {
 			/// </summary>
 			/// <param name="queueFamilyProperties">queueFamilyProperties</param>
 			/// <param name="flag">Flag</param>
-			inline uint32_t findQueueFamilyIndex(std::vector<VkQueueFamilyProperties>& queueFamilyProperties, VkQueueFlagBits flag) {
+			inline uint32_t findQueueFamilyIndex(std::vector<vk::QueueFamilyProperties>& queueFamilyProperties, vk::QueueFlagBits flag) {
 				std::vector<VkQueueFlagBits> flags = { VK_QUEUE_COMPUTE_BIT, VK_QUEUE_TRANSFER_BIT, VK_QUEUE_GRAPHICS_BIT };
 
 				// Calculate value of flags whitout flag parameter
 				VkQueueFlags other = std::accumulate(flags.begin(), flags.end(), 0, [flag](VkQueueFlags result, VkQueueFlagBits f) { 
-					if (f != flag) {
+					if (vk::QueueFlagBits(f) != flag) {
 						return result | f;
 					}
 					return result;
@@ -163,8 +142,8 @@ namespace ao {
 
 				// Try to find a queue familly designed only for flag parameter
 				for (uint32_t i = 0; i < queueFamilyProperties.size(); i++) {
-					if ((queueFamilyProperties[i].queueFlags & flag) && ((queueFamilyProperties[i].queueFlags & other) == 0)) {
-						ao::core::Logger::getInstance<Utilities>() << LogLevel::DEBUG << "Found a queueFamily that only support: " << std::bitset<8>(flag);
+					if ((queueFamilyProperties[i].queueFlags & flag) && ((VkQueueFlags(queueFamilyProperties[i].queueFlags) & other) == 0)) {
+						ao::core::Logger::getInstance<ao::vulkan::Utilities>() << LogLevel::DEBUG << "Found a queueFamily that only support: " << std::bitset<8>(static_cast<int>(flag));
 						return i;
 					}
 				}
@@ -181,45 +160,24 @@ namespace ao {
 			/// <summary>
 			/// Method to get supported depth format
 			/// </summary>
-			/// <param name="physicalDevice">VkPhysicalDevice</param>
-			/// <param name="format">Format reference</param>
-			/// <returns>VkResult</returns>
-			inline VkResult getSupportedDepthFormat(VkPhysicalDevice& physicalDevice, VkFormat& format) {
-				VkFormatProperties formatProps;
-				std::vector<VkFormat> formats = {
-					VK_FORMAT_D32_SFLOAT_S8_UINT,
-					VK_FORMAT_D32_SFLOAT,
-					VK_FORMAT_D24_UNORM_S8_UINT,
-					VK_FORMAT_D16_UNORM_S8_UINT,
-					VK_FORMAT_D16_UNORM
+			/// <param name="physicalDevice">vk::PhysicalDevice</param>
+			/// <returns>vk::Format</returns>
+			inline vk::Format getSupportedDepthFormat(vk::PhysicalDevice& physicalDevice) {
+				std::vector<vk::Format> formats = {
+					vk::Format::eD32SfloatS8Uint, vk::Format::eD32Sfloat,
+					vk::Format::eD24UnormS8Uint, vk::Format::eD16UnormS8Uint,
+					vk::Format::eD16Unorm
 				};
 
-				for (VkFormat& _format : formats) {
-					vkGetPhysicalDeviceFormatProperties(physicalDevice, _format, &formatProps);
+				for (vk::Format& format : formats) {
+					vk::FormatProperties formatProps = physicalDevice.getFormatProperties(format);
 
 					// Check properties
-					if (formatProps.optimalTilingFeatures & VK_FORMAT_FEATURE_DEPTH_STENCIL_ATTACHMENT_BIT) {
-						format = _format;
-						return VkResult::VK_SUCCESS;
+					if (formatProps.optimalTilingFeatures & vk::FormatFeatureFlagBits::eDepthStencilAttachment) {
+						return format;
 					}
 				}
-				return VkResult::VK_INCOMPLETE;
-			}
-
-			/// <summary>
-			/// Method to get instance proc addr
-			/// </summary>
-			template<class T>
-			inline T instanceProcAddr(VkInstance& instance, std::string name) {
-				return reinterpret_cast<T>(vkGetInstanceProcAddr(instance, name.c_str()));
-			}
-
-			/// <summary>
-			/// Method to get device proc addr
-			/// </summary>
-			template<class T>
-			inline T deviceProcAddr(VkDevice& device, std::string name) {
-				return reinterpret_cast<T>(vkGetDeviceProcAddr(device, name.c_str()));
+				throw ao::core::Exception("Fail to find a suitable vk::Format");
 			}
 
 			/// <summary>
@@ -228,19 +186,19 @@ namespace ao {
 			/// <param name="device">Device</param>
 			/// <param name="surface">Surface</param>
 			/// <returns>Surface formats</returns>
-			inline std::vector<VkSurfaceFormatKHR> surfaceFormatKHRs(VkPhysicalDevice& device, VkSurfaceKHR& surface) {
+			inline std::vector<vk::SurfaceFormatKHR> surfaceFormatKHRs(vk::PhysicalDevice& device, vk::SurfaceKHR& surface) {
 				std::string error = "Fail to get supported surface formats";
-				std::vector<VkSurfaceFormatKHR> formats;
+				std::vector<vk::SurfaceFormatKHR> formats;
 				uint32_t count;
 
 				// Get count
-				vkAssert(vkGetPhysicalDeviceSurfaceFormatsKHR(device, surface, &count, nullptr), error);
+				vkAssert(device.getSurfaceFormatsKHR(surface, &count, nullptr), error);
 
 				// Adapt vector
 				formats.resize(count);
 
-				// Get VkSurfaceFormatKHRs
-				vkAssert(vkGetPhysicalDeviceSurfaceFormatsKHR(device, surface, &count, formats.data()), error);
+				// Get vk::SurfaceFormatKHRs
+				vkAssert(device.getSurfaceFormatsKHR(surface, &count, formats.data()), error);
 				return formats;
 			}
 
@@ -250,19 +208,19 @@ namespace ao {
 			/// <param name="device">Device</param>
 			/// <param name="surface">Surface</param>
 			/// <returns>Present modes</returns>
-			inline std::vector<VkPresentModeKHR> presentModeKHRs(VkPhysicalDevice& device, VkSurfaceKHR& surface) {
+			inline std::vector<vk::PresentModeKHR> presentModeKHRs(vk::PhysicalDevice& device, vk::SurfaceKHR& surface) {
 				std::string error = "Fail to get present modes";
-				std::vector<VkPresentModeKHR> modes;
+				std::vector<vk::PresentModeKHR> modes;
 				uint32_t count;
 
 				// Get count
-				vkAssert(vkGetPhysicalDeviceSurfacePresentModesKHR(device, surface, &count, nullptr), error);
+				vkAssert(device.getSurfacePresentModesKHR(surface, &count, nullptr), error);
 
 				// Adapt vector
 				modes.resize(count);
 
-				// Get VkPresentModeKHR
-				vkAssert(vkGetPhysicalDeviceSurfacePresentModesKHR(device, surface, &count, modes.data()), error);
+				// Get vk::PresentModeKHR
+				vkAssert(device.getSurfacePresentModesKHR(surface, &count, modes.data()), error);
 				return modes;
 			}
 
@@ -272,19 +230,19 @@ namespace ao {
 			/// <param name="device">Device</param>
 			/// <param name="swapChain">Swap chain</param>
 			/// <returns>Images</returns>
-			inline std::vector<VkImage> swapChainImages(VkDevice& device, VkSwapchainKHR& swapChain) {
+			inline std::vector<vk::Image> swapChainImages(vk::Device& device, vk::SwapchainKHR& swapChain) {
 				std::string error = "Fail to get swap chain images";
-				std::vector<VkImage> images;
+				std::vector<vk::Image> images;
 				uint32_t count;
 
 				// Get count
-				vkAssert(vkGetSwapchainImagesKHR(device, swapChain, &count, nullptr), error);
+				vkAssert(device.getSwapchainImagesKHR(swapChain, &count, nullptr), error);
 
 				// Adapt vector
 				images.resize(count);
 
-				// Get VkImages
-				vkAssert(vkGetSwapchainImagesKHR(device, swapChain, &count, images.data()), error);
+				// Get vk::Images
+				vkAssert(device.getSwapchainImagesKHR(swapChain, &count, images.data()), error);
 				return images;
 			}
 		}

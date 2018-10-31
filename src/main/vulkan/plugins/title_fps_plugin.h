@@ -5,7 +5,7 @@
 #include "fps_plugin.h"
 
 namespace ao {
-	namespace vk {
+	namespace vulkan {
 		class TitleFPSPlugin : public FPSPlugin {
 		public:
 			/// <summary>

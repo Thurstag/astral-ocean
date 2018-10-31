@@ -8,6 +8,8 @@ ao::core::Exception::Exception(std::string message) : std::exception(message.c_s
 ao::core::Exception::Exception(std::exception & e) : ao::core::Exception(e.what()) {
 	// Delete stack trace
 	delete this->stack;
+
+	this->stack = nullptr;
 }
 
 ao::core::Exception::~Exception() {
@@ -17,10 +19,15 @@ ao::core::Exception::~Exception() {
 }
 
 std::ostream & ao::core::operator<<(std::ostream & os, const Exception & e) {
-	std::stringstream _stack;
-	_stack << *e.stack;
-	std::string stack = _stack.str();
+	if (e.stack) {
+		std::stringstream _stack;
+		_stack << *e.stack;
+		std::string stack = _stack.str();
 
-	os << e.what() << std::endl << stack.substr(0, stack.size() - 1);
+		os << e.what() << std::endl << stack.substr(0, stack.size() - 1);
+	}
+	else {
+		os << e.what();
+	}
 	return os;
 }

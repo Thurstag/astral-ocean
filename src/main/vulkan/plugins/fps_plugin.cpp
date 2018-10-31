@@ -1,12 +1,12 @@
 #include "fps_plugin.h"
 
-ao::vk::FPSPlugin::FPSPlugin(AOEngine * engine) : ao::core::Plugin<AOEngine>(engine) {}
+ao::vulkan::FPSPlugin::FPSPlugin(AOEngine * engine) : ao::core::Plugin<AOEngine>(engine) {}
 
-ao::vk::FPSPlugin::~FPSPlugin() {}
+ao::vulkan::FPSPlugin::~FPSPlugin() {}
 
-void ao::vk::FPSPlugin::onInit() {}
+void ao::vulkan::FPSPlugin::onInit() {}
 
-void ao::vk::FPSPlugin::onUpdate() {
+void ao::vulkan::FPSPlugin::onUpdate() {
 	if (!this->init) {
 		this->clock = std::chrono::system_clock::now();
 		this->init = true;
@@ -27,4 +27,4 @@ void ao::vk::FPSPlugin::onUpdate() {
 	}
 }
 
-void ao::vk::FPSPlugin::BeforeDestroy() {}
+void ao::vulkan::FPSPlugin::beforeDestroy() {}

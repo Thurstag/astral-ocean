@@ -28,7 +28,7 @@ namespace ao {
 			/// <summary>
 			/// Method called before subject destroy
 			/// </summary>
-			virtual void BeforeDestroy() = 0;
+			virtual void beforeDestroy() = 0;
 
 		protected:
 			Logger LOGGER = ao::core::Logger::getInstance<Plugin<T>>();

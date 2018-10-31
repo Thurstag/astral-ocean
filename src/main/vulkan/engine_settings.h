@@ -3,7 +3,7 @@
 #include <string>
 
 namespace ao {
-	namespace vk {
+	namespace vulkan {
 		struct WindowSettings {
 			std::string name;
 

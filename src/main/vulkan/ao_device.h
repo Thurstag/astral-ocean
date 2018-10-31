@@ -5,8 +5,8 @@
 #include <tuple>
 
 #include <ao/core/exception.h>
+#include <vulkan/vulkan.hpp>
 #include <ao/core/logger.h>
-#include <vulkan/vulkan.h> 
 
 #include "vk_utilities.h"
 
@@ -15,27 +15,23 @@
 #define AO_TRANSFER_QUEUE_INDEX 2
 
 namespace ao {
-	namespace vk {
+	namespace vulkan {
 		/// <summary>
-		/// VkDevice wrapper
+		/// vk::Device wrapper
 		/// </summary>
 		struct AODevice {
 		public:
 			/* FIELDS */
-			std::vector<VkQueueFamilyProperties> queueFamilyProperties;
+			std::vector<vk::QueueFamilyProperties> queueFamilyProperties;
 			std::tuple<uint32_t, uint32_t, uint32_t> queueFamilyIndices;
 
-			VkPhysicalDeviceMemoryProperties memoryProperties;
-			VkPhysicalDeviceProperties properties;
-			VkPhysicalDeviceFeatures features;
+			vk::PhysicalDevice physical;
+			vk::Device logical;
 
-			VkPhysicalDevice physical;
-			VkDevice logical;
+			vk::CommandPool commandPool;
+			vk::Format depthFormat;
 
-			VkCommandPool commandPool;
-			VkFormat depthFormat;
-
-			std::vector<VkExtensionProperties> extensions;
+			std::vector<vk::ExtensionProperties> extensions;
 
 			/* CON/DESTRUCTORS */
 
@@ -47,7 +43,7 @@ namespace ao {
 			/// Constructor
 			/// </summary>
 			/// <param name="device"></param>
-			AODevice(VkPhysicalDevice& device);
+			AODevice(vk::PhysicalDevice& device);
 
 			/// <summary>
 			/// Destructor
@@ -63,22 +59,15 @@ namespace ao {
 			/// <param name="qflags">Queue Flags</param>
 			/// <param name="cflags">CommandPool Flags</param>
 			/// <param name="swapChain">Enable swapChain</param>
-			/// <returns>VkResult</returns>
-			VkResult initLogicalDevice(std::vector<char const*> deviceExtensions, VkQueueFlags qflags, VkCommandPoolCreateFlags cflags, bool swapChain = true);
-			/// <summary>
-			/// Method to init command pool
-			/// </summary>
-			/// <param name="flags">Flags</param>
-			/// <returns>VkResult</returns>
-			VkResult initCommandPool(VkCommandPoolCreateFlags flags);
+			void initLogicalDevice(std::vector<char const*> deviceExtensions, vk::QueueFlags qflags, vk::CommandPoolCreateFlags cflags, bool swapChain = true);
 
 			/// <summary>
 			/// Method to get memory type
 			/// </summary>
 			/// <param name="typeBits">Type bits</param>
 			/// <param name="properties">Properties</param>
-			/// <returns>Index or</returns>
-			uint32_t memoryType(uint32_t typeBits, VkMemoryPropertyFlags properties);
+			/// <returns>Index</returns>
+			uint32_t memoryType(uint32_t typeBits, vk::MemoryPropertyFlags properties);
 		protected:
 			core::Logger LOGGER = core::Logger::getInstance<AODevice>();
 		};

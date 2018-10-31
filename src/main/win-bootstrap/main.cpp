@@ -26,14 +26,14 @@ int main(int argc, char* argv[]) {
 	ao::core::Logger LOGGER = ao::core::Logger::getInstance<Main>();
 
 	// Define settings
-	ao::vk::EngineSettings settings = { true, "TEST", 1280, 720, true, false };
-	ao::vk::AOEngine* engine;
+	ao::vulkan::EngineSettings settings = { true, "TEST", 1280, 720, true, false };
+	ao::vulkan::AOEngine* engine;
 
 	try {
-		engine = new ao::vk::GLFWEngine(settings);
+		engine = new ao::vulkan::GLFWEngine(settings);
 		
 		// Add plug-ins
-		engine->add(new ao::vk::TitleFPSPlugin(engine));
+		engine->add(new ao::vulkan::TitleFPSPlugin(engine));
 
 		// Run engine
 		engine->run();

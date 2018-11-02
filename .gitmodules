@@ -6,3 +6,7 @@
 	path = submodules/log4cpp
 	url = https://github.com/orocos-toolchain/log4cpp.git
 	ignore = dirty
+[submodule "submodules/googletest"]
+	path = submodules/googletest
+	url = https://github.com/google/googletest.git
+	ignore = dirty

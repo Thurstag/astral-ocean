@@ -37,6 +37,7 @@ TODO
 | GLM           | **0.9.9.3**       |
 | GLFW          | **3.2.1**@245461e |
 | LOG4CPP       | **2.9.0**@683cbb7 |
+| Google Test   | **1.8.1**@88c15b5 |
 
 ## Credits
 

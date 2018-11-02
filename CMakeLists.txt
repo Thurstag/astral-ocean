@@ -1,28 +1,38 @@
 cmake_minimum_required(VERSION 2.8 FATAL_ERROR)
 cmake_policy(SET CMP0048 NEW)
 
+# Define build variables
+IF(NOT DEFINED AO_BUILD_TESTS)
+	set(AO_BUILD_TESTS TRUE)
+ENDIF()
+IF(NOT DEFINED AO_BUILD_BOOTSTRAPS)
+	set(AO_BUILD_BOOTSTRAPS TRUE)
+ENDIF()
+
 # Define variables
 set(PROJECT_NAME "astral-ocean")
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake")
 set(SUBMODULES_DIR "${CMAKE_BINARY_DIR}/submodules")
-set(GLFW_INCLUDE_DIR "${SUBMODULES_DIR}/glfw/include")
-set(LOG4CPP_INCLUDE_DIR "${SUBMODULES_DIR}/log4cpp/include")
+set(glfw_INCLUDE_DIR "${SUBMODULES_DIR}/glfw/include")
+set(log4cpp_INCLUDE_DIR "${SUBMODULES_DIR}/log4cpp/include")
+set(googletest_INCLUDE_DIR "${SUBMODULES_DIR}/googletest/include" "${SUBMODULES_DIR}/googlemock/include")
 set(AO_INCLUDE_DIR "${CMAKE_SOURCE_DIR}/include")
-set(DEPENDENCIES
-	Vulkan
-	Threads
-	Boost
-	GLM
-)
-set(SUBMODULES
-	glfw
-	log4cpp
-)
+
+# Define dependencies
+set(DEPENDENCIES Vulkan Threads Boost GLM)
+set(SUBMODULES glfw log4cpp)
+
+IF(AO_BUILD_TESTS)
+	set(SUBMODULES ${SUBMODULES} googletest)
+ENDIF()
 
 # Disable GLFW unwanted builds
 set(GLFW_BUILD_DOCS OFF CACHE BOOL "" FORCE)
 set(GLFW_BUILD_TESTS OFF CACHE BOOL "" FORCE)
 set(GLFW_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
+
+# Prevent overriding the parent project's compiler/linker
+set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
 
 # Compilation options
 IF (WIN32)
@@ -49,8 +59,7 @@ project("${PROJECT_NAME}" VERSION 0.0.0)
 # Try to find libraries
 IF (NOT CMAKE_VERSION VERSION_LESS 3.7.0)
 	FOREACH(DEPENDENCY ${DEPENDENCIES})
-		message("Using module to find ${DEPENDENCY} library")
-		find_package(${DEPENDENCY})
+		find_package(${DEPENDENCY} REQUIRED)
 	ENDFOREACH(DEPENDENCY)
 ENDIF()
 
@@ -72,32 +81,25 @@ ENDFOREACH(DEPENDENCY)
 # Add submodules
 FOREACH(SUBMODULE ${SUBMODULES})
 	message("Include ${SUBMODULE} submodule")
+	
 	add_subdirectory("${SUBMODULES_DIR}/${SUBMODULE}")
+	include_directories(${${SUBMODULE}_INCLUDE_DIR})
 ENDFOREACH(SUBMODULE)
 
-# Force folder creation
-set_target_properties(log4cpp PROPERTIES FOLDER "LOG4C++")
-
-# Define a function that can re-create sub-directories in visual studio
-function(create_sub_directories FILE_LIST CURRENT_DIRECTORY BASE_DIRECTORY)
-	FOREACH(SOURCE_FILE IN LISTS ${FILE_LIST})
-		# Get relative path
-		get_filename_component(SOURCE_PATH_ABS "${SOURCE_FILE}" PATH)
-		file(RELATIVE_PATH SOURCE_PATH "${CURRENT_DIRECTORY}" "${SOURCE_PATH_ABS}")
-
-		# Transform string
-		string(REPLACE "/" "\\" SOURCE_PATH "${SOURCE_PATH}")
-
-		# Define group
-		source_group("${BASE_DIRECTORY}\\${SOURCE_PATH}" FILES "${SOURCE_FILE}")
-	ENDFOREACH()
-endfunction()
-
 # Include headers
-include_directories(${LOG4CPP_INCLUDE_DIR})
 include_directories(${AO_INCLUDE_DIR})
 
 # Include sub-projects
-add_subdirectory("src/main/vulkan")
-add_subdirectory("src/main/core")
-add_subdirectory("src/main/win-bootstrap")
+add_subdirectory("src/main")
+IF(${AO_BUILD_TESTS})
+	add_subdirectory("src/test")
+ENDIF()
+
+# Force folder creation
+set_target_properties(log4cpp PROPERTIES FOLDER "LOG4C++")
+IF(AO_BUILD_BOOTSTRAPS)
+	set_target_properties("win-bootstrap" PROPERTIES FOLDER "AO-BOOTSTRAPS")
+ENDIF()
+IF(AO_BUILD_TESTS)
+	set_target_properties(gmock gmock_main gtest gtest_main PROPERTIES FOLDER "GOOGLE-TEST")
+ENDIF()

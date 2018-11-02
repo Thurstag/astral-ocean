@@ -5,6 +5,7 @@
 #include <string>
 
 #include <boost/stacktrace.hpp>
+#include <boost/optional.hpp>
 
 namespace ao {
 	namespace core {
@@ -34,7 +35,7 @@ namespace ao {
 			friend std::ostream& operator<<(std::ostream& os, const Exception& e);
 
 		private:
-			boost::stacktrace::stacktrace* stack = nullptr;
+			boost::optional<boost::stacktrace::stacktrace> stack;
 		};
 	}
 }

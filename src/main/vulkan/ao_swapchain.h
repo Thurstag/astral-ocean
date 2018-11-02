@@ -1,5 +1,8 @@
 #pragma once
 
+#include <functional>
+#include <limits>
+
 #include <vulkan/vulkan.hpp>
 
 #include "ao_device.h"
@@ -18,6 +21,7 @@ namespace ao {
 
 			std::vector<std::pair<vk::Image, vk::ImageView>> buffers;
 			std::vector<vk::CommandBuffer> commandBuffers;
+			vk::Extent2D currentExtent;
 
 			vk::ColorSpaceKHR colorSpace;
 			vk::SurfaceKHR surface;
@@ -31,7 +35,8 @@ namespace ao {
 			/// </summary>
 			/// <param name="instance">Instance</param>
 			/// <param name="device">Device</param>
-			AOSwapChain(vk::Instance* instance, AODevice* device);
+			/// <param name="draw">Drawing function</param>
+			AOSwapChain(vk::Instance* instance, AODevice* device, std::function<void(vk::CommandBuffer&, vk::RenderPassBeginInfo&, ao::vulkan::WindowSettings&)> draw);
 
 			/// <summary>
 			/// Destructor
@@ -86,6 +91,8 @@ namespace ao {
 		private:
 			vk::Instance* instance;
 			AODevice* device;
+
+			std::function<void(vk::CommandBuffer&, vk::RenderPassBeginInfo&, ao::vulkan::WindowSettings&)> draw;
 		};
 	}
 }

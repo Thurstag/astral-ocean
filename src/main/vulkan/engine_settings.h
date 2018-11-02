@@ -10,16 +10,27 @@ namespace ao {
 			uint64_t width;
 			uint64_t height;
 
-			bool rezisable = false;
-			bool vsync = false;
+			bool rezisable;
+			bool vsync;
+
+			WindowSettings() = default;
+			WindowSettings(std::string name, uint64_t width, uint64_t height, bool rezisable = false, bool vsync = false) {
+				this->name = name;
+				this->width = width;
+				this->height = height;
+				this->rezisable = rezisable;
+				this->vsync = vsync;
+			}
 		};
 
 		struct EngineSettings {
-			/* VULKAN SECTION */
-			bool vkValidationLayers = false;
-
 			/* WINDOW SECTION */
 			WindowSettings window;
+
+			EngineSettings() = default;
+			EngineSettings(WindowSettings window) {
+				this->window = window;
+			}
 		};
 	}
 }

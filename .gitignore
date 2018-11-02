@@ -35,6 +35,7 @@ CTestTestfile.cmake
 *.vcxproj
 *.vcxproj.*
 *.sln
+*.qhb~
 
 # Visual Studio 2015/2017 cache/options directory
 .vs/
@@ -87,3 +88,6 @@ ipch/
 *.vsp
 *.vspx
 *.sap
+
+# Shader files
+*.spv

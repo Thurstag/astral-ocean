@@ -55,32 +55,13 @@ namespace ao {
 				// Create app info (TODO: Optimize this part (retrieve info in settings) !!!)
 				vk::ApplicationInfo appInfo("Hello Triangle", VK_MAKE_VERSION(1, 0, 0), "No Engine", VK_MAKE_VERSION(1, 0, 0), VK_API_VERSION_1_0);
 
-
 				// Create instance info
 				vk::InstanceCreateInfo instanceInfo(vk::InstanceCreateFlags(), &appInfo);
-
-				// Check validation
-				if (settings.vkValidationLayers) {
-					extensions.push_back(VK_EXT_DEBUG_REPORT_EXTENSION_NAME);
-
-					instanceInfo.setEnabledLayerCount(static_cast<uint32_t>(validationLayer.size()));
-					instanceInfo.setPpEnabledLayerNames(validationLayer.data());
-				}
 				instanceInfo.setEnabledExtensionCount(static_cast<uint32_t>(extensions.size()));
 				instanceInfo.setPpEnabledExtensionNames(extensions.data());
 
 				// Create instance
 				return vk::createInstance(instanceInfo);
-			}
-
-			/// <summary>
-			/// Method to init debugging
-			/// </summary>
-			/// <param name="instance">vk::Instance</param>
-			/// <param name="flags">Report flags</param>
-			/// <param name="callBack">Callback</param>
-			inline void initDebugging(vk::Instance& instance, vk::DebugReportFlagsEXT flags, vk::DebugReportCallbackEXT callback) {
-				// TODO
 			}
 
 			/// <summary>
@@ -107,7 +88,7 @@ namespace ao {
 			/// <summary>
 			/// Method to get vk::ExtensionProperties
 			/// </summary>
-			/// <param name="device">VkInstance</param>
+			/// <param name="device">vk::PhysicalDevice</param>
 			/// <returns>vk::ExtensionProperties</returns>
 			inline std::vector<vk::ExtensionProperties> vkExtensionProperties(vk::PhysicalDevice& device) {
 				std::vector<vk::ExtensionProperties> extensions;

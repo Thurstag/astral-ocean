@@ -21,15 +21,11 @@ ao::vulkan::AODevice::AODevice(vk::PhysicalDevice& device) {
 }
 
 ao::vulkan::AODevice::~AODevice() {
-	if (this->commandPool) {
-		this->logical.destroyCommandPool(this->commandPool);
-	}
-	if (this->logical) {
-		this->logical.destroy();
-	}
+	this->logical.destroyCommandPool(this->commandPool);
+	this->logical.destroy();
 }
 
-void ao::vulkan::AODevice::initLogicalDevice(std::vector<char const*> deviceExtensions, vk::QueueFlags qflags, vk::CommandPoolCreateFlags cflags, bool swapChain) {
+void ao::vulkan::AODevice::initLogicalDevice(std::vector<char const*>& deviceExtensions, std::vector<vk::PhysicalDeviceFeatures>& deviceFeatures, vk::QueueFlags qflags, vk::CommandPoolCreateFlags cflags, bool swapChain) {
 	std::vector<vk::DeviceQueueCreateInfo> queueCreateInfos;
 	float const DEFAULT_QUEUE_PRIORITY = 0.0f;
 
@@ -91,14 +87,7 @@ void ao::vulkan::AODevice::initLogicalDevice(std::vector<char const*> deviceExte
 	}
 
 	vk::DeviceCreateInfo deviceCreateInfo(vk::DeviceCreateFlags(), static_cast<uint32_t>(queueCreateInfos.size()), queueCreateInfos.data());
-	deviceCreateInfo.setPEnabledFeatures(&this->physical.getFeatures());
-
-	// Enable the debug marker extension if it is present
-	if (std::find_if(this->extensions.begin(), this->extensions.end(), [](vk::ExtensionProperties properties) { return properties.extensionName == VK_EXT_DEBUG_MARKER_EXTENSION_NAME; }) != this->extensions.end()) {
-		deviceExtensions.push_back(VK_EXT_DEBUG_MARKER_EXTENSION_NAME);
-		
-		// TODO
-	}
+	deviceCreateInfo.setPEnabledFeatures(deviceFeatures.data());
 
 	// Add extensions
 	if (!deviceExtensions.empty()) {

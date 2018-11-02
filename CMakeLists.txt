@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 2.8 FATAL_ERROR)
-cmake_policy(VERSION 2.8)
+cmake_policy(SET CMP0048 NEW)
 
 # Define variables
 set(PROJECT_NAME "astral-ocean")
@@ -12,6 +12,7 @@ set(DEPENDENCIES
 	Vulkan
 	Threads
 	Boost
+	GLM
 )
 set(SUBMODULES
 	glfw
@@ -43,7 +44,7 @@ set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 # Define project name
-project("${PROJECT_NAME}")
+project("${PROJECT_NAME}" VERSION 0.0.0.0)
 
 # Try to find libraries
 IF (NOT CMAKE_VERSION VERSION_LESS 3.7.0)
@@ -58,11 +59,12 @@ FOREACH(DEPENDENCY ${DEPENDENCIES})
 	IF(NOT ${${DEPENDENCY}_FOUND})
 		message(FATAL_ERROR "Could not find ${DEPENDENCY} library!")
 	ELSE()
-		set(LIB_PATH "${${DEPENDENCY}_LIBRARY}")
+		set(LIB_PATH "${${DEPENDENCY}_INCLUDE_DIR}")
 		IF(LIB_PATH STREQUAL "")
 			message("${DEPENDENCY} library found")
 		ELSE()
-			message("${DEPENDENCY} library found: '${${DEPENDENCY}_LIBRARY}'")
+			message("${DEPENDENCY} library found: '${LIB_PATH}', auto-include it")
+			include_directories(${LIB_PATH})
 		ENDIF()
 	ENDIF()
 ENDFOREACH(DEPENDENCY)
@@ -77,9 +79,6 @@ ENDFOREACH(SUBMODULE)
 set_target_properties(log4cpp PROPERTIES FOLDER "LOG4C++")
 
 # Include headers
-include_directories(${Boost_INCLUDE_DIR})
-include_directories(${Vulkan_INCLUDE_DIR})
-include_directories(${GLFW_INCLUDE_DIR})
 include_directories(${LOG4CPP_INCLUDE_DIR})
 include_directories(${AO_INCLUDE_DIR})
 

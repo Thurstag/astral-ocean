@@ -1,7 +1,7 @@
 SET(MAIN_CPP main.cpp)
 
 # Include *.cpp & vk *.h
-file(GLOB_RECURSE SOURCE *.cpp)
+file(GLOB_RECURSE SOURCE *.cpp *.h)
 
 # Define executable
 add_executable(win-bootstrap ${MAIN_CPP} ${SOURCE})

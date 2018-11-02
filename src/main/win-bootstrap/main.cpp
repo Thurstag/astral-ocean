@@ -7,9 +7,10 @@
 #endif // WIN32
 
 #include <ao/vulkan/plugins/title_fps_plugin.h>
-#include <ao/vulkan/glfw_engine.h>
 #include <ao/core/exception.h>
 #include <ao/core/logger.h>
+
+#include "TriangleDemo.h"
 
 #define _CRTDBG_MAP_ALLOC 1
 struct Main{};
@@ -26,11 +27,11 @@ int main(int argc, char* argv[]) {
 	ao::core::Logger LOGGER = ao::core::Logger::getInstance<Main>();
 
 	// Define settings
-	ao::vulkan::EngineSettings settings = { true, "TEST", 1280, 720, true, false };
+	ao::vulkan::EngineSettings settings = { {std::string("TEST"), 1280, 720, true, false} };
 	ao::vulkan::AOEngine* engine;
 
 	try {
-		engine = new ao::vulkan::GLFWEngine(settings);
+		engine = new TriangleDemo(settings);
 		
 		// Add plug-ins
 		engine->add(new ao::vulkan::TitleFPSPlugin(engine));

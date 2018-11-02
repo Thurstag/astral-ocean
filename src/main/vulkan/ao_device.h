@@ -56,10 +56,11 @@ namespace ao {
 			///	Method to init logical device
 			/// </summary>
 			/// <param name="deviceExtensions">Extensions</param>
+			/// <param name="deviceFeatures">Features</param>
 			/// <param name="qflags">Queue Flags</param>
 			/// <param name="cflags">CommandPool Flags</param>
 			/// <param name="swapChain">Enable swapChain</param>
-			void initLogicalDevice(std::vector<char const*> deviceExtensions, vk::QueueFlags qflags, vk::CommandPoolCreateFlags cflags, bool swapChain = true);
+			void initLogicalDevice(std::vector<char const*>& deviceExtensions, std::vector<vk::PhysicalDeviceFeatures>& deviceFeatures, vk::QueueFlags qflags, vk::CommandPoolCreateFlags cflags, bool swapChain = true);
 
 			/// <summary>
 			/// Method to get memory type

@@ -48,11 +48,6 @@ void ao::vulkan::AOEngine::initVulkan() {
 	// Create instance
 	this->instance = utilities::createVkInstance(this->_settings, this->instanceExtensions());
 
-	// TODO: Set-up debugging if validation layer is enabled
-	//if (this->_settings.vkValidationLayers) {
-	//	ao::vulkan::utilities::initDebugging(this->instance, vk::DebugReportFlagBitsEXT::VK_DEBUG_REPORT_ERROR_BIT_EXT | vk::DebugReportFlagBitsEXT::VK_DEBUG_REPORT_WARNING_BIT_EXT, VK_NULL_HANDLE);
-	//}
-
 	// Get GPUs
 	std::vector<vk::PhysicalDevice> devices = ao::vulkan::utilities::vkPhysicalDevices(this->instance);
 
@@ -67,7 +62,7 @@ void ao::vulkan::AOEngine::initVulkan() {
 	LOGGER << LogLevel::INFO << "Select physical device: " << this->device->physical.getProperties().deviceName;
 
 	// Init logical device
-	this->device->initLogicalDevice(this->deviceExtensions(), this->queueFlags(), this->commandPoolFlags());
+	this->device->initLogicalDevice(this->deviceExtensions(), this->deviceFeatures(), this->queueFlags(), this->commandPoolFlags());
 
 	// Get a graphics queue from the device
 	this->queue = this->device->logical.getQueue(std::get<AO_GRAPHICS_QUEUE_INDEX>(this->device->queueFamilyIndices), 0);
@@ -76,41 +71,32 @@ void ao::vulkan::AOEngine::initVulkan() {
 	this->device->depthFormat = ao::vulkan::utilities::getSupportedDepthFormat(this->device->physical);
 
 	// Create swapChain
-	this->swapchain = new AOSwapChain(&this->instance, this->device);
+	this->swapchain = new AOSwapChain(&this->instance, this->device, [&](vk::CommandBuffer& commandBuffer, vk::RenderPassBeginInfo& renderPassInfo, ao::vulkan::WindowSettings& winSettings) {
+		this->drawCommandBuffer(commandBuffer, renderPassInfo, winSettings);
+	});
 
 	// Create semaphores
 	this->semaphores.first = this->device->logical.createSemaphore(vk::SemaphoreCreateInfo());
 	this->semaphores.second = this->device->logical.createSemaphore(vk::SemaphoreCreateInfo());
 
 	// Create submit info
-	this->submitInfo = vk::SubmitInfo(1, &this->semaphores.first, &this->submitPipelineStages, 0, nullptr, 1, &this->semaphores.second);
+	this->submitInfo = vk::SubmitInfo(1, &this->semaphores.first, &this->pipeline->submitPipelineStages, 0, nullptr, 1, &this->semaphores.second);
 }
 
 void ao::vulkan::AOEngine::freeVulkan() {
 	delete this->swapchain;
 
-    /* TODO: 
-	if (descriptorPool != VK_NULL_HANDLE) {
-		vkDestroyDescriptorPool(device, descriptorPool, nullptr);
-	}*/
-
+	delete this->pipeline;
 	this->device->logical.destroyRenderPass(this->renderPass);
 
 	for (uint32_t i = 0; i < frameBuffers.size(); i++) {
 		this->device->logical.destroyFramebuffer(this->frameBuffers[i]);
 	}
 	this->frameBuffers.clear();
-
-	/*
-	for (auto& shaderModule : shaderModules) {
-		vkDestroyShaderModule(device, shaderModule, nullptr);
-	}*/
 	
 	this->device->logical.destroyImageView(std::get<2>(this->stencilBuffer));
 	this->device->logical.destroyImage(std::get<0>(this->stencilBuffer));
 	this->device->logical.freeMemory(std::get<1>(this->stencilBuffer));
-
-	this->device->logical.destroyPipelineCache(this->pipelineCache);
 
 	this->device->logical.destroySemaphore(this->semaphores.first);
 	this->device->logical.destroySemaphore(this->semaphores.second);
@@ -167,57 +153,13 @@ void ao::vulkan::AOEngine::createStencilBuffer() {
 	std::get<2>(this->stencilBuffer) = this->device->logical.createImageView(depthStencilView);
 }
 
-void ao::vulkan::AOEngine::setUpRenderPass() {
-	std::array<vk::AttachmentDescription, 2> attachments;
+void ao::vulkan::AOEngine::createRenderPass() {
+	this->setUpRenderPass();
 
-	// Color attachment
-	attachments[0] = vk::AttachmentDescription(
-		vk::AttachmentDescriptionFlags(), this->swapchain->colorFormat, vk::SampleCountFlagBits::e1,
-		vk::AttachmentLoadOp::eClear, vk::AttachmentStoreOp::eStore, vk::AttachmentLoadOp::eDontCare,
-		vk::AttachmentStoreOp::eDontCare, vk::ImageLayout::eUndefined, vk::ImageLayout::ePresentSrcKHR
-	);
-
-	// Depth attachment
-	attachments[1] = vk::AttachmentDescription(
-		vk::AttachmentDescriptionFlags(), this->device->depthFormat, vk::SampleCountFlagBits::e1,
-		vk::AttachmentLoadOp::eClear, vk::AttachmentStoreOp::eStore, vk::AttachmentLoadOp::eClear,
-		vk::AttachmentStoreOp::eDontCare, vk::ImageLayout::eUndefined, vk::ImageLayout::eDepthStencilAttachmentOptimal
-	);
-
-	vk::AttachmentReference colorReference(0, vk::ImageLayout::eColorAttachmentOptimal);
-	vk::AttachmentReference depthReference(1, vk::ImageLayout::eDepthStencilAttachmentOptimal);
-
-	vk::SubpassDescription subpassDescription(
-		vk::SubpassDescriptionFlags(), vk::PipelineBindPoint::eGraphics,
-		0, nullptr, 1, &colorReference, nullptr, &depthReference
-	);
-
-	// Subpass dependencies for layout transitions
-	std::array<vk::SubpassDependency, 2> dependencies;
-
-	dependencies[0] = vk::SubpassDependency(
-		VK_SUBPASS_EXTERNAL, 0, vk::PipelineStageFlagBits::eBottomOfPipe,
-		vk::PipelineStageFlagBits::eColorAttachmentOutput, vk::AccessFlagBits::eMemoryRead,
-		vk::AccessFlagBits::eColorAttachmentRead | vk::AccessFlagBits::eColorAttachmentWrite,
-		vk::DependencyFlagBits::eByRegion
-	);
-
-	dependencies[1] = vk::SubpassDependency(
-		0, VK_SUBPASS_EXTERNAL, vk::PipelineStageFlagBits::eColorAttachmentOutput,
-		vk::PipelineStageFlagBits::eBottomOfPipe, vk::AccessFlagBits::eColorAttachmentRead | vk::AccessFlagBits::eColorAttachmentWrite,
-		vk::AccessFlagBits::eMemoryRead,
-		vk::DependencyFlagBits::eByRegion
-	);
-
-	// Create info
-	vk::RenderPassCreateInfo renderPassInfo(
-		vk::RenderPassCreateFlags(), static_cast<uint32_t>(attachments.size()),
-		attachments.data(), 1, &subpassDescription, static_cast<uint32_t>(dependencies.size()),
-		dependencies.data()
-	);
-
-	// Create render pass
-	this->renderPass = this->device->logical.createRenderPass(renderPassInfo);
+	// Check render pass
+	if (!this->renderPass) {
+		throw ao::core::Exception("Fail to create render pass");
+	}
 }
 
 void ao::vulkan::AOEngine::setUpFrameBuffers() {
@@ -245,43 +187,75 @@ void ao::vulkan::AOEngine::recreateSwapChain() {
 	// Ensure all operations on the device have been finished
 	this->device->logical.waitIdle();
 
-	// Init swap chain
-	this->swapchain->init(this->_settings.window.width, this->_settings.window.height, this->_settings.window.vsync);
+	// Destroy pipeline
+	delete this->pipeline;
 
-	// Destroy stencil buffer
-	this->device->logical.destroyImage(std::get<0>(this->stencilBuffer));
-	this->device->logical.destroyImageView(std::get<2>(this->stencilBuffer));
-	this->device->logical.freeMemory(std::get<1>(this->stencilBuffer));
+	// Destroy render pass
+	this->device->logical.destroyRenderPass(this->renderPass);
 
-	// Create stencil buffer
-	this->createStencilBuffer();
-
-	// Destroy all frame buffers
-	for (uint32_t i = 0; i < this->frameBuffers.size(); i++) {
+	// Destroy frame buffers
+	for (uint32_t i = 0; i < frameBuffers.size(); i++) {
 		this->device->logical.destroyFramebuffer(this->frameBuffers[i]);
 	}
+	this->frameBuffers.clear();
 
-	// Set-up frame buffers
-	this->setUpFrameBuffers();
+	// Destroy stencil buffer
+	this->device->logical.destroyImageView(std::get<2>(this->stencilBuffer));
+	this->device->logical.destroyImage(std::get<0>(this->stencilBuffer));
+	this->device->logical.freeMemory(std::get<1>(this->stencilBuffer));
 
 	// Free command buffers
 	this->swapchain->freeCommandBuffers();
 
-	// Re-create command buffers
+	/* RE-CREATION PART */
+
+	// Init swap chain
+	this->swapchain->init(this->_settings.window.width, this->_settings.window.height, this->_settings.window.vsync);
+
+	// Create command buffers
 	this->swapchain->createCommandBuffers();
+
+	// Create stencil buffer
+	this->createStencilBuffer();
+
+	// Create render pass
+	this->createRenderPass();
+
+	// Create pipeline
+	this->createPipeline();
+
+	// TODO: Re-create vertex buffers ???
+
+	// Set-up frame buffers
+	this->setUpFrameBuffers();
+
+	// Init command buffers
 	this->swapchain->initCommandBuffers(this->frameBuffers, this->renderPass, this->_settings.window);
 
 	// Wait device idle
 	this->device->logical.waitIdle();
+}
 
-	// TODO: Add a method onSwapChainResize
+void ao::vulkan::AOEngine::createPipeline() {
+	// Create pipeline
+	this->pipeline = new ao::vulkan::AOPipeline(this->device);
+
+	// Create pipeline cache
+	this->pipeline->cache = this->device->logical.createPipelineCache(vk::PipelineCacheCreateInfo());
+
+	// Create layout
+	this->pipeline->layout = this->device->logical.createPipelineLayout(vk::PipelineLayoutCreateInfo());
+
+	// Set-up pipeline
+	this->setUpPipeline();
+
+	// Check pipeline
+	if (!this->pipeline->pipeline) {
+		throw ao::core::Exception("Fail to create pipeline");
+	}
 }
 
 void ao::vulkan::AOEngine::prepareVulkan() {
-	/*if (this->device.debugMarkers) {
-	   // TODO
-	}*/
-
 	// Init surface
 	this->initSurface(this->swapchain->surface);
 	this->swapchain->initSurface();
@@ -301,11 +275,14 @@ void ao::vulkan::AOEngine::prepareVulkan() {
 	// Create stencil buffer
 	this->createStencilBuffer();
 
-	// Set-up render pass
-	this->setUpRenderPass();
+	// Create render pass
+	this->createRenderPass();
 
-	// Create pipeline cache
-	this->pipelineCache = this->device->logical.createPipelineCache(vk::PipelineCacheCreateInfo());
+    // Create pipeline
+	this->createPipeline();
+
+	// Set-up vertex buffers
+	this->setUpVertexBuffers();
 
 	// Set-up frame buffer
 	this->setUpFrameBuffers();
@@ -349,7 +326,9 @@ void ao::vulkan::AOEngine::onLoopIteration() {
 }
 
 void ao::vulkan::AOEngine::render() {
-	this->device->logical.waitIdle();
+	// Wait fence
+	auto MAX_64 = std::numeric_limits<uint64_t>::max;
+	this->device->logical.waitForFences(this->waitingFences[this->frameBufferIndex], VK_TRUE, MAX_64());
 
 	// Prepare frame
 	this->prepareFrame();
@@ -358,8 +337,11 @@ void ao::vulkan::AOEngine::render() {
 	this->submitInfo.setCommandBufferCount(1);
 	this->submitInfo.setPCommandBuffers(&this->swapchain->commandBuffers[this->frameBufferIndex]);
 
+	// Reset fence
+	this->device->logical.resetFences(this->waitingFences[this->frameBufferIndex]);
+
 	// Submit to queue
-	this->queue.submit(this->submitInfo, nullptr);
+	this->queue.submit(this->submitInfo, this->waitingFences[this->frameBufferIndex]);
 
 	// Submit frame
 	this->submitFrame();
@@ -372,7 +354,7 @@ void ao::vulkan::AOEngine::prepareFrame() {
 
 	// Check result
 	if (result == vk::Result::eErrorOutOfDateKHR || result == vk::Result::eSuboptimalKHR) {
-		LOGGER << LogLevel::DEBUG << "Swap chain is no longer compatible, re-create it";
+		LOGGER << LogLevel::WARN << "Swap chain is no longer compatible, re-create it";
 
 		this->recreateSwapChain();
 		return;
@@ -385,7 +367,7 @@ void ao::vulkan::AOEngine::submitFrame() {
 
 	// Check result
 	if (result == vk::Result::eErrorOutOfDateKHR) {
-		LOGGER << LogLevel::DEBUG << "Swap chain is no longer compatible, re-create it";
+		LOGGER << LogLevel::WARN << "Swap chain is no longer compatible, re-create it";
 		
 		this->recreateSwapChain();
 		return;
@@ -398,6 +380,10 @@ void ao::vulkan::AOEngine::submitFrame() {
 
 std::vector<char const*> ao::vulkan::AOEngine::deviceExtensions() {
 	return std::vector<char const*>();
+}
+
+std::vector<vk::PhysicalDeviceFeatures> ao::vulkan::AOEngine::deviceFeatures() {
+	return std::vector<vk::PhysicalDeviceFeatures>();
 }
 
 vk::QueueFlags ao::vulkan::AOEngine::queueFlags() {

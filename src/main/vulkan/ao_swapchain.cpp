@@ -1,22 +1,19 @@
 #include "ao_swapchain.h"
 
-ao::vulkan::AOSwapChain::AOSwapChain(vk::Instance* instance, AODevice* device) {
+ao::vulkan::AOSwapChain::AOSwapChain(vk::Instance* instance, AODevice* device, std::function<void(vk::CommandBuffer&, vk::RenderPassBeginInfo&, ao::vulkan::WindowSettings&)> draw) {
 	this->instance = instance;
 	this->device = device;
+	this->draw = draw;
 }
 
 ao::vulkan::AOSwapChain::~AOSwapChain() {
-	if (this->swapChain) {
-		for (auto buffer : this->buffers) {
-			this->device->logical.destroyImageView(buffer.second);
-		}
-		this->buffers.clear();
+	for (auto buffer : this->buffers) {
+		this->device->logical.destroyImageView(buffer.second);
 	}
+	this->buffers.clear();
 	
-	if (this->surface) {
-		this->device->logical.destroySwapchainKHR(this->swapChain);
-		this->instance->destroySurfaceKHR(this->surface);
-	}
+	this->device->logical.destroySwapchainKHR(this->swapChain);
+	this->instance->destroySurfaceKHR(this->surface);
 
 	this->freeCommandBuffers();
 	this->device->logical.destroyCommandPool(this->commandPool);
@@ -30,16 +27,15 @@ void ao::vulkan::AOSwapChain::init(uint64_t & width, uint64_t & height, bool vsy
 	vk::SurfaceCapabilitiesKHR capabilities = this->device->physical.getSurfaceCapabilitiesKHR(this->surface);
 
 	// Find best swap chain size
-	vk::Extent2D swapchainExtent;
 	if (capabilities.currentExtent.width == (uint32_t)-1) {
-		swapchainExtent = vk::Extent2D(static_cast<uint32_t>(width), static_cast<uint32_t>(height));
+		this->currentExtent = vk::Extent2D(static_cast<uint32_t>(width), static_cast<uint32_t>(height));
 	}
 	else {
 		if (capabilities.currentExtent.width != width || capabilities.currentExtent.height != height) {
 			LOGGER << LogLevel::WARN << "Surface size is defined, change reference size from " << width << "x" << height << " to " << capabilities.currentExtent.width << "x" << capabilities.currentExtent.height;
 		}
 
-		swapchainExtent = capabilities.currentExtent;
+		this->currentExtent = capabilities.currentExtent;
 		width = capabilities.currentExtent.width;
 		height = capabilities.currentExtent.height;
 	}
@@ -95,7 +91,7 @@ void ao::vulkan::AOSwapChain::init(uint64_t & width, uint64_t & height, bool vsy
 	// Create info
 	vk::SwapchainCreateInfoKHR createInfo(
 		vk::SwapchainCreateFlagsKHR(), surface, countSurfaceImages,
-		colorFormat, colorSpace, vk::Extent2D(swapchainExtent.width, swapchainExtent.height),
+		colorFormat, colorSpace, vk::Extent2D(this->currentExtent.width, this->currentExtent.height),
 		1, vk::ImageUsageFlagBits::eColorAttachment, vk::SharingMode::eExclusive, 0, nullptr,
 		transform, compositeAlpha, presentMode, true, old
 	);
@@ -244,24 +240,8 @@ void ao::vulkan::AOSwapChain::initCommandBuffers(std::vector<vk::Framebuffer>& f
 		// Set target frame buffer
 		renderPassBeginInfo.framebuffer = frameBuffers[i];
 
-		// Begin command buffer
-		this->commandBuffers[i].begin(vk::CommandBufferBeginInfo());
-
-		// Start the first sub pass specified in our default render pass setup by the base class
-		// This will clear the color and depth attachment
-		this->commandBuffers[i].beginRenderPass(&renderPassBeginInfo, vk::SubpassContents::eInline);
-
-		// Update dynamic viewport state
-		this->commandBuffers[i].setViewport(0, vk::Viewport(0, 0, static_cast<float>(winSettings.width), static_cast<float>(winSettings.height), 0, 1));
-
-		// Update dynamic scissor state
-		this->commandBuffers[i].setScissor(0, vk::Rect2D(vk::Offset2D(), vk::Extent2D(static_cast<uint32_t>(winSettings.width), static_cast<uint32_t>(winSettings.height))));
-
-		// TODO: Execute a function
-
-		// End render pass & command buffer
-		this->commandBuffers[i].endRenderPass();
-		this->commandBuffers[i].end();
+		// Draw in command buffer
+		this->draw(this->commandBuffers[i], renderPassBeginInfo, winSettings);
 	}
 }
 
@@ -270,7 +250,9 @@ void ao::vulkan::AOSwapChain::freeCommandBuffers() {
 }
 
 vk::Result ao::vulkan::AOSwapChain::nextImage(vk::Semaphore& present, uint32_t& imageIndex) {
-	return this->device->logical.acquireNextImageKHR(this->swapChain, UINT64_MAX, present, nullptr, &imageIndex);
+	auto MAX_64 = std::numeric_limits<uint64_t>::max;
+
+	return this->device->logical.acquireNextImageKHR(this->swapChain, MAX_64(), present, nullptr, &imageIndex);
 }
 
 vk::Result ao::vulkan::AOSwapChain::enqueueImage(vk::Queue & queue, uint32_t & imageIndex, vk::Semaphore & render) {

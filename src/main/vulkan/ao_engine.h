@@ -11,6 +11,7 @@
 #include "engine_settings.h"
 #include "ao_swapchain.h"
 #include "vk_utilities.h"
+#include "ao_pipeline.h"
 #include "ao_device.h"
 
 namespace ao {
@@ -52,6 +53,14 @@ namespace ao {
 			/// </summary>
 			/// <returns>Settings</returns>
 			EngineSettings settings();
+
+			/// <summary>
+			/// Method to draw in command buffer
+			/// </summary>
+			/// <param name="commandBuffer">Command buffer</param>
+			/// <param name="renderPassInfo">Render pass info</param>
+			/// <param name="winSettings">Window settings</param>
+			virtual void drawCommandBuffer(vk::CommandBuffer& commandBuffer, vk::RenderPassBeginInfo& renderPassInfo, ao::vulkan::WindowSettings& winSettings) = 0;
 		protected:
 			core::Logger LOGGER = core::Logger::getInstance<AOEngine>();
 			
@@ -63,15 +72,13 @@ namespace ao {
 			std::vector<vk::Framebuffer> frameBuffers;
 			uint32_t frameBufferIndex = 0;
 
-			vk::PipelineStageFlags submitPipelineStages = vk::PipelineStageFlags(VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT);
 			vk::SubmitInfo submitInfo;
-
 			EngineSettings _settings;
 
-			vk::PipelineCache pipelineCache;
 			vk::RenderPass renderPass;
 			AOSwapChain* swapchain;
 			vk::Instance instance;
+			AOPipeline* pipeline;
 			AODevice* device;
 
 			/// <summary>
@@ -96,9 +103,9 @@ namespace ao {
 			/// </summary>
 			void createStencilBuffer();
 			/// <summary>
-			/// Method to set-up render pass
+			/// Method to create render pass
 			/// </summary>
-			void setUpRenderPass();
+			void createRenderPass();
 			/// <summary>
 			/// Method to set-up frame buffers
 			/// </summary>
@@ -107,6 +114,10 @@ namespace ao {
 			/// Method to re-create swap chain
 			/// </summary>
 			void recreateSwapChain();
+			/// <summary>
+			/// Method to create pipeline (graphics, layout, cache...)
+			/// </summary>
+			void createPipeline();
 
 			/// <summary>
 			/// Method to init surface
@@ -164,10 +175,15 @@ namespace ao {
 			/// <returns>Extensions</returns>
 			virtual std::vector<char const*> instanceExtensions() = 0;
 			/// <summary>
-			/// Method to get device extensions that must be enabled on device
+			/// Method to get device extensions that must be enabled
 			/// </summary>
 			/// <returns></returns>
 			virtual std::vector<char const*> deviceExtensions();
+			/// <summary>
+			/// Method to get device features that must be enabled
+			/// </summary>
+			/// <returns></returns>
+			virtual std::vector<vk::PhysicalDeviceFeatures> deviceFeatures();
 			/// <summary>
 			/// Method to define queue flags
 			/// </summary>
@@ -185,6 +201,21 @@ namespace ao {
 			/// <param name="devices">vk::PhysicalDevice</param>
 			/// <returns>Index</returns>
 			virtual size_t selectVkPhysicalDevice(std::vector<vk::PhysicalDevice>& devices);  // TODO: Optimize this
+
+			/// <summary>
+			/// Method to set-up pipeline
+			/// </summary>
+			/// <returns></returns>
+			virtual void setUpPipeline() = 0;
+			/// <summary>
+			/// Method to set-up render pass
+			/// </summary>
+			virtual void setUpRenderPass() = 0;
+			/// <summary>
+			/// Method to set-up vertex buffers
+			/// </summary>
+			/// <returns></returns>
+			virtual void setUpVertexBuffers() = 0;
 		private:
 			std::vector<core::Plugin<AOEngine>*> plugins;
 			std::mutex pluginsMutex;

@@ -15,3 +15,9 @@ file(COPY "." DESTINATION "${AO_CORE_INCLUDE_OUTPUT}"
 	PATTERN "*.dir" EXCLUDE
 	PATTERN "CMakeFiles" EXCLUDE
 )
+
+# Re-create sub-directories
+IF (WIN32)
+	create_sub_directories(AO_CORE_HEADERS ${CMAKE_CURRENT_SOURCE_DIR} "Header Files")
+	create_sub_directories(AO_CORE_SRC ${CMAKE_CURRENT_SOURCE_DIR} "Source Files")
+ENDIF()

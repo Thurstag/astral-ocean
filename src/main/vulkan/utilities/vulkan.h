@@ -14,8 +14,7 @@ namespace ao {
 	namespace vulkan {
 		struct Utilities {};
 		namespace utilities {
-
-						/// <summary>
+			/// <summary>
 			/// Method to convert a	VkResult into a vk::Result
 			/// </summary>
 			inline vk::Result to_result(VkResult result) {

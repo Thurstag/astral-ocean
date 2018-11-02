@@ -13,3 +13,9 @@ file(COPY "." DESTINATION "${AO_INCLUDE_DIR}/ao/vulkan"
 	PATTERN "*.dir" EXCLUDE
 	PATTERN "CMakeFiles" EXCLUDE
 )
+
+# Re-create sub-directories in Visual Studio
+IF (WIN32)
+	create_sub_directories(AO_VK_HEADERS ${CMAKE_CURRENT_SOURCE_DIR} "Header Files")
+	create_sub_directories(AO_VK_SRC ${CMAKE_CURRENT_SOURCE_DIR} "Source Files")
+ENDIF()

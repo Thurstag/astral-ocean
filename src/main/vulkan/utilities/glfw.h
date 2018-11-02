@@ -5,16 +5,16 @@
 #include <GLFW/glfw3.h>
 
 namespace ao {
-	namespace glfw {
+	namespace vulkan {
 		namespace utilities {
 			/// <summary>
 			/// Method to get monitors
 			/// </summary>
 			/// <returns>Monitors</returns>
-			inline std::vector<GLFWmonitor*> getMonitors() {
+			inline std::vector<GLFWmonitor*> monitors() {
 				int count;
 
-                // Get monitors
+				// Get monitors
 				GLFWmonitor** monitors = glfwGetMonitors(&count);
 				return std::vector<GLFWmonitor*>(monitors, monitors + count);
 			}
@@ -23,10 +23,10 @@ namespace ao {
 			/// Method to get extensions
 			/// </summary>
 			/// <returns>Extensions</returns>
-			inline std::vector<char const*> getExtensions() {
+			inline std::vector<char const*> extensions() {
 				uint32_t count;
 
-                // Get extensions
+				// Get extensions
 				char const** extensions = glfwGetRequiredInstanceExtensions(&count);
 				return std::vector<char const*>(extensions, extensions + count);
 			}

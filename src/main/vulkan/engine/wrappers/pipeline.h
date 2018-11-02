@@ -4,39 +4,38 @@
 
 #include <vulkan/vulkan.hpp>
 
-#include "ao_swapchain.h"
-#include "ao_device.h"
+#include "swapchain.h"
+#include "device.h"
 
 namespace ao {
 	namespace vulkan {
-		struct AOPipeline {
-		public:
-			/* FIELDS */
-			
+		/// <summary>
+		/// Wrapper for vulkan pipelines
+		/// </summary>
+		struct Pipeline {
+		public:			
 			vk::PipelineStageFlags submitPipelineStages = vk::PipelineStageFlagBits::eColorAttachmentOutput;
 
 			vk::PipelineLayout layout;
 			vk::PipelineCache cache;
-			vk::Pipeline pipeline;
-
-			/* CON/DESTRUCTORS */
+			vk::Pipeline graphics;
 
 			/// <summary>
 			/// Constructor
 			/// </summary>
-			AOPipeline() = default;
+			Pipeline() = default;
 			/// <summary>
 			/// Constructor
 			/// </summary>
 			/// <param name="device">Device</param>
-			AOPipeline(AODevice* device);
+			Pipeline(Device* device);
 
 			/// <summary>
 			/// Destructor
 			/// </summary>
-			virtual ~AOPipeline();
+			virtual ~Pipeline();
 		private:
-			AODevice* device;
+			Device* device;
 		};
 	}
 }

@@ -16,8 +16,6 @@ void ao::vulkan::GLFWEngine::initWindow() {
 
 	// Create window
 	this->window = glfwCreateWindow((int)this->_settings.window.width, (int)this->_settings.window.height, this->_settings.window.name.c_str(), nullptr, nullptr);
-
-	LOGGER << LogLevel::INFO << "Init " << this->_settings.window.width << "x" << this->_settings.window.height << " window";
 }
 
 void ao::vulkan::GLFWEngine::initSurface(vk::SurfaceKHR& surface) {
@@ -56,5 +54,5 @@ void ao::vulkan::GLFWEngine::waitMaximized() {
 }
 
 std::vector<char const*> ao::vulkan::GLFWEngine::instanceExtensions() {
-	return ao::glfw::utilities::getExtensions();
+	return ao::vulkan::utilities::extensions();
 }

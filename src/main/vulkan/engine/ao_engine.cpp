@@ -19,9 +19,12 @@ ao::vulkan::AOEngine::~AOEngine() {
 }
 
 void ao::vulkan::AOEngine::run() {
+	// Init window
 	this->initWindow();
-	this->initVulkan();
+	LOGGER << LogLevel::INFO << "Init " << this->_settings.window.width << "x" << this->_settings.window.height << " window";
 
+	// Init vulkan
+	this->initVulkan();
 	this->prepareVulkan();
 
 	// Execute plugins' onInit()
@@ -33,6 +36,7 @@ void ao::vulkan::AOEngine::run() {
 	}
 	this->pluginsMutex.unlock();
 
+	// Execute main loop
 	this->loop();
 }
 
@@ -57,7 +61,7 @@ void ao::vulkan::AOEngine::initVulkan() {
 	}
 
 	// Select a vk::PhysicalDevice & wrap it
-	this->device = new AODevice(devices[this->selectVkPhysicalDevice(devices)]);
+	this->device = new Device(devices[this->selectVkPhysicalDevice(devices)]);
 
 	LOGGER << LogLevel::INFO << "Select physical device: " << this->device->physical.getProperties().deviceName;
 
@@ -71,7 +75,7 @@ void ao::vulkan::AOEngine::initVulkan() {
 	this->device->depthFormat = ao::vulkan::utilities::getSupportedDepthFormat(this->device->physical);
 
 	// Create swapChain
-	this->swapchain = new AOSwapChain(&this->instance, this->device, [&](vk::CommandBuffer& commandBuffer, vk::RenderPassBeginInfo& renderPassInfo, ao::vulkan::WindowSettings& winSettings) {
+	this->swapchain = new SwapChain(&this->instance, this->device, [&](vk::CommandBuffer& commandBuffer, vk::RenderPassBeginInfo& renderPassInfo, ao::vulkan::WindowSettings& winSettings) {
 		this->drawCommandBuffer(commandBuffer, renderPassInfo, winSettings);
 	});
 
@@ -238,7 +242,7 @@ void ao::vulkan::AOEngine::recreateSwapChain() {
 
 void ao::vulkan::AOEngine::createPipeline() {
 	// Create pipeline
-	this->pipeline = new ao::vulkan::AOPipeline(this->device);
+	this->pipeline = new ao::vulkan::Pipeline(this->device);
 
 	// Create pipeline cache
 	this->pipeline->cache = this->device->logical.createPipelineCache(vk::PipelineCacheCreateInfo());
@@ -250,7 +254,7 @@ void ao::vulkan::AOEngine::createPipeline() {
 	this->setUpPipeline();
 
 	// Check pipeline
-	if (!this->pipeline->pipeline) {
+	if (!this->pipeline->graphics) {
 		throw ao::core::Exception("Fail to create pipeline");
 	}
 }

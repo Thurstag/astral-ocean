@@ -6,32 +6,36 @@
 #include <string>
 #include <map>
 
-#include <ao/vulkan/ao_device.h>
 #include <ao/core/exception.h>
 #include <vulkan/vulkan.hpp>
 
+#include "device.h"
+
 namespace ao {
 	namespace vulkan {
-		class AOShaderModule {
+		/// <summary>
+		/// Wrapper for vulkan shaders
+		/// </summary>
+		class ShaderModule {
 		public:
 			/// <summary>
 			/// Constructor
 			/// </summary>
 			/// <param name="device">Device</param>
-			AOShaderModule(AODevice* device);
+			ShaderModule(Device* device);
 
 			/// <summary>
 			/// Destructor
 			/// </summary>
-			~AOShaderModule();
+			~ShaderModule();
 
 			/// <summary>
 			/// Method to load a shader
 			/// </summary>
 			/// <param name="filename">Filename</param>
 			/// <param name="flag">Flag</param>
-			/// <returns>AOShaderModule</returns>
-			AOShaderModule& loadShader(std::string filename, vk::ShaderStageFlagBits flag);
+			/// <returns>ShaderModule</returns>
+			ShaderModule& loadShader(std::string filename, vk::ShaderStageFlagBits flag);
 
 			/// <summary>
 			/// Method to get shaderStages
@@ -41,7 +45,7 @@ namespace ao {
 
 		private:
 			std::map<vk::ShaderStageFlagBits, vk::PipelineShaderStageCreateInfo*> shaders;
-			AODevice* device;
+			Device* device;
 
 			/// <summary>
 			/// Method to read a shader file

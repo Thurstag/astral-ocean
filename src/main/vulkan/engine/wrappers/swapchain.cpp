@@ -1,12 +1,12 @@
-#include "ao_swapchain.h"
+#include "swapchain.h"
 
-ao::vulkan::AOSwapChain::AOSwapChain(vk::Instance* instance, AODevice* device, std::function<void(vk::CommandBuffer&, vk::RenderPassBeginInfo&, ao::vulkan::WindowSettings&)> draw) {
+ao::vulkan::SwapChain::SwapChain(vk::Instance* instance, Device* device, std::function<void(vk::CommandBuffer&, vk::RenderPassBeginInfo&, ao::vulkan::WindowSettings&)> draw) {
 	this->instance = instance;
 	this->device = device;
 	this->draw = draw;
 }
 
-ao::vulkan::AOSwapChain::~AOSwapChain() {
+ao::vulkan::SwapChain::~SwapChain() {
 	for (auto buffer : this->buffers) {
 		this->device->logical.destroyImageView(buffer.second);
 	}
@@ -19,7 +19,7 @@ ao::vulkan::AOSwapChain::~AOSwapChain() {
 	this->device->logical.destroyCommandPool(this->commandPool);
 }
 
-void ao::vulkan::AOSwapChain::init(uint64_t & width, uint64_t & height, bool vsync) {
+void ao::vulkan::SwapChain::init(uint64_t & width, uint64_t & height, bool vsync) {
 	// Back-up swap chain
 	vk::SwapchainKHR old = this->swapChain;
 
@@ -65,7 +65,7 @@ void ao::vulkan::AOSwapChain::init(uint64_t & width, uint64_t & height, bool vsy
 		}
 	}
 
-	LOGGER << LogLevel::INFO << "Use present mode: " << ao::vulkan::enums::to_string(presentMode);
+	LOGGER << LogLevel::INFO << "Use present mode: " << ao::vulkan::utilities::to_string(presentMode);
 
 	// Determine surface image capacity
 	uint32_t countSurfaceImages = capabilities.minImageCount + 1;
@@ -142,7 +142,7 @@ void ao::vulkan::AOSwapChain::init(uint64_t & width, uint64_t & height, bool vsy
 	LOGGER << LogLevel::DEBUG << "Set-up a swap chain with a buffer of " << buffers.size() << " image(s)";
 }
 
-void ao::vulkan::AOSwapChain::initSurface() {
+void ao::vulkan::SwapChain::initSurface() {
 	// Detect if a queue supports present
 	std::vector<vk::Bool32> supportsPresent(this->device->queueFamilyProperties.size());
 	for (uint32_t i = 0; i < supportsPresent.size(); i++) {
@@ -216,15 +216,15 @@ void ao::vulkan::AOSwapChain::initSurface() {
 	}
 }
 
-void ao::vulkan::AOSwapChain::initCommandPool() {
+void ao::vulkan::SwapChain::initCommandPool() {
 	this->commandPool = this->device->logical.createCommandPool(vk::CommandPoolCreateInfo(vk::CommandPoolCreateFlagBits::eResetCommandBuffer, this->queueIndex));
 }
 
-void ao::vulkan::AOSwapChain::createCommandBuffers() {
+void ao::vulkan::SwapChain::createCommandBuffers() {
 	this->commandBuffers = this->device->logical.allocateCommandBuffers(vk::CommandBufferAllocateInfo(this->commandPool, vk::CommandBufferLevel::ePrimary, static_cast<uint32_t>(this->buffers.size())));
 }
 
-void ao::vulkan::AOSwapChain::initCommandBuffers(std::vector<vk::Framebuffer>& frameBuffers, vk::RenderPass& renderPass, ao::vulkan::WindowSettings& winSettings) {
+void ao::vulkan::SwapChain::initCommandBuffers(std::vector<vk::Framebuffer>& frameBuffers, vk::RenderPass& renderPass, ao::vulkan::WindowSettings& winSettings) {
 	// Define clear values for all framebuffer attachments with
 	std::array<vk::ClearValue, 2> clearValues;
 	clearValues[0].color = vk::ClearColorValue();
@@ -245,17 +245,17 @@ void ao::vulkan::AOSwapChain::initCommandBuffers(std::vector<vk::Framebuffer>& f
 	}
 }
 
-void ao::vulkan::AOSwapChain::freeCommandBuffers() {
+void ao::vulkan::SwapChain::freeCommandBuffers() {
 	this->device->logical.freeCommandBuffers(this->commandPool, this->commandBuffers);
 }
 
-vk::Result ao::vulkan::AOSwapChain::nextImage(vk::Semaphore& present, uint32_t& imageIndex) {
+vk::Result ao::vulkan::SwapChain::nextImage(vk::Semaphore& present, uint32_t& imageIndex) {
 	auto MAX_64 = std::numeric_limits<uint64_t>::max;
 
 	return this->device->logical.acquireNextImageKHR(this->swapChain, MAX_64(), present, nullptr, &imageIndex);
 }
 
-vk::Result ao::vulkan::AOSwapChain::enqueueImage(vk::Queue & queue, uint32_t & imageIndex, vk::Semaphore & render) {
+vk::Result ao::vulkan::SwapChain::enqueueImage(vk::Queue & queue, uint32_t & imageIndex, vk::Semaphore & render) {
 	vk::PresentInfoKHR presentInfo(1, &render, 1, &this->swapChain, &imageIndex);
 
 	// Pass a pointer to don't trigger an exception

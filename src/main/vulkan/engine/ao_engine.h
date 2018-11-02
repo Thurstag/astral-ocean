@@ -1,5 +1,6 @@
 #pragma once
 
+#include <vector>
 #include <mutex>
 #include <tuple>
 
@@ -8,11 +9,11 @@
 #include <ao/core/logger.h>
 #include <vulkan/vulkan.hpp>
 
-#include "engine_settings.h"
-#include "ao_swapchain.h"
-#include "vk_utilities.h"
-#include "ao_pipeline.h"
-#include "ao_device.h"
+#include "../utilities/vulkan.h"
+#include "wrappers/swapchain.h"
+#include "wrappers/pipeline.h"
+#include "wrappers/device.h"
+#include "settings.h"
 
 namespace ao {
 	namespace vulkan {
@@ -60,7 +61,7 @@ namespace ao {
 			/// <param name="commandBuffer">Command buffer</param>
 			/// <param name="renderPassInfo">Render pass info</param>
 			/// <param name="winSettings">Window settings</param>
-			virtual void drawCommandBuffer(vk::CommandBuffer& commandBuffer, vk::RenderPassBeginInfo& renderPassInfo, ao::vulkan::WindowSettings& winSettings) = 0;
+			virtual void drawCommandBuffer(vk::CommandBuffer& commandBuffer, vk::RenderPassBeginInfo& renderPassInfo, WindowSettings& winSettings) = 0;
 		protected:
 			core::Logger LOGGER = core::Logger::getInstance<AOEngine>();
 			
@@ -76,10 +77,10 @@ namespace ao {
 			EngineSettings _settings;
 
 			vk::RenderPass renderPass;
-			AOSwapChain* swapchain;
+			SwapChain* swapchain;
 			vk::Instance instance;
-			AOPipeline* pipeline;
-			AODevice* device;
+			Pipeline* pipeline;
+			Device* device;
 
 			/// <summary>
 			/// Method to init vulkan

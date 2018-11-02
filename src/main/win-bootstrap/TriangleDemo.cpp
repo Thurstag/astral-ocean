@@ -13,7 +13,7 @@ void TriangleDemo::drawCommandBuffer(vk::CommandBuffer& commandBuffer, vk::Rende
 	commandBuffer.beginRenderPass(renderPassInfo, vk::SubpassContents::eInline);
 
 	// Bind pipeline
-	commandBuffer.bindPipeline(vk::PipelineBindPoint::eGraphics, this->pipeline->pipeline);
+	commandBuffer.bindPipeline(vk::PipelineBindPoint::eGraphics, this->pipeline->graphics);
 
 	// Draw triangle
 	std::array<vk::Buffer, 1> vertexBuffers = { vertexBuffer };
@@ -77,7 +77,7 @@ void TriangleDemo::setUpRenderPass() {
 
 void TriangleDemo::setUpPipeline() {
 	// Create shadermodules
-	ao::vulkan::AOShaderModule module(this->device);
+	ao::vulkan::ShaderModule module(this->device);
 
 	// Load shaders & get shaderStages
 	std::vector<vk::PipelineShaderStageCreateInfo> shaderStages = module
@@ -171,7 +171,7 @@ void TriangleDemo::setUpPipeline() {
 		.setPDynamicState(&dynamicState);
 
 	// Create rendering pipeline using the specified states
-	this->pipeline->pipeline = this->device->logical.createGraphicsPipelines(this->pipeline->cache, pipelineCreateInfo)[0];
+	this->pipeline->graphics = this->device->logical.createGraphicsPipelines(this->pipeline->cache, pipelineCreateInfo)[0];
 }
 
 void TriangleDemo::setUpVertexBuffers() {
@@ -189,7 +189,7 @@ void TriangleDemo::setUpVertexBuffers() {
 	// Allocate memory
 	this->vertexBufferMemory = this->device->logical.allocateMemory(vk::MemoryAllocateInfo(
 		memRequirements.size,
-		this->findMemoryType(memRequirements.memoryTypeBits, vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent)
+		this->device->memoryType(memRequirements.memoryTypeBits, vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent)
 	));
 
 	void* data;
@@ -201,15 +201,4 @@ void TriangleDemo::setUpVertexBuffers() {
 	// Copy vertices into buffer
 	memcpy(data, this->vertices.data(), sizeof(this->vertices) * this->vertices.size());
 	vkUnmapMemory(this->device->logical, this->vertexBufferMemory);
-}
-
-uint32_t TriangleDemo::findMemoryType(uint32_t typeFilter, vk::MemoryPropertyFlags properties) {
-	vk::PhysicalDeviceMemoryProperties memProperties = this->device->physical.getMemoryProperties();
-
-	for (uint32_t i = 0; i < memProperties.memoryTypeCount; i++) {
-		if ((typeFilter & (1 << i)) && (memProperties.memoryTypes[i].propertyFlags & properties) == properties) {
-			return i;
-		}
-	}
-	throw ao::core::Exception("Fail to find a suitable memory index");
 }

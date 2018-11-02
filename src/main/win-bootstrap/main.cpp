@@ -6,7 +6,7 @@
 #include <crtdbg.h>
 #endif // WIN32
 
-#include <ao/vulkan/plugins/title_fps_plugin.h>
+#include <ao/vulkan/engine/plugins/title_fps_plugin.h>
 #include <ao/core/exception.h>
 #include <ao/core/logger.h>
 

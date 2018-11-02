@@ -1,6 +1,6 @@
-#include "ao_device.h"
+#include "device.h"
 
-ao::vulkan::AODevice::AODevice(vk::PhysicalDevice& device) {
+ao::vulkan::Device::Device(vk::PhysicalDevice& device) {
 	this->physical = device;
 
 	// Get QueueFamilyProperties
@@ -20,12 +20,12 @@ ao::vulkan::AODevice::AODevice(vk::PhysicalDevice& device) {
 	}
 }
 
-ao::vulkan::AODevice::~AODevice() {
+ao::vulkan::Device::~Device() {
 	this->logical.destroyCommandPool(this->commandPool);
 	this->logical.destroy();
 }
 
-void ao::vulkan::AODevice::initLogicalDevice(std::vector<char const*>& deviceExtensions, std::vector<vk::PhysicalDeviceFeatures>& deviceFeatures, vk::QueueFlags qflags, vk::CommandPoolCreateFlags cflags, bool swapChain) {
+void ao::vulkan::Device::initLogicalDevice(std::vector<char const*>& deviceExtensions, std::vector<vk::PhysicalDeviceFeatures>& deviceFeatures, vk::QueueFlags qflags, vk::CommandPoolCreateFlags cflags, bool swapChain) {
 	std::vector<vk::DeviceQueueCreateInfo> queueCreateInfos;
 	float const DEFAULT_QUEUE_PRIORITY = 0.0f;
 
@@ -102,7 +102,7 @@ void ao::vulkan::AODevice::initLogicalDevice(std::vector<char const*>& deviceExt
 	this->commandPool = this->logical.createCommandPool(vk::CommandPoolCreateInfo(cflags, std::get<AO_GRAPHICS_QUEUE_INDEX>(this->queueFamilyIndices)));
 }
 
-uint32_t ao::vulkan::AODevice::memoryType(uint32_t typeBits, vk::MemoryPropertyFlags properties) {
+uint32_t ao::vulkan::Device::memoryType(uint32_t typeBits, vk::MemoryPropertyFlags properties) {
 	vk::PhysicalDeviceMemoryProperties memoryProperties = this->physical.getMemoryProperties();
 
 	for (uint32_t i = 0; i < memoryProperties.memoryTypeCount; i++) {

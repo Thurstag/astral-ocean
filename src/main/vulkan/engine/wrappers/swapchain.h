@@ -1,34 +1,31 @@
 #pragma once
 
 #include <functional>
+#include <vector>
 #include <limits>
 
 #include <vulkan/vulkan.hpp>
 
-#include "ao_device.h"
+#include "device.h"
 
 namespace ao {
 	namespace vulkan {
 		/// <summary>
-		/// vk::SwapChain wrapper
+		/// Wrapper for vulkan swap chain
 		/// </summary>
-		struct AOSwapChain {
+		struct SwapChain {
 		public:
-		    /* FIELDS */
-
 			vk::CommandPool commandPool;
-			vk::SwapchainKHR swapChain = nullptr;
+			vk::SwapchainKHR swapChain;
 
 			std::vector<std::pair<vk::Image, vk::ImageView>> buffers;
 			std::vector<vk::CommandBuffer> commandBuffers;
-			vk::Extent2D currentExtent;
 
 			vk::ColorSpaceKHR colorSpace;
+			vk::Extent2D currentExtent;
+			vk::Format colorFormat;
 			vk::SurfaceKHR surface;
 			uint32_t queueIndex;
-			vk::Format colorFormat;
-			
-			/* CON/DESTRUCTORS */
 
 			/// <summary>
 			/// Constructor
@@ -36,14 +33,12 @@ namespace ao {
 			/// <param name="instance">Instance</param>
 			/// <param name="device">Device</param>
 			/// <param name="draw">Drawing function</param>
-			AOSwapChain(vk::Instance* instance, AODevice* device, std::function<void(vk::CommandBuffer&, vk::RenderPassBeginInfo&, ao::vulkan::WindowSettings&)> draw);
+			SwapChain(vk::Instance* instance, Device* device, std::function<void(vk::CommandBuffer&, vk::RenderPassBeginInfo&, WindowSettings&)> draw);
 
 			/// <summary>
 			/// Destructor
 			/// </summary>
-			virtual ~AOSwapChain();
-
-			/* METHODS */
+			virtual ~SwapChain();
 
 			/// <summary>
 			/// Method to init swap chain
@@ -87,12 +82,12 @@ namespace ao {
 			/// <returns></returns>
 			vk::Result enqueueImage(vk::Queue& queue, uint32_t& imageIndex, vk::Semaphore& render);
 		protected:
-			ao::core::Logger LOGGER = ao::core::Logger::getInstance<AOSwapChain>();
+			core::Logger LOGGER = core::Logger::getInstance<SwapChain>();
 		private:
 			vk::Instance* instance;
-			AODevice* device;
+			Device* device;
 
-			std::function<void(vk::CommandBuffer&, vk::RenderPassBeginInfo&, ao::vulkan::WindowSettings&)> draw;
+			std::function<void(vk::CommandBuffer&, vk::RenderPassBeginInfo&, vulkan::WindowSettings&)> draw;
 		};
 	}
 }

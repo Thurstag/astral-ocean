@@ -31,7 +31,7 @@ namespace ao {
 			virtual void beforeDestroy() = 0;
 
 		protected:
-			Logger LOGGER = ao::core::Logger::getInstance<Plugin<T>>();
+			Logger LOGGER = Logger::getInstance<Plugin<T>>();
 			T* subject = nullptr;
 		};
 

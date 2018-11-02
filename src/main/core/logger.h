@@ -1,5 +1,10 @@
 #pragma once
 
+#include <iostream>
+#include <typeinfo>
+#include <string>
+#include <vector>
+
 #include <log4cpp/OstreamAppender.hh>
 #include <boost/algorithm/string.hpp>
 #include <log4cpp/PatternLayout.hh>
@@ -31,7 +36,7 @@ namespace ao {
 			/// </summary>
 			template<class T>
 			inline static Logger getInstance() {
-				return ao::core::Logger(typeid(T));
+				return Logger(typeid(T));
 			};
 
 			/// <summary>

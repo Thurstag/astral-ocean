@@ -1,10 +1,10 @@
-#include "ao_shadermodule.h"
+#include "shadermodule.h"
 
-ao::vulkan::AOShaderModule::AOShaderModule(AODevice* device) {
+ao::vulkan::ShaderModule::ShaderModule(Device* device) {
 	this->device = device;
 }
 
-ao::vulkan::AOShaderModule::~AOShaderModule() {
+ao::vulkan::ShaderModule::~ShaderModule() {
 	for (auto& pair : this->shaders) {
 		this->device->logical.destroyShaderModule(pair.second->module);
 		delete pair.second;
@@ -12,13 +12,14 @@ ao::vulkan::AOShaderModule::~AOShaderModule() {
 	this->shaders.clear();
 }
 
-std::vector<char> ao::vulkan::AOShaderModule::read(std::string filename) {
+std::vector<char> ao::vulkan::ShaderModule::read(std::string filename) {
+	// Open file and go to the end
 	std::ifstream file(filename, std::ios::ate | std::ios::binary);
 	std::vector<char> vector;
 
 	// Check file
 	if (!file.is_open()) {
-		throw ao::core::Exception("Fail to open:" + filename);
+		throw ao::core::Exception("Fail to open: " + filename);
 	}
 
 	// Get size
@@ -27,7 +28,7 @@ std::vector<char> ao::vulkan::AOShaderModule::read(std::string filename) {
 	// Resize vector
 	vector.resize(fileSize);
 
-	// Copy into vector
+	// Rollback to start & copy into vector
 	file.seekg(0);
 	file.read(vector.data(), fileSize);
 	
@@ -42,13 +43,13 @@ std::vector<char> ao::vulkan::AOShaderModule::read(std::string filename) {
 	return vector;
 }
 
-vk::ShaderModule ao::vulkan::AOShaderModule::createModule(const std::vector<char>& code) {
+vk::ShaderModule ao::vulkan::ShaderModule::createModule(const std::vector<char>& code) {
 	return this->device->logical.createShaderModule(vk::ShaderModuleCreateInfo(vk::ShaderModuleCreateFlags(), code.size(), reinterpret_cast<const uint32_t*>(code.data())));
 }
 
-ao::vulkan::AOShaderModule & ao::vulkan::AOShaderModule::loadShader(std::string filename, vk::ShaderStageFlagBits flag) {
+ao::vulkan::ShaderModule & ao::vulkan::ShaderModule::loadShader(std::string filename, vk::ShaderStageFlagBits flag) {
 	// Create module
-	vk::ShaderModule module = ao::vulkan::AOShaderModule::createModule(ao::vulkan::AOShaderModule::read(filename));
+	vk::ShaderModule module = ao::vulkan::ShaderModule::createModule(ao::vulkan::ShaderModule::read(filename));
 
 	// Destroy old one
 	auto it = this->shaders.find(flag);
@@ -65,7 +66,7 @@ ao::vulkan::AOShaderModule & ao::vulkan::AOShaderModule::loadShader(std::string 
 	return *this;
 }
 
-std::vector <vk::PipelineShaderStageCreateInfo> ao::vulkan::AOShaderModule::shaderStages() {
+std::vector <vk::PipelineShaderStageCreateInfo> ao::vulkan::ShaderModule::shaderStages() {
 	std::vector<vk::PipelineShaderStageCreateInfo> vector(this->shaders.size());
 
 	// Copy into vector

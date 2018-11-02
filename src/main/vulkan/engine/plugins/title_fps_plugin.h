@@ -16,7 +16,7 @@ namespace ao {
 			virtual ~TitleFPSPlugin();
 
 			void onInit() override;
-			void displayFrameRate(uint64_t frameRate);
+			void displayFrameRate(uint64_t frameRate) override;
 
 		private:
 			std::string baseTitle;

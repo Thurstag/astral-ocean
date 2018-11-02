@@ -1,8 +1,8 @@
 #pragma once
 
-#include <ao/vulkan/ao_shadermodule.h>
-#include <ao/vulkan/engine_settings.h>
-#include <ao/vulkan/glfw_engine.h>
+#include <ao/vulkan/engine/wrappers/shadermodule.h>
+#include <ao/vulkan/engine/settings.h>
+#include <ao/vulkan/engine/glfw_engine.h>
 #include <vulkan/vulkan.hpp>
 #include <glm/glm.hpp>
 
@@ -40,7 +40,5 @@ public:
 	void setUpRenderPass() override;
 	void setUpPipeline() override;
 	void setUpVertexBuffers() override;
-
-	uint32_t findMemoryType(uint32_t typeFilter, vk::MemoryPropertyFlags properties);
 };
 

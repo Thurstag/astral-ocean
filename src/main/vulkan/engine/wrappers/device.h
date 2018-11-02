@@ -8,7 +8,7 @@
 #include <vulkan/vulkan.hpp>
 #include <ao/core/logger.h>
 
-#include "vk_utilities.h"
+#include "../../utilities/vulkan.h"
 
 #define AO_GRAPHICS_QUEUE_INDEX 0
 #define AO_COMPUTE_QUEUE_INDEX 1
@@ -17,40 +17,34 @@
 namespace ao {
 	namespace vulkan {
 		/// <summary>
-		/// vk::Device wrapper
+		/// Wrapper for vulkan devices
 		/// </summary>
-		struct AODevice {
+		struct Device {
 		public:
-			/* FIELDS */
 			std::vector<vk::QueueFamilyProperties> queueFamilyProperties;
 			std::tuple<uint32_t, uint32_t, uint32_t> queueFamilyIndices;
 
-			vk::PhysicalDevice physical;
-			vk::Device logical;
-
-			vk::CommandPool commandPool;
-			vk::Format depthFormat;
-
 			std::vector<vk::ExtensionProperties> extensions;
 
-			/* CON/DESTRUCTORS */
+			vk::CommandPool commandPool;
+			vk::PhysicalDevice physical;
+			vk::Format depthFormat;
+			vk::Device logical;
 
 			/// <summary>
 			/// Constructor
 			/// </summary>
-			AODevice() = default;
+			Device() = default;
 			/// <summary>
 			/// Constructor
 			/// </summary>
 			/// <param name="device"></param>
-			AODevice(vk::PhysicalDevice& device);
+			Device(vk::PhysicalDevice& device);
 
 			/// <summary>
 			/// Destructor
 			/// </summary>
-			virtual ~AODevice();
-
-			/* METHODS */ 
+			virtual ~Device();
 			
 			/// <summary>
 			///	Method to init logical device
@@ -70,7 +64,7 @@ namespace ao {
 			/// <returns>Index</returns>
 			uint32_t memoryType(uint32_t typeBits, vk::MemoryPropertyFlags properties);
 		protected:
-			core::Logger LOGGER = core::Logger::getInstance<AODevice>();
+			core::Logger LOGGER = core::Logger::getInstance<Device>();
 		};
 	}
 }

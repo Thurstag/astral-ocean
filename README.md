@@ -34,12 +34,16 @@ TODO
 | ------------- |:-----------------:|
 | Vulkan        | **1.1.85.0**      |
 | Boost         | **1.68.0**        |
+| GLM           | **0.9.9.3**       |
 | GLFW          | **3.2.1**@245461e |
 | LOG4CPP       | **2.9.0**@683cbb7 |
 
-## Special thanks
+## Credits
+
+Thank to the authors of these works:
 
 * https://github.com/vinjn/awesome-vulkan
 * https://github.com/SaschaWillems/Vulkan
 * https://vulkan-tutorial.com/Introduction
 * https://renderdoc.org/vulkan-in-30-minutes.html
+* https://www.khronos.org/registry/vulkan/specs/1.1-extensions/html/vkspec.html

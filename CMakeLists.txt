@@ -44,7 +44,7 @@ set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 # Define project name
-project("${PROJECT_NAME}" VERSION 0.0.0.0)
+project("${PROJECT_NAME}" VERSION 0.0.0)
 
 # Try to find libraries
 IF (NOT CMAKE_VERSION VERSION_LESS 3.7.0)

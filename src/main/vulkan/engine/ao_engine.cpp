@@ -2,6 +2,10 @@
 
 ao::vulkan::AOEngine::AOEngine(EngineSettings settings) {
 	this->_settings = settings;
+
+	// Resize pool
+	this->commandBufferPool.resize(std::thread::hardware_concurrency()); // TODO: 50% ?
+	LOGGER << LogLevel::INFO << "Init a thread pool for command buffer processing with " << this->commandBufferPool.size() << " thread(s)";
 }
 
 ao::vulkan::AOEngine::~AOEngine() {
@@ -13,6 +17,9 @@ ao::vulkan::AOEngine::~AOEngine() {
 		}
 	}
 	this->pluginsMutex.unlock();
+
+	// Kill thread pool
+	this->commandBufferPool.stop();
 
 	this->freeVulkan();
 	this->freePlugins();
@@ -401,16 +408,22 @@ void ao::vulkan::AOEngine::updateCommandBuffers() {
 	vk::CommandBufferInheritanceInfo inheritanceInfo(this->renderPass, 0, currentFrame);
 
 	std::vector<vk::CommandBuffer> secondaryCommands;
-	//std::mutex secondaryCommandMutex;
+	auto& helpers = this->swapchain->commandBufferHelpers;
+	std::vector<std::future<vk::CommandBuffer>> futures;
 
 	// Get drawing functions (TODO: Plugins can draw ???)
 	std::vector<ao::vulkan::DrawInCommandBuffer> functions = this->updateSecondaryCommandBuffers();
 
-	// Execute drawing functions (TODO: Use a thread pool + mutex)
+	// Execute drawing functions
 	for (ao::vulkan::DrawInCommandBuffer& function : functions) {
-		vk::CommandBuffer buffer = function(inheritanceInfo, this->swapchain->commandBufferHelpers);
+		futures.push_back(this->commandBufferPool.push([&](int id) {
+			return function(inheritanceInfo, helpers);
+		}));
+	}
 
-		secondaryCommands.push_back(buffer);
+	// Wait execution & add command buffer
+	for (auto& future : futures) {
+		secondaryCommands.push_back(future.get());
 	}
 
 	// Pass commands to current command buffer

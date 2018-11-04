@@ -9,6 +9,7 @@
 #include <ao/core/plugin.h>
 #include <ao/core/logger.h>
 #include <vulkan/vulkan.hpp>
+#include <ctpl.h>
 
 #include "../utilities/vulkan.h"
 #include "wrappers/swapchain.h"
@@ -230,6 +231,8 @@ namespace ao {
 			/// <returns>Function vector</returns>
 			virtual std::vector<DrawInCommandBuffer> updateSecondaryCommandBuffers() = 0;
 		private:
+			ctpl::thread_pool commandBufferPool;
+
 			std::vector<core::Plugin<AOEngine>*> plugins;
 			std::mutex pluginsMutex;
 

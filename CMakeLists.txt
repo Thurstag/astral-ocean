@@ -85,6 +85,7 @@ FOREACH(SUBMODULE ${SUBMODULES})
 	add_subdirectory("${SUBMODULES_DIR}/${SUBMODULE}")
 	include_directories(${${SUBMODULE}_INCLUDE_DIR})
 ENDFOREACH(SUBMODULE)
+include_directories("${SUBMODULES_DIR}/CTPL/")
 
 # Include headers
 include_directories(${AO_INCLUDE_DIR})

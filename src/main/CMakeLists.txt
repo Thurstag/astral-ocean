@@ -15,7 +15,7 @@ endfunction()
 
 # Define a function that creates static library
 function(create_library LIB_NAME LIB_DIRECTORY LIB_DEPENDENCIES)
-	file(GLOB_RECURSE LIB_SOURCES ${LIB_DIRECTORY} "*.cpp" "*.h")
+	file(GLOB_RECURSE LIB_SOURCES ${LIB_DIRECTORY} "*.cpp" "*.h" "*.hpp")
 
 	# Static lib
 	add_library("${LIB_NAME}" ${LIB_SOURCES} ${LIB_HEADERS})

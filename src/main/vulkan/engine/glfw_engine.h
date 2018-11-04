@@ -24,7 +24,7 @@ namespace ao {
 			bool isIconified() override;
 
 			bool loopingCondition() override;
-			void onLoopIteration() override;
+			void afterFrameSubmitted() override;
 			void waitMaximized() override;
 
 			std::vector<char const*> instanceExtensions() override;

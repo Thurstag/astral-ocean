@@ -16,9 +16,9 @@ namespace ao {
 		public:			
 			vk::PipelineStageFlags submitPipelineStages = vk::PipelineStageFlagBits::eColorAttachmentOutput;
 
-			vk::PipelineLayout layout;
+			std::vector<vk::PipelineLayout> layouts;
+			std::vector<vk::Pipeline> pipelines;
 			vk::PipelineCache cache;
-			vk::Pipeline graphics;
 
 			/// <summary>
 			/// Constructor

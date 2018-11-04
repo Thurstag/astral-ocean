@@ -26,7 +26,6 @@ namespace ao {
 
 			std::vector<vk::ExtensionProperties> extensions;
 
-			vk::CommandPool commandPool;
 			vk::PhysicalDevice physical;
 			vk::Format depthFormat;
 			vk::Device logical;

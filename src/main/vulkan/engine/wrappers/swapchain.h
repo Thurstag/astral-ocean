@@ -1,8 +1,9 @@
 #pragma once
 
-#include <functional>
 #include <vector>
 #include <limits>
+#include <tuple>
+#include <array>
 
 #include <vulkan/vulkan.hpp>
 
@@ -15,11 +16,13 @@ namespace ao {
 		/// </summary>
 		struct SwapChain {
 		public:
-			vk::CommandPool commandPool;
+			std::vector<std::pair<vk::Image, vk::ImageView>> buffers;
 			vk::SwapchainKHR swapChain;
 
-			std::vector<std::pair<vk::Image, vk::ImageView>> buffers;
-			std::vector<vk::CommandBuffer> commandBuffers;
+			std::pair<std::array<vk::ClearValue, 2>, vk::Rect2D> commandBufferHelpers;
+			std::vector<vk::CommandBuffer> secondaryCommandBuffers;
+			std::vector<vk::CommandBuffer> primaryCommandBuffers;
+			vk::CommandPool commandPool;
 
 			vk::ColorSpaceKHR colorSpace;
 			vk::Extent2D currentExtent;
@@ -32,8 +35,7 @@ namespace ao {
 			/// </summary>
 			/// <param name="instance">Instance</param>
 			/// <param name="device">Device</param>
-			/// <param name="draw">Drawing function</param>
-			SwapChain(vk::Instance* instance, Device* device, std::function<void(vk::CommandBuffer&, vk::RenderPassBeginInfo&, WindowSettings&)> draw);
+			SwapChain(vk::Instance* instance, Device* device);
 
 			/// <summary>
 			/// Destructor
@@ -61,13 +63,6 @@ namespace ao {
 			/// </summary>
 			void createCommandBuffers();
 			/// <summary>
-			/// Method to init command buffers
-			/// </summary>
-			/// <param name="frameBuffers">Frame buffers</param>
-			/// <param name="renderPass">Render pass</param>
-			/// <param name="winSettings">Window settings</param>
-			void initCommandBuffers(std::vector<vk::Framebuffer>& frameBuffers, vk::RenderPass& renderPass, WindowSettings& winSettings);
-			/// <summary>
 			/// Method to free command buffers
 			/// </summary>
 			void freeCommandBuffers();
@@ -86,8 +81,6 @@ namespace ao {
 		private:
 			vk::Instance* instance;
 			Device* device;
-
-			std::function<void(vk::CommandBuffer&, vk::RenderPassBeginInfo&, vulkan::WindowSettings&)> draw;
 		};
 	}
 }

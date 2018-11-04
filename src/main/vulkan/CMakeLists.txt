@@ -1,5 +1,5 @@
 file(GLOB_RECURSE AO_VK_SRC "*.cpp")
-file(GLOB_RECURSE AO_VK_HEADERS "*.h")
+file(GLOB_RECURSE AO_VK_HEADERS "*.h" "*.hpp")
 
 # Define library
 create_library("ao-vulkan" ${CMAKE_CURRENT_SOURCE_DIR} "${Vulkan_LIBRARY};glfw;${GLM_LIBRARY};ao-core")
@@ -9,7 +9,7 @@ set(AO_VK_FILES ${AO_VK_SRC} ${AO_VK_SRC})
 file(REMOVE_RECURSE "${AO_INCLUDE_DIR}/ao/vulkan")
 file(MAKE_DIRECTORY "${AO_INCLUDE_DIR}/ao/vulkan")
 file(COPY "." DESTINATION "${AO_INCLUDE_DIR}/ao/vulkan" 
-	FILES_MATCHING PATTERN "*.h"
+	FILES_MATCHING PATTERN "*.h*"
 	PATTERN "*.dir" EXCLUDE
 	PATTERN "CMakeFiles" EXCLUDE
 )

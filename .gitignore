@@ -30,6 +30,7 @@ cmake_install.cmake
 install_manifest.txt
 compile_commands.json
 CTestTestfile.cmake
+CMakeDoxy*
 
 # Visual Studio project files
 *.vcxproj
@@ -91,3 +92,6 @@ ipch/
 
 # Shader files
 *.spv
+
+# Doxygen
+docs/xml/

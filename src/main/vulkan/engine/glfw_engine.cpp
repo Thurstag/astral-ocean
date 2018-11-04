@@ -43,8 +43,8 @@ bool ao::vulkan::GLFWEngine::loopingCondition() {
 	return !glfwWindowShouldClose(this->window);
 }
 
-void ao::vulkan::GLFWEngine::onLoopIteration() {
-	ao::vulkan::AOEngine::onLoopIteration();
+void ao::vulkan::GLFWEngine::afterFrameSubmitted() {
+	ao::vulkan::AOEngine::afterFrameSubmitted();
 
 	glfwPollEvents();
 }

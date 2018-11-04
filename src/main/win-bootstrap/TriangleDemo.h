@@ -1,8 +1,16 @@
 #pragma once
 
+#define GLM_ENABLE_EXPERIMENTAL
+
+#include <algorithm>
+#include <vector>
+
 #include <ao/vulkan/engine/wrappers/shadermodule.h>
-#include <ao/vulkan/engine/settings.h>
+#include <ao/vulkan/engine/wrappers/buffer.hpp>
 #include <ao/vulkan/engine/glfw_engine.h>
+#include <ao/vulkan/engine/settings.h>
+#include <glm/gtx/rotate_vector.hpp>
+#include <glm/gtx/string_cast.hpp>
 #include <vulkan/vulkan.hpp>
 #include <glm/glm.hpp>
 
@@ -22,10 +30,11 @@ struct Vertex {
 
 class TriangleDemo : public virtual ao::vulkan::GLFWEngine {
 public:
-	std::vector<Vertex> vertices;
+	std::chrono::time_point<std::chrono::system_clock> clock;
+	bool clockInit = false;
 
-	vk::DeviceMemory vertexBufferMemory;
-	vk::Buffer vertexBuffer;
+	std::vector<Vertex> vertices;
+	ao::vulkan::Buffer<Vertex*>* buffer;
 
 	TriangleDemo(ao::vulkan::EngineSettings settings) : ao::vulkan::GLFWEngine(settings), ao::vulkan::AOEngine(settings) {
 		this->vertices = {
@@ -36,9 +45,12 @@ public:
 	};
 	virtual ~TriangleDemo();
 
-	void drawCommandBuffer(vk::CommandBuffer& commandBuffer, vk::RenderPassBeginInfo& renderPassInfo, ao::vulkan::WindowSettings& winSettings) override;
+	void afterFrameSubmitted() override;
 	void setUpRenderPass() override;
-	void setUpPipeline() override;
+	void createPipelineLayouts() override;
+	void setUpPipelines() override;
 	void setUpVertexBuffers() override;
+	void createSecondaryCommandBuffers() override;
+	std::vector<ao::vulkan::DrawInCommandBuffer> updateSecondaryCommandBuffers() override;
 };
 

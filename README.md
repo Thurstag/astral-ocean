@@ -41,7 +41,7 @@ TODO
 
 ## Credits
 
-Thank to the authors of these works:
+Thanks to the authors of these works:
 
 * https://github.com/vinjn/awesome-vulkan
 * https://github.com/SaschaWillems/Vulkan

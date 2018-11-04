@@ -1,5 +1,6 @@
 #pragma once
 
+#include <functional>
 #include <vector>
 #include <mutex>
 #include <tuple>
@@ -17,6 +18,8 @@
 
 namespace ao {
 	namespace vulkan {
+		using DrawInCommandBuffer = std::function<vk::CommandBuffer(vk::CommandBufferInheritanceInfo&, std::pair<std::array<vk::ClearValue, 2>, vk::Rect2D>&)>;
+
 		/// <summary>
 		/// AOEngine class
 		/// </summary>
@@ -54,14 +57,6 @@ namespace ao {
 			/// </summary>
 			/// <returns>Settings</returns>
 			EngineSettings settings();
-
-			/// <summary>
-			/// Method to draw in command buffer
-			/// </summary>
-			/// <param name="commandBuffer">Command buffer</param>
-			/// <param name="renderPassInfo">Render pass info</param>
-			/// <param name="winSettings">Window settings</param>
-			virtual void drawCommandBuffer(vk::CommandBuffer& commandBuffer, vk::RenderPassBeginInfo& renderPassInfo, WindowSettings& winSettings) = 0;
 		protected:
 			core::Logger LOGGER = core::Logger::getInstance<AOEngine>();
 			
@@ -116,9 +111,9 @@ namespace ao {
 			/// </summary>
 			void recreateSwapChain();
 			/// <summary>
-			/// Method to create pipeline (graphics, layout, cache...)
+			/// Method to create pipelines
 			/// </summary>
-			void createPipeline();
+			void createPipelines();
 
 			/// <summary>
 			/// Method to init surface
@@ -149,9 +144,9 @@ namespace ao {
 			/// <returns>True = continue to loop & False = stop looping</returns>
 			virtual bool loopingCondition() = 0;
 			/// <summary>
-			/// Method executed on each loop iteration
+			/// Method executed after frame was submitted
 			/// </summary>
-			virtual void onLoopIteration();
+			virtual void afterFrameSubmitted();
 			/// <summary>
 			/// Method to wait until window is maximized
 			/// </summary>
@@ -169,6 +164,10 @@ namespace ao {
 			/// Method to submit frame
 			/// </summary>
 			void submitFrame();
+			/// <summary>
+			/// Method to update command buffers
+			/// </summary>
+			void updateCommandBuffers();
 
 			/// <summary>
 			/// Method to get vkInstance extensions
@@ -204,10 +203,14 @@ namespace ao {
 			virtual size_t selectVkPhysicalDevice(std::vector<vk::PhysicalDevice>& devices);  // TODO: Optimize this
 
 			/// <summary>
-			/// Method to set-up pipeline
+			/// Method to create pipeline layouts
+			/// </summary>
+			virtual void createPipelineLayouts() = 0;
+			/// <summary>
+			/// Method to set-up pipelines
 			/// </summary>
 			/// <returns></returns>
-			virtual void setUpPipeline() = 0;
+			virtual void setUpPipelines() = 0;
 			/// <summary>
 			/// Method to set-up render pass
 			/// </summary>
@@ -217,6 +220,15 @@ namespace ao {
 			/// </summary>
 			/// <returns></returns>
 			virtual void setUpVertexBuffers() = 0;
+			/// <summary>
+			/// Method to create secondary command buffers
+			/// </summary>
+			virtual void createSecondaryCommandBuffers() = 0;
+			/// <summary>
+			/// Method to get functions that will update secondary command buffers
+			/// </summary>
+			/// <returns>Function vector</returns>
+			virtual std::vector<DrawInCommandBuffer> updateSecondaryCommandBuffers() = 0;
 		private:
 			std::vector<core::Plugin<AOEngine>*> plugins;
 			std::mutex pluginsMutex;

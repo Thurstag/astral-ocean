@@ -1,9 +1,12 @@
 #include "swapchain.h"
 
-ao::vulkan::SwapChain::SwapChain(vk::Instance* instance, Device* device, std::function<void(vk::CommandBuffer&, vk::RenderPassBeginInfo&, ao::vulkan::WindowSettings&)> draw) {
+ao::vulkan::SwapChain::SwapChain(vk::Instance* instance, Device* device) {
 	this->instance = instance;
 	this->device = device;
-	this->draw = draw;
+
+	// Init helpers
+	this->commandBufferHelpers.first[0].setColor(vk::ClearColorValue());
+	this->commandBufferHelpers.first[1].setDepthStencil(vk::ClearDepthStencilValue(1));
 }
 
 ao::vulkan::SwapChain::~SwapChain() {
@@ -140,6 +143,9 @@ void ao::vulkan::SwapChain::init(uint64_t & width, uint64_t & height, bool vsync
 	}
 
 	LOGGER << LogLevel::DEBUG << "Set-up a swap chain with a buffer of " << buffers.size() << " image(s)";
+
+	// Update helpers
+	this->commandBufferHelpers.second = vk::Rect2D(vk::Offset2D(), this->currentExtent);
 }
 
 void ao::vulkan::SwapChain::initSurface() {
@@ -221,32 +227,12 @@ void ao::vulkan::SwapChain::initCommandPool() {
 }
 
 void ao::vulkan::SwapChain::createCommandBuffers() {
-	this->commandBuffers = this->device->logical.allocateCommandBuffers(vk::CommandBufferAllocateInfo(this->commandPool, vk::CommandBufferLevel::ePrimary, static_cast<uint32_t>(this->buffers.size())));
-}
-
-void ao::vulkan::SwapChain::initCommandBuffers(std::vector<vk::Framebuffer>& frameBuffers, vk::RenderPass& renderPass, ao::vulkan::WindowSettings& winSettings) {
-	// Define clear values for all framebuffer attachments with
-	std::array<vk::ClearValue, 2> clearValues;
-	clearValues[0].color = vk::ClearColorValue();
-	clearValues[1].depthStencil = vk::ClearDepthStencilValue(1);
-
-	vk::RenderPassBeginInfo renderPassBeginInfo(
-		renderPass, vk::Framebuffer(),
-		vk::Rect2D(vk::Offset2D(), vk::Extent2D(static_cast<uint32_t>(winSettings.width), static_cast<uint32_t>(winSettings.height))),
-		static_cast<uint32_t>(clearValues.size()), clearValues.data()
-	);
-
-	for (int32_t i = 0; i < this->commandBuffers.size(); ++i) {
-		// Set target frame buffer
-		renderPassBeginInfo.framebuffer = frameBuffers[i];
-
-		// Draw in command buffer
-		this->draw(this->commandBuffers[i], renderPassBeginInfo, winSettings);
-	}
+	this->primaryCommandBuffers = this->device->logical.allocateCommandBuffers(vk::CommandBufferAllocateInfo(this->commandPool, vk::CommandBufferLevel::ePrimary, static_cast<uint32_t>(this->buffers.size())));
 }
 
 void ao::vulkan::SwapChain::freeCommandBuffers() {
-	this->device->logical.freeCommandBuffers(this->commandPool, this->commandBuffers);
+	this->device->logical.freeCommandBuffers(this->commandPool, this->primaryCommandBuffers);
+	this->device->logical.freeCommandBuffers(this->commandPool, this->secondaryCommandBuffers);
 }
 
 vk::Result ao::vulkan::SwapChain::nextImage(vk::Semaphore& present, uint32_t& imageIndex) {

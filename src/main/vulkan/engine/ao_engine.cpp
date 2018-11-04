@@ -75,9 +75,7 @@ void ao::vulkan::AOEngine::initVulkan() {
 	this->device->depthFormat = ao::vulkan::utilities::getSupportedDepthFormat(this->device->physical);
 
 	// Create swapChain
-	this->swapchain = new SwapChain(&this->instance, this->device, [&](vk::CommandBuffer& commandBuffer, vk::RenderPassBeginInfo& renderPassInfo, ao::vulkan::WindowSettings& winSettings) {
-		this->drawCommandBuffer(commandBuffer, renderPassInfo, winSettings);
-	});
+	this->swapchain = new SwapChain(&this->instance, this->device);
 
 	// Create semaphores
 	this->semaphores.first = this->device->logical.createSemaphore(vk::SemaphoreCreateInfo());
@@ -116,7 +114,7 @@ void ao::vulkan::AOEngine::freeVulkan() {
 
 void ao::vulkan::AOEngine::createWaitingFences() {
 	// Resize vector
-	this->waitingFences.resize(this->swapchain->commandBuffers.size());
+	this->waitingFences.resize(this->swapchain->buffers.size());
 	
 	// Create fences
 	for (vk::Fence& fence : this->waitingFences) {
@@ -218,6 +216,7 @@ void ao::vulkan::AOEngine::recreateSwapChain() {
 
 	// Create command buffers
 	this->swapchain->createCommandBuffers();
+	this->createSecondaryCommandBuffers();
 
 	// Create stencil buffer
 	this->createStencilBuffer();
@@ -225,37 +224,34 @@ void ao::vulkan::AOEngine::recreateSwapChain() {
 	// Create render pass
 	this->createRenderPass();
 
-	// Create pipeline
-	this->createPipeline();
-
-	// TODO: Re-create vertex buffers ???
+	// Create pipelines
+	this->createPipelines();
 
 	// Set-up frame buffers
 	this->setUpFrameBuffers();
-
-	// Init command buffers
-	this->swapchain->initCommandBuffers(this->frameBuffers, this->renderPass, this->_settings.window);
 
 	// Wait device idle
 	this->device->logical.waitIdle();
 }
 
-void ao::vulkan::AOEngine::createPipeline() {
+void ao::vulkan::AOEngine::createPipelines() {
 	// Create pipeline
 	this->pipeline = new ao::vulkan::Pipeline(this->device);
 
 	// Create pipeline cache
 	this->pipeline->cache = this->device->logical.createPipelineCache(vk::PipelineCacheCreateInfo());
 
-	// Create layout
-	this->pipeline->layout = this->device->logical.createPipelineLayout(vk::PipelineLayoutCreateInfo());
+	// Create layouts
+	this->createPipelineLayouts();
 
-	// Set-up pipeline
-	this->setUpPipeline();
+	// Set-up pipelines
+	this->setUpPipelines();
 
-	// Check pipeline
-	if (!this->pipeline->graphics) {
-		throw ao::core::Exception("Fail to create pipeline");
+	// Check pipelines
+	for (vk::Pipeline& pipeline : this->pipeline->pipelines) {
+		if (!pipeline) {
+			throw ao::core::Exception("Fail to create pipeline");
+		}
 	}
 }
 
@@ -272,6 +268,7 @@ void ao::vulkan::AOEngine::prepareVulkan() {
 
 	// Create command buffers
 	this->swapchain->createCommandBuffers();
+	this->createSecondaryCommandBuffers();
 
 	// Create waiting fences
 	this->createWaitingFences();
@@ -282,17 +279,14 @@ void ao::vulkan::AOEngine::prepareVulkan() {
 	// Create render pass
 	this->createRenderPass();
 
-    // Create pipeline
-	this->createPipeline();
+    // Create pipelines
+	this->createPipelines();
 
 	// Set-up vertex buffers
 	this->setUpVertexBuffers();
 
 	// Set-up frame buffer
 	this->setUpFrameBuffers();
-
-	// Init command buffers
-	this->swapchain->initCommandBuffers(this->frameBuffers, this->renderPass, this->_settings.window);
 }
 
 void ao::vulkan::AOEngine::setWindowTitle(std::string title) {
@@ -306,9 +300,6 @@ ao::vulkan::EngineSettings ao::vulkan::AOEngine::settings() {
 void ao::vulkan::AOEngine::loop() {
 	while (this->loopingCondition()) {
 		if (!this->isIconified()) {
-			// Execute plugins...
-			this->onLoopIteration();
-
 			// Render frame
 			this->render();
 		}
@@ -318,7 +309,7 @@ void ao::vulkan::AOEngine::loop() {
 	}
 }
 
-void ao::vulkan::AOEngine::onLoopIteration() {
+void ao::vulkan::AOEngine::afterFrameSubmitted() {
 	// Execute plugins' onUpdate()
 	this->pluginsMutex.lock();
 	{
@@ -337,9 +328,12 @@ void ao::vulkan::AOEngine::render() {
 	// Prepare frame
 	this->prepareFrame();
 
+	// Update command buffers
+	this->updateCommandBuffers();
+
 	// Edit submit info
 	this->submitInfo.setCommandBufferCount(1);
-	this->submitInfo.setPCommandBuffers(&this->swapchain->commandBuffers[this->frameBufferIndex]);
+	this->submitInfo.setPCommandBuffers(&this->swapchain->primaryCommandBuffers[this->frameBufferIndex]);
 
 	// Reset fence
 	this->device->logical.resetFences(this->waitingFences[this->frameBufferIndex]);
@@ -349,6 +343,9 @@ void ao::vulkan::AOEngine::render() {
 
 	// Submit frame
 	this->submitFrame();
+
+	// Execute plugins...
+	this->afterFrameSubmitted();
 
 	this->device->logical.waitIdle();
 }
@@ -380,6 +377,48 @@ void ao::vulkan::AOEngine::submitFrame() {
 		this->queue.waitIdle();
 	}
 	ao::vulkan::utilities::vkAssert(result, "Fail to enqueue image");
+}
+
+void ao::vulkan::AOEngine::updateCommandBuffers() {
+	// Get current command buffer/frame
+	vk::CommandBuffer& currentCommand = this->swapchain->primaryCommandBuffers[this->frameBufferIndex];
+	vk::Framebuffer& currentFrame = this->frameBuffers[this->frameBufferIndex];
+
+	// Create info
+	vk::CommandBufferBeginInfo beginInfo(vk::CommandBufferUsageFlagBits::eSimultaneousUse);
+
+	vk::RenderPassBeginInfo renderPassInfo(
+		this->renderPass, currentFrame, this->swapchain->commandBufferHelpers.second,
+		static_cast<uint32_t>(this->swapchain->commandBufferHelpers.first.size()),
+		this->swapchain->commandBufferHelpers.first.data()
+	);
+
+	// Begin
+	currentCommand.begin(&beginInfo);
+	currentCommand.beginRenderPass(renderPassInfo, vk::SubpassContents::eSecondaryCommandBuffers);
+
+	// Create inheritance info for the secondary command buffers
+	vk::CommandBufferInheritanceInfo inheritanceInfo(this->renderPass, 0, currentFrame);
+
+	std::vector<vk::CommandBuffer> secondaryCommands;
+	//std::mutex secondaryCommandMutex;
+
+	// Get drawing functions (TODO: Plugins can draw ???)
+	std::vector<ao::vulkan::DrawInCommandBuffer> functions = this->updateSecondaryCommandBuffers();
+
+	// Execute drawing functions (TODO: Use a thread pool + mutex)
+	for (ao::vulkan::DrawInCommandBuffer& function : functions) {
+		vk::CommandBuffer buffer = function(inheritanceInfo, this->swapchain->commandBufferHelpers);
+
+		secondaryCommands.push_back(buffer);
+	}
+
+	// Pass commands to current command buffer
+	currentCommand.executeCommands(secondaryCommands);
+
+	// End
+	currentCommand.endRenderPass();
+	currentCommand.end();
 }
 
 std::vector<char const*> ao::vulkan::AOEngine::deviceExtensions() {

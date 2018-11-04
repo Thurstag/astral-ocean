@@ -1,29 +1,42 @@
 #include "TriangleDemo.h"
 
 TriangleDemo::~TriangleDemo() {
-	this->device->logical.destroyBuffer(this->vertexBuffer);
-	this->device->logical.freeMemory(this->vertexBufferMemory);
+	delete this->buffer;
 }
 
-void TriangleDemo::drawCommandBuffer(vk::CommandBuffer& commandBuffer, vk::RenderPassBeginInfo & renderPassInfo, ao::vulkan::WindowSettings & winSettings) {
-	// Begin
-	commandBuffer.begin(vk::CommandBufferBeginInfo(vk::CommandBufferUsageFlagBits::eSimultaneousUse));
+void TriangleDemo::afterFrameSubmitted() {
+	ao::vulkan::GLFWEngine::afterFrameSubmitted();
 
-	// Begin render pass
-	commandBuffer.beginRenderPass(renderPassInfo, vk::SubpassContents::eInline);
+	if (!this->clockInit) {
+		this->clock = std::chrono::system_clock::now();
+		this->clockInit = true;
 
-	// Bind pipeline
-	commandBuffer.bindPipeline(vk::PipelineBindPoint::eGraphics, this->pipeline->graphics);
+		return;
+	}
 
-	// Draw triangle
-	std::array<vk::Buffer, 1> vertexBuffers = { vertexBuffer };
-	std::array<vk::DeviceSize, 1> offsets = { 0 };
-	commandBuffer.bindVertexBuffers(0, vertexBuffers, offsets);
-	commandBuffer.draw(static_cast<uint32_t>(vertices.size()), 1, 0, 0);
+	// Define rotate axis
+	glm::vec3 rotationAxis(0.0f, 0.0f, 1.0f); // ~ Z-axis
 
-	// End
-	commandBuffer.endRenderPass();
-	commandBuffer.end();
+	// Delta time
+	float deltaTime = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now() - this->clock).count() / 1000.0f;
+	float angles = glm::half_pi<float>(); // Rotation in 1 second
+
+	for (Vertex& vertice : this->vertices) {
+		// To vec4
+		glm::vec4 point(vertice.pos.x, vertice.pos.y, 0, 0);
+
+		// Rotate point
+		point = glm::rotate(angles * deltaTime, rotationAxis) * point;
+
+		// Update vertice
+		vertice.pos = glm::vec2(point.x, point.y);
+	}
+
+	// Update vertex buffer
+	this->buffer->update(this->vertices.data());
+
+	// Update clock
+	this->clock = std::chrono::system_clock::now();
 }
 
 void TriangleDemo::setUpRenderPass() {
@@ -75,7 +88,13 @@ void TriangleDemo::setUpRenderPass() {
 	));
 }
 
-void TriangleDemo::setUpPipeline() {
+void TriangleDemo::createPipelineLayouts() {
+	this->pipeline->layouts.resize(1);
+
+	this->pipeline->layouts[0] = this->device->logical.createPipelineLayout(vk::PipelineLayoutCreateInfo());
+}
+
+void TriangleDemo::setUpPipelines() {
 	// Create shadermodules
 	ao::vulkan::ShaderModule module(this->device);
 
@@ -85,7 +104,7 @@ void TriangleDemo::setUpPipeline() {
 		.loadShader("frag.spv", vk::ShaderStageFlagBits::eFragment).shaderStages();
 
 	vk::GraphicsPipelineCreateInfo pipelineCreateInfo = vk::GraphicsPipelineCreateInfo()
-		.setLayout(this->pipeline->layout)
+		.setLayout(this->pipeline->layouts[0])
 		.setRenderPass(this->renderPass);
 
 	// Construct the differnent states making up the pipeline
@@ -171,34 +190,60 @@ void TriangleDemo::setUpPipeline() {
 		.setPDynamicState(&dynamicState);
 
 	// Create rendering pipeline using the specified states
-	this->pipeline->graphics = this->device->logical.createGraphicsPipelines(this->pipeline->cache, pipelineCreateInfo)[0];
+	this->pipeline->pipelines = this->device->logical.createGraphicsPipelines(this->pipeline->cache, pipelineCreateInfo);
 }
 
 void TriangleDemo::setUpVertexBuffers() {
 	// TODO: Use staging buffers
 
 	// Create buffer
-	this->vertexBuffer = this->device->logical.createBuffer(vk::BufferCreateInfo(
-		vk::BufferCreateFlags(), sizeof(this->vertices) * this->vertices.size(),
-		vk::BufferUsageFlagBits::eVertexBuffer, vk::SharingMode::eExclusive)
+	this->buffer = new ao::vulkan::Buffer<Vertex*>(this->device);
+
+	// Init buffer
+	this->buffer->init(
+		vk::BufferUsageFlagBits::eVertexBuffer, vk::SharingMode::eExclusive,
+		vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent,
+		sizeof(this->vertices) * this->vertices.size(), this->vertices.data()
 	);
+}
 
-	// Get memory requirements
-	vk::MemoryRequirements memRequirements = this->device->logical.getBufferMemoryRequirements(this->vertexBuffer);
+void TriangleDemo::createSecondaryCommandBuffers() {
+	this->swapchain->secondaryCommandBuffers = this->device->logical.allocateCommandBuffers(vk::CommandBufferAllocateInfo(this->swapchain->commandPool, vk::CommandBufferLevel::eSecondary, 1));
+}
 
-	// Allocate memory
-	this->vertexBufferMemory = this->device->logical.allocateMemory(vk::MemoryAllocateInfo(
-		memRequirements.size,
-		this->device->memoryType(memRequirements.memoryTypeBits, vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent)
-	));
+std::vector<ao::vulkan::DrawInCommandBuffer> TriangleDemo::updateSecondaryCommandBuffers() {
+	vk::CommandBuffer& commandBuffer = this->swapchain->secondaryCommandBuffers[0];
+	std::vector<ao::vulkan::DrawInCommandBuffer> commands;
+	vk::Pipeline& pipeline = this->pipeline->pipelines[0];
+	vk::Buffer& vertexBuffer = this->buffer->buffer();
+	std::vector<Vertex>& vertices = this->vertices;
 
-	void* data;
+	commands.push_back([commandBuffer, pipeline, vertexBuffer, vertices](vk::CommandBufferInheritanceInfo& inheritance, std::pair<std::array<vk::ClearValue, 2>, vk::Rect2D>& helpers) {
+		vk::Viewport viewPort(0, 0, static_cast<float>(helpers.second.extent.width), static_cast<float>(helpers.second.extent.height), 0, 1);
+		vk::CommandBufferBeginInfo beginInfo;
+		beginInfo.setPInheritanceInfo(&inheritance);
 
-	// Bind objects
-	vkBindBufferMemory(this->device->logical, this->vertexBuffer, this->vertexBufferMemory, 0);
-	vkMapMemory(this->device->logical, this->vertexBufferMemory, 0, sizeof(this->vertices) * this->vertices.size(), 0, &data);
+		// Begin
+		commandBuffer.begin(beginInfo);
 
-	// Copy vertices into buffer
-	memcpy(data, this->vertices.data(), sizeof(this->vertices) * this->vertices.size());
-	vkUnmapMemory(this->device->logical, this->vertexBufferMemory);
+		// Set viewport & scissor
+		commandBuffer.setViewport(0, viewPort);
+		commandBuffer.setScissor(0, helpers.second);
+
+		// Bind pipeline
+		commandBuffer.bindPipeline(vk::PipelineBindPoint::eGraphics, pipeline);
+
+		// Draw triangle
+		std::array<vk::Buffer, 1> vertexBuffers = { vertexBuffer };
+		std::array<vk::DeviceSize, 1> offsets = { 0 };
+		commandBuffer.bindVertexBuffers(0, vertexBuffers, offsets);
+		commandBuffer.draw(static_cast<uint32_t>(vertices.size()), 1, 0, 0);
+
+		// End
+		commandBuffer.end();
+
+		return commandBuffer;
+	});
+
+	return commands;
 }

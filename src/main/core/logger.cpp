@@ -9,7 +9,7 @@ ao::core::Logger::Logger(std::type_info const& type) {
 		boost::replace_all(name, prefix, "");
 	}
 
-	// Create logger
+	// Create logger (TODO: Optimize instance management)
 	this->category = &log4cpp::Category::getInstance(name);
 
 	// TODO: Add support for file import & modifications

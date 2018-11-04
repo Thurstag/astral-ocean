@@ -21,7 +21,6 @@ ao::vulkan::Device::Device(vk::PhysicalDevice& device) {
 }
 
 ao::vulkan::Device::~Device() {
-	this->logical.destroyCommandPool(this->commandPool);
 	this->logical.destroy();
 }
 
@@ -97,9 +96,6 @@ void ao::vulkan::Device::initLogicalDevice(std::vector<char const*>& deviceExten
 
 	// Create device
 	this->logical = this->physical.createDevice(deviceCreateInfo);
-
-	// Create command pool
-	this->commandPool = this->logical.createCommandPool(vk::CommandPoolCreateInfo(cflags, std::get<AO_GRAPHICS_QUEUE_INDEX>(this->queueFamilyIndices)));
 }
 
 uint32_t ao::vulkan::Device::memoryType(uint32_t typeBits, vk::MemoryPropertyFlags properties) {

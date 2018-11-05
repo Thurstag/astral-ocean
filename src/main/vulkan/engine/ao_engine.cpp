@@ -4,16 +4,16 @@ ao::vulkan::AOEngine::AOEngine(EngineSettings settings) {
 	this->_settings = settings;
 
 	// Resize pool
-	this->commandBufferPool.resize(std::thread::hardware_concurrency()); // TODO: 50% ?
+	this->commandBufferPool.resize(this->_settings.threadPoolSize);
 	LOGGER << LogLevel::INFO << "Init a thread pool for command buffer processing with " << this->commandBufferPool.size() << " thread(s)";
 }
 
 ao::vulkan::AOEngine::~AOEngine() {
-	// Execute plugins' onInit()
+	// Execute plugins' beforeDestroy()
 	this->pluginsMutex.lock();
 	{
-		for (size_t i = 0; i < this->plugins.size(); i++) {
-			this->plugins[i]->beforeDestroy();
+		for (auto& plugin : this->plugins) {
+			plugin->beforeDestroy();
 		}
 	}
 	this->pluginsMutex.unlock();
@@ -37,8 +37,8 @@ void ao::vulkan::AOEngine::run() {
 	// Execute plugins' onInit()
 	this->pluginsMutex.lock();
 	{
-		for (size_t i = 0; i < this->plugins.size(); i++) {
-			this->plugins[i]->onInit();
+		for (auto& plugin : this->plugins) {
+			plugin->onInit();
 		}
 	}
 	this->pluginsMutex.unlock();
@@ -98,8 +98,8 @@ void ao::vulkan::AOEngine::freeVulkan() {
 	delete this->pipeline;
 	this->device->logical.destroyRenderPass(this->renderPass);
 
-	for (uint32_t i = 0; i < frameBuffers.size(); i++) {
-		this->device->logical.destroyFramebuffer(this->frameBuffers[i]);
+	for (auto& frameBuffer : this->frameBuffers) {
+		this->device->logical.destroyFramebuffer(frameBuffer);
 	}
 	this->frameBuffers.clear();
 	
@@ -110,7 +110,7 @@ void ao::vulkan::AOEngine::freeVulkan() {
 	this->device->logical.destroySemaphore(this->semaphores.first);
 	this->device->logical.destroySemaphore(this->semaphores.second);
 
-	for (vk::Fence& fence : this->waitingFences) {
+	for (auto& fence : this->waitingFences) {
 		this->device->logical.destroyFence(fence);
 	}
 	this->waitingFences.clear();
@@ -124,7 +124,7 @@ void ao::vulkan::AOEngine::createWaitingFences() {
 	this->waitingFences.resize(this->swapchain->buffers.size());
 	
 	// Create fences
-	for (vk::Fence& fence : this->waitingFences) {
+	for (auto& fence : this->waitingFences) {
 		fence = this->device->logical.createFence(vk::FenceCreateInfo(vk::FenceCreateFlagBits::eSignaled));
 	}
 }
@@ -203,8 +203,8 @@ void ao::vulkan::AOEngine::recreateSwapChain() {
 	this->device->logical.destroyRenderPass(this->renderPass);
 
 	// Destroy frame buffers
-	for (uint32_t i = 0; i < frameBuffers.size(); i++) {
-		this->device->logical.destroyFramebuffer(this->frameBuffers[i]);
+	for (auto& frameBuffer : this->frameBuffers) {
+		this->device->logical.destroyFramebuffer(frameBuffer);
 	}
 	this->frameBuffers.clear();
 
@@ -255,10 +255,13 @@ void ao::vulkan::AOEngine::createPipelines() {
 	this->setUpPipelines();
 
 	// Check pipelines
-	for (vk::Pipeline& pipeline : this->pipeline->pipelines) {
+	for (auto& pipeline : this->pipeline->pipelines) {
 		if (!pipeline) {
 			throw ao::core::Exception("Fail to create pipeline");
 		}
+	}
+	if (this->pipeline->pipelines.empty()) {
+		LOGGER << LogLevel::WARN << "Pipeline vector is empty";
 	}
 }
 
@@ -320,8 +323,8 @@ void ao::vulkan::AOEngine::afterFrameSubmitted() {
 	// Execute plugins' onUpdate()
 	this->pluginsMutex.lock();
 	{
-		for (size_t i = 0; i < this->plugins.size(); i++) {
-			this->plugins[i]->onUpdate();
+		for (auto& plugin : this->plugins) {
+			plugin->onUpdate();
 		}
 	}
 	this->pluginsMutex.unlock();
@@ -415,7 +418,7 @@ void ao::vulkan::AOEngine::updateCommandBuffers() {
 	std::vector<ao::vulkan::DrawInCommandBuffer> functions = this->updateSecondaryCommandBuffers();
 
 	// Execute drawing functions
-	for (ao::vulkan::DrawInCommandBuffer& function : functions) {
+	for (auto& function : functions) {
 		futures.push_back(this->commandBufferPool.push([&](int id) {
 			return function(inheritanceInfo, helpers);
 		}));

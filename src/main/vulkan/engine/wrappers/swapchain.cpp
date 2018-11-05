@@ -1,16 +1,13 @@
 #include "swapchain.h"
 
-ao::vulkan::SwapChain::SwapChain(vk::Instance* instance, Device* device) {
-	this->instance = instance;
-	this->device = device;
-
+ao::vulkan::SwapChain::SwapChain(vk::Instance* _instance, Device* _device) : instance(_instance), device(_device) {
 	// Init helpers
 	this->commandBufferHelpers.first[0].setColor(vk::ClearColorValue());
 	this->commandBufferHelpers.first[1].setDepthStencil(vk::ClearDepthStencilValue(1));
 }
 
 ao::vulkan::SwapChain::~SwapChain() {
-	for (auto buffer : this->buffers) {
+	for (auto& buffer : this->buffers) {
 		this->device->logical.destroyImageView(buffer.second);
 	}
 	this->buffers.clear();
@@ -57,7 +54,7 @@ void ao::vulkan::SwapChain::init(uint64_t & width, uint64_t & height, bool vsync
 			throw ao::core::Exception("vk::PresentModeKHR vector is empty");
 		}
 
-		for (vk::PresentModeKHR& mode : presentModes) {
+		for (auto& mode : presentModes) {
 			if (mode == vk::PresentModeKHR::eMailbox) {
 				presentMode = vk::PresentModeKHR::eMailbox;
 				break;
@@ -84,7 +81,7 @@ void ao::vulkan::SwapChain::init(uint64_t & width, uint64_t & height, bool vsync
 
 	// Find a supported composite alpha format
 	vk::CompositeAlphaFlagBitsKHR compositeAlpha = vk::CompositeAlphaFlagBitsKHR::eOpaque;
-	for (vk::CompositeAlphaFlagBitsKHR composite : { vk::CompositeAlphaFlagBitsKHR::eOpaque, vk::CompositeAlphaFlagBitsKHR::ePreMultiplied, vk::CompositeAlphaFlagBitsKHR::ePostMultiplied, vk::CompositeAlphaFlagBitsKHR::eInherit }) {
+	for (auto composite : { vk::CompositeAlphaFlagBitsKHR::eOpaque, vk::CompositeAlphaFlagBitsKHR::ePreMultiplied, vk::CompositeAlphaFlagBitsKHR::ePostMultiplied, vk::CompositeAlphaFlagBitsKHR::eInherit }) {
 		if (capabilities.supportedCompositeAlpha & composite) {
 			compositeAlpha = composite;
 			break;
@@ -205,7 +202,7 @@ void ao::vulkan::SwapChain::initSurface() {
 	else { // Find VK_FORMAT_B8G8R8A8_UNORM
 		bool found = false;
 
-		for (vk::SurfaceFormatKHR& format : formats) {
+		for (auto& format : formats) {
 			if (format.format == vk::Format::eB8G8R8A8Unorm) {
 				colorFormat = format.format;
 				colorSpace = format.colorSpace;

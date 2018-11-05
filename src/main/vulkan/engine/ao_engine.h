@@ -6,9 +6,9 @@
 #include <tuple>
 
 #include <ao/core/exception.h>
-#include <ao/core/plugin.h>
-#include <ao/core/logger.h>
+#include <ao/core/plugin.hpp>
 #include <vulkan/vulkan.hpp>
+#include <ao/core/logger.h>
 #include <ctpl.h>
 
 #include "../utilities/vulkan.h"

@@ -27,7 +27,7 @@ int main(int argc, char* argv[]) {
 	ao::core::Logger LOGGER = ao::core::Logger::getInstance<Main>();
 
 	// Define settings
-	ao::vulkan::EngineSettings settings = { {std::string("TEST"), 1280, 720, true, false} };
+	ao::vulkan::EngineSettings settings = { {std::string("TEST"), 1280, 720, true, true} };
 	ao::vulkan::AOEngine* engine;
 
 	try {

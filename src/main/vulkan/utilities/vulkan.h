@@ -216,7 +216,7 @@ namespace ao {
 					vk::Format::eD16Unorm
 				};
 
-				for (vk::Format& format : formats) {
+				for (auto& format : formats) {
 					vk::FormatProperties formatProps = physicalDevice.getFormatProperties(format);
 
 					// Check properties

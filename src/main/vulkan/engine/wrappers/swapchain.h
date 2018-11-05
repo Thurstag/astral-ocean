@@ -33,9 +33,9 @@ namespace ao {
 			/// <summary>
 			/// Constructor
 			/// </summary>
-			/// <param name="instance">Instance</param>
-			/// <param name="device">Device</param>
-			SwapChain(vk::Instance* instance, Device* device);
+			/// <param name="_instance">Instance</param>
+			/// <param name="_device">Device</param>
+			SwapChain(vk::Instance* _instance, Device* _device);
 
 			/// <summary>
 			/// Destructor
@@ -78,9 +78,9 @@ namespace ao {
 			vk::Result enqueueImage(vk::Queue& queue, uint32_t& imageIndex, vk::Semaphore& render);
 		protected:
 			core::Logger LOGGER = core::Logger::getInstance<SwapChain>();
-		private:
-			vk::Instance* instance;
-			Device* device;
+
+			vk::Instance* const instance;
+			Device* const device;
 		};
 	}
 }

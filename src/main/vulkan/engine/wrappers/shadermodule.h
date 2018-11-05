@@ -21,8 +21,8 @@ namespace ao {
 			/// <summary>
 			/// Constructor
 			/// </summary>
-			/// <param name="device">Device</param>
-			ShaderModule(Device* device);
+			/// <param name="_device">Device</param>
+			ShaderModule(Device* _device);
 
 			/// <summary>
 			/// Destructor
@@ -43,9 +43,9 @@ namespace ao {
 			/// <returns>shaderStages</returns>
 			std::vector<vk::PipelineShaderStageCreateInfo> shaderStages();
 
-		private:
+		protected:
 			std::map<vk::ShaderStageFlagBits, vk::PipelineShaderStageCreateInfo*> shaders;
-			Device* device;
+			Device* const device;
 
 			/// <summary>
 			/// Method to read a shader file

@@ -1,6 +1,7 @@
 #pragma once
 
 #include <string>
+#include <thread>
 
 namespace ao {
 	namespace vulkan {
@@ -27,9 +28,12 @@ namespace ao {
 			/* WINDOW SECTION */
 			WindowSettings window;
 
+			int threadPoolSize = std::thread::hardware_concurrency();
+
 			EngineSettings() = default;
-			EngineSettings(WindowSettings window) {
+			EngineSettings(WindowSettings window, int threadPoolSize = std::thread::hardware_concurrency()) {
 				this->window = window;
+				this->threadPoolSize = threadPoolSize;
 			}
 		};
 	}

@@ -27,15 +27,15 @@ namespace ao {
 			/// <summary>
 			/// Constructor
 			/// </summary>
-			/// <param name="device">Device</param>
-			Pipeline(Device* device);
+			/// <param name="_device">Device</param>
+			Pipeline(Device* _device);
 
 			/// <summary>
 			/// Destructor
 			/// </summary>
 			virtual ~Pipeline();
-		private:
-			Device* device;
+		protected:
+			Device* const device;
 		};
 	}
 }

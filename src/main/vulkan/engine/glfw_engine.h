@@ -18,6 +18,8 @@ namespace ao {
 
 			void setWindowTitle(std::string title) override;
 		protected:
+			GLFWwindow* window;
+
 			void initWindow() override;
 			void initSurface(vk::SurfaceKHR& surface) override;
 			void freeWindow() override;
@@ -28,9 +30,6 @@ namespace ao {
 			void waitMaximized() override;
 
 			std::vector<char const*> instanceExtensions() override;
-			
-		private:
-			GLFWwindow* window;
 		};
 	}
 }

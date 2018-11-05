@@ -1,16 +1,16 @@
 #include "pipeline.h"
 
-ao::vulkan::Pipeline::Pipeline(Device * device) {
-	this->device = device;
+ao::vulkan::Pipeline::Pipeline(Device * _device) : device(_device) {
+
 }
 
 ao::vulkan::Pipeline::~Pipeline() {
-	for (vk::Pipeline& pipeline : this->pipelines) {
+	for (auto& pipeline : this->pipelines) {
 		this->device->logical.destroyPipeline(pipeline);
 	}
 	this->pipelines.clear();
 
-	for (vk::PipelineLayout& layout : this->layouts) {
+	for (auto& layout : this->layouts) {
 		this->device->logical.destroyPipelineLayout(layout);
 	}
 	this->layouts.clear();

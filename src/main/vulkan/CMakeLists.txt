@@ -9,7 +9,7 @@ set(AO_VK_FILES ${AO_VK_SRC} ${AO_VK_SRC})
 file(REMOVE_RECURSE "${AO_INCLUDE_DIR}/ao/vulkan")
 file(MAKE_DIRECTORY "${AO_INCLUDE_DIR}/ao/vulkan")
 file(COPY "." DESTINATION "${AO_INCLUDE_DIR}/ao/vulkan" 
-	FILES_MATCHING PATTERN "*.h*"
+	FILES_MATCHING REGEX ".*\\.h.*"
 	PATTERN "*.dir" EXCLUDE
 	PATTERN "CMakeFiles" EXCLUDE
 )

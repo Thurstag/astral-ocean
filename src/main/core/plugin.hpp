@@ -13,8 +13,8 @@ namespace ao {
 			/// <summary>
 			/// Constructor
 			/// </summary>
-			/// <param name="subject">Subject</param>
-			Plugin(T* subject);
+			/// <param name="_subject">Subject</param>
+			Plugin(T* _subject);
 			virtual ~Plugin();
 
 			/// <summary>
@@ -32,13 +32,11 @@ namespace ao {
 
 		protected:
 			Logger LOGGER = Logger::getInstance<Plugin<T>>();
-			T* subject = nullptr;
+			T* const subject = nullptr;
 		};
 
 		template<class T>
-		Plugin<T>::Plugin(T * subject) {
-			this->subject = subject;
-		}
+		Plugin<T>::Plugin(T * _subject) : subject(_subject) {}
 
 		template<class T>
 		Plugin<T>::~Plugin() {}

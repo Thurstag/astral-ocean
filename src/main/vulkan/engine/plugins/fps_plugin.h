@@ -2,7 +2,7 @@
 
 #include <chrono>
 
-#include <ao/core/plugin.h>
+#include <ao/core/plugin.hpp>
 
 #include "../ao_engine.h"
 

@@ -1,8 +1,6 @@
 #include "shadermodule.h"
 
-ao::vulkan::ShaderModule::ShaderModule(Device* device) {
-	this->device = device;
-}
+ao::vulkan::ShaderModule::ShaderModule(Device* _device) : device(_device) {}
 
 ao::vulkan::ShaderModule::~ShaderModule() {
 	for (auto& pair : this->shaders) {

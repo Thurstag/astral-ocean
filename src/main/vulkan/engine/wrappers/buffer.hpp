@@ -14,8 +14,8 @@ namespace ao {
 			/// <summary>
 			/// Constructor
 			/// </summary>
-			/// <param name="device">Device</param>
-			Buffer(Device* device);
+			/// <param name="_device">Device</param>
+			Buffer(Device* _device);
 
 			/// <summary>
 			/// Destructor
@@ -52,9 +52,9 @@ namespace ao {
 			/// </summary>
 			/// <returns>vk::Buffer</returns>
 			vk::Buffer& buffer();
-		private:
+		protected:
 			bool hasBuffer = false;
-			Device* device;
+			Device* const device;
 
 			vk::DeviceMemory memory;
 			vk::DeviceSize size;
@@ -65,9 +65,7 @@ namespace ao {
 		/* IMPLEMENTATION */
 
 		template<class T>
-		Buffer<T>::Buffer(Device * device) {
-			this->device = device;
-		}
+		Buffer<T>::Buffer(Device * _device) : device(_device) {}
 
 		template<class T>
 		Buffer<T>::~Buffer() {

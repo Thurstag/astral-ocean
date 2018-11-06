@@ -5,8 +5,8 @@
 #include <algorithm>
 #include <vector>
 
+#include <ao/vulkan/engine/wrappers/buffers/device_buffer.hpp>
 #include <ao/vulkan/engine/wrappers/shadermodule.h>
-#include <ao/vulkan/engine/wrappers/buffer.hpp>
 #include <ao/vulkan/engine/glfw_engine.h>
 #include <ao/vulkan/engine/settings.h>
 #include <glm/gtx/rotate_vector.hpp>
@@ -52,5 +52,6 @@ public:
 	void setUpVertexBuffers() override;
 	void createSecondaryCommandBuffers() override;
 	std::vector<ao::vulkan::DrawInCommandBuffer> updateSecondaryCommandBuffers() override;
+	vk::QueueFlags queueFlags() override;
 };
 

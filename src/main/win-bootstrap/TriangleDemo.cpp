@@ -194,17 +194,7 @@ void TriangleDemo::setUpPipelines() {
 }
 
 void TriangleDemo::setUpVertexBuffers() {
-	// TODO: Use staging buffers
-
-	// Create buffer
-	this->buffer = new ao::vulkan::Buffer<Vertex*>(this->device);
-
-	// Init buffer
-	this->buffer->init(
-		vk::BufferUsageFlagBits::eVertexBuffer, vk::SharingMode::eExclusive,
-		vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent,
-		sizeof(this->vertices) * this->vertices.size(), this->vertices.data()
-	);
+	this->buffer = &(new ao::vulkan::DeviceBuffer<Vertex*>(this->device))->init(sizeof(Vertex) * this->vertices.size(), this->vertices.data());
 }
 
 void TriangleDemo::createSecondaryCommandBuffers() {
@@ -246,4 +236,9 @@ std::vector<ao::vulkan::DrawInCommandBuffer> TriangleDemo::updateSecondaryComman
 	});
 
 	return commands;
+}
+
+vk::QueueFlags TriangleDemo::queueFlags() {
+	// Enable transfer flag
+	return ao::vulkan::GLFWEngine::queueFlags() | vk::QueueFlagBits::eTransfer;
 }

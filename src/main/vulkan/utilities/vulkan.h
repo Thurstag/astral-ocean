@@ -190,7 +190,7 @@ namespace ao {
 				// Try to find a queue familly designed only for flag parameter
 				for (uint32_t i = 0; i < queueFamilyProperties.size(); i++) {
 					if ((queueFamilyProperties[i].queueFlags & flag) && ((VkQueueFlags(queueFamilyProperties[i].queueFlags) & other) == 0)) {
-						core::Logger::getInstance<Utilities>() << LogLevel::DEBUG << "Found a queueFamily that only support: " << std::bitset<8>(static_cast<int>(flag));
+						core::Logger::getInstance<Utilities>() << LogLevel::DEBUG << "Found a queueFamily that only support: " << to_string(flag);
 						return i;
 					}
 				}

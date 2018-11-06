@@ -21,6 +21,8 @@ ao::vulkan::Device::Device(vk::PhysicalDevice& device) {
 }
 
 ao::vulkan::Device::~Device() {
+	this->logical.destroyCommandPool(this->commandPool);
+
 	this->logical.destroy();
 }
 
@@ -96,6 +98,12 @@ void ao::vulkan::Device::initLogicalDevice(std::vector<char const*>& deviceExten
 
 	// Create device
 	this->logical = this->physical.createDevice(deviceCreateInfo);
+
+	// Create command for transfert
+	this->commandPool = this->logical.createCommandPool(vk::CommandPoolCreateInfo(vk::CommandPoolCreateFlagBits::eResetCommandBuffer, std::get<AO_GRAPHICS_QUEUE_INDEX>(this->queueFamilyIndices)));
+
+	// Get transfer queue
+	this->transferQueue = this->logical.getQueue(std::get<AO_GRAPHICS_QUEUE_INDEX>(this->queueFamilyIndices), 0);
 }
 
 uint32_t ao::vulkan::Device::memoryType(uint32_t typeBits, vk::MemoryPropertyFlags properties) {

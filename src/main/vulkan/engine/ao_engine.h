@@ -63,7 +63,7 @@ namespace ao {
 			
 			std::pair<vk::Semaphore, vk::Semaphore> semaphores; // First = Present semaphore & Second = Render semaphore
 			std::vector<vk::Fence> waitingFences;
-			vk::Queue queue;
+			vk::Queue graphicQueue;
 
 			std::tuple<vk::Image, vk::DeviceMemory, vk::ImageView> stencilBuffer;
 			std::vector<vk::Framebuffer> frameBuffers;

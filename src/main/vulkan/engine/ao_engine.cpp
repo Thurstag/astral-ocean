@@ -76,7 +76,7 @@ void ao::vulkan::AOEngine::initVulkan() {
 	this->device->initLogicalDevice(this->deviceExtensions(), this->deviceFeatures(), this->queueFlags(), this->commandPoolFlags());
 
 	// Get a graphics queue from the device
-	this->queue = this->device->logical.getQueue(std::get<AO_GRAPHICS_QUEUE_INDEX>(this->device->queueFamilyIndices), 0);
+	this->graphicQueue = this->device->logical.getQueue(std::get<AO_GRAPHICS_QUEUE_INDEX>(this->device->queueFamilyIndices), 0);
 
 	// Find suitable depth format
 	this->device->depthFormat = ao::vulkan::utilities::getSupportedDepthFormat(this->device->physical);
@@ -349,7 +349,7 @@ void ao::vulkan::AOEngine::render() {
 	this->device->logical.resetFences(this->waitingFences[this->frameBufferIndex]);
 
 	// Submit to queue
-	this->queue.submit(this->submitInfo, this->waitingFences[this->frameBufferIndex]);
+	this->graphicQueue.submit(this->submitInfo, this->waitingFences[this->frameBufferIndex]);
 
 	// Submit frame
 	this->submitFrame();
@@ -374,7 +374,7 @@ void ao::vulkan::AOEngine::prepareFrame() {
 }
 
 void ao::vulkan::AOEngine::submitFrame() {
-	vk::Result result = this->swapchain->enqueueImage(this->queue, this->frameBufferIndex, this->semaphores.second);
+	vk::Result result = this->swapchain->enqueueImage(this->graphicQueue, this->frameBufferIndex, this->semaphores.second);
 
 	// Check result
 	if (result == vk::Result::eErrorOutOfDateKHR) {
@@ -384,7 +384,7 @@ void ao::vulkan::AOEngine::submitFrame() {
 		return;
 	}
 	else if (result == vk::Result::eSuccess || result == vk::Result::eSuboptimalKHR) {
-		this->queue.waitIdle();
+		this->graphicQueue.waitIdle();
 	}
 	ao::vulkan::utilities::vkAssert(result, "Fail to enqueue image");
 }

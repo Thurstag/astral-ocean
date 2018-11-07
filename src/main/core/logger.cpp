@@ -1,16 +1,9 @@
 #include "logger.h"
 
+std::map<std::string, ao::core::Logger> ao::core::Logger::instances = std::map<std::string, ao::core::Logger>();
+
 ao::core::Logger::Logger(std::type_info const& type) {
-	std::vector<std::string> prefixes = { "class ", "struct " };
-	std::string name = boost::core::demangle(type.name());
-
-	// Optimize name
-	for (std::string prefix : prefixes) {
-		boost::replace_all(name, prefix, "");
-	}
-
-	// Create logger (TODO: Optimize instance management)
-	this->category = &log4cpp::Category::getInstance(name);
+	this->category = &log4cpp::Category::getInstance(boost::core::demangle(type.name()));
 
 	// TODO: Add support for file import & modifications
 

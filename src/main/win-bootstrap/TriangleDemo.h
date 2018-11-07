@@ -34,7 +34,10 @@ public:
 	bool clockInit = false;
 
 	std::vector<Vertex> vertices;
-	ao::vulkan::Buffer<Vertex*>* buffer;
+	std::vector<uint16_t> indices;
+
+	ao::vulkan::Buffer<Vertex*>* vertexBuffer;
+	ao::vulkan::Buffer<uint16_t*>* indexBuffer;
 
 	TriangleDemo(ao::vulkan::EngineSettings settings) : ao::vulkan::GLFWEngine(settings), ao::vulkan::AOEngine(settings) {
 		this->vertices = {
@@ -42,6 +45,7 @@ public:
 			{ {0.5f, 0.5f}, {0.0f, 1.0f, 0.0f} },
 			{ {-0.5f, 0.5f}, {0.0f, 0.0f, 1.0f} }
 		};
+		this->indices = { 0, 1, 2, 0 };
 	};
 	virtual ~TriangleDemo();
 
@@ -49,7 +53,7 @@ public:
 	void setUpRenderPass() override;
 	void createPipelineLayouts() override;
 	void setUpPipelines() override;
-	void setUpVertexBuffers() override;
+	void setUpVulkanBuffers() override;
 	void createSecondaryCommandBuffers() override;
 	std::vector<ao::vulkan::DrawInCommandBuffer> updateSecondaryCommandBuffers() override;
 	vk::QueueFlags queueFlags() override;

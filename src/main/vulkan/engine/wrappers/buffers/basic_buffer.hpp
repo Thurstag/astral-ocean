@@ -39,7 +39,7 @@ namespace ao {
 			/// <param name="size">Data size</param>
 			/// <param name="data">Data</param>
 			/// <returns>This</returns>
-			virtual BasicBuffer<T>& init(vk::BufferUsageFlags usageFlags, vk::SharingMode sharingMode, vk::MemoryPropertyFlags memoryFlags, vk::DeviceSize size, boost::optional<T> data = boost::optional<T>());
+			virtual BasicBuffer<T>& init(vk::BufferUsageFlags usageFlags, vk::SharingMode sharingMode, vk::MemoryPropertyFlags memoryFlags, vk::DeviceSize size, boost::optional<T> data = boost::none);
 
 			/// <summary>
 			/// Method to map memory
@@ -149,7 +149,7 @@ namespace ao {
 			return this->mHasBuffer;
 		}
 		template<class T>
-		inline vk::DeviceSize BasicBuffer<T>::size() {
+		vk::DeviceSize BasicBuffer<T>::size() {
 			return this->mSize;
 		}
 	}

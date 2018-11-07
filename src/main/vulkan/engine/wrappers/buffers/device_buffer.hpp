@@ -13,7 +13,8 @@ namespace ao {
 			/// Constructor
 			/// </summary>
 			/// <param name="device">Device</param>
-			DeviceBuffer(Device* device);
+			/// <param name="usage">Buffer usage</param>
+			DeviceBuffer(Device* device, vk::CommandBufferUsageFlags usage = vk::CommandBufferUsageFlagBits::eSimultaneousUse);
 			
 			/// <summary>
 			/// Destructor
@@ -31,9 +32,10 @@ namespace ao {
 			/// If object already stores a buffer, it will free the old one
 			/// </summary>
 			/// <param name="size">Data size</param>
+			/// <param name="usageFlags">Additional usage flags</param>
 			/// <param name="data">Data</param>
 			/// <returns>This</returns>
-			virtual DeviceBuffer<T>& init(vk::DeviceSize size, boost::optional<T> data = boost::optional<T>());
+			virtual DeviceBuffer<T>& init(vk::DeviceSize size, boost::optional<vk::BufferUsageFlags> usageFlags = boost::none,  boost::optional<T> data = boost::none);
 
 			DeviceBuffer<T>& update(T data) override;
 			vk::DeviceSize size() override;
@@ -43,6 +45,7 @@ namespace ao {
 		protected:
 			BasicBuffer<T>* deviceBuffer = nullptr;
 			BasicBuffer<T>* hostBuffer = nullptr;
+			vk::CommandBufferUsageFlags usage;
 
 			vk::CommandBuffer commandBuffer;
 			vk::Fence fence;
@@ -56,14 +59,18 @@ namespace ao {
 		/* IMPLEMENTATION */
 
 		template<class T>
-		DeviceBuffer<T>::DeviceBuffer(Device * device) : Buffer<T>(device) {}
+		DeviceBuffer<T>::DeviceBuffer(Device * device, vk::CommandBufferUsageFlags usage) : Buffer<T>(device) {
+			this->usage = usage;
+		}
 
 		template<class T>
 		DeviceBuffer<T>::~DeviceBuffer() {
 			this->free();
 
-			this->device->logical.freeCommandBuffers(this->device->commandPool, this->commandBuffer);
-			this->device->logical.destroyFence(this->fence);
+			if (!(this->usage & vk::CommandBufferUsageFlagBits::eOneTimeSubmit)) {
+				this->device->logical.freeCommandBuffers(this->device->commandPool, this->commandBuffer);
+				this->device->logical.destroyFence(this->fence);
+			}
 		}
 
 		template<class T>
@@ -79,7 +86,7 @@ namespace ao {
 		}
 
 		template<class T>
-		DeviceBuffer<T>& DeviceBuffer<T>::init(vk::DeviceSize size, boost::optional<T> data) {
+		DeviceBuffer<T>& DeviceBuffer<T>::init(vk::DeviceSize size, boost::optional<vk::BufferUsageFlags> usageFlags, boost::optional<T> data) {
 			if (this->hasBuffer()) {
 				this->free();
 			}
@@ -91,9 +98,17 @@ namespace ao {
 					  size, data);
 
 			// Init buffer in device's memory
-			this->deviceBuffer = &(new BasicBuffer<T>(this->device))
-				->init(vk::BufferUsageFlagBits::eTransferDst, vk::SharingMode::eExclusive,
-					  vk::MemoryPropertyFlagBits::eDeviceLocal, size);
+			if (usageFlags) {
+				this->deviceBuffer = &(new BasicBuffer<T>(this->device))
+					->init(vk::BufferUsageFlagBits::eTransferDst | usageFlags.get(), vk::SharingMode::eExclusive,
+						   vk::MemoryPropertyFlagBits::eDeviceLocal, size);
+			}
+			else {
+				this->deviceBuffer = &(new BasicBuffer<T>(this->device))
+					->init(vk::BufferUsageFlagBits::eTransferDst, vk::SharingMode::eExclusive,
+						   vk::MemoryPropertyFlagBits::eDeviceLocal, size);
+			}
+
 
 			// Create command buffer
 			this->commandBuffer = this->device->logical.allocateCommandBuffers(vk::CommandBufferAllocateInfo(this->device->commandPool, vk::CommandBufferLevel::ePrimary, 1))[0];
@@ -114,6 +129,9 @@ namespace ao {
 			if (!this->hasBuffer()) {
 				throw ao::core::Exception("Buffer hasn't been initialized");
 			}
+			if (this->usage & vk::CommandBufferUsageFlagBits::eOneTimeSubmit) {
+				throw ao::core::Exception("Buffer usage is eOneTimeSubmit, can't update it");
+			}
 
 			// Update host buffer & synchronize memories
 			this->hostBuffer->update(data);
@@ -123,7 +141,7 @@ namespace ao {
 		}
 
 		template<class T>
-		inline vk::DeviceSize DeviceBuffer<T>::size() {
+		vk::DeviceSize DeviceBuffer<T>::size() {
 			if (this->deviceBuffer) {
 				return this->deviceBuffer->size();
 			}
@@ -132,18 +150,20 @@ namespace ao {
 
 		template<class T>
 		vk::Buffer & DeviceBuffer<T>::buffer() {
-			if (this->deviceBuffer) {
-				return this->deviceBuffer->buffer();
+			if (!this->deviceBuffer) {
+				throw ao::core::Exception("Device buffer hasn't been initialized");
 			}
-
-			LOGGER << LogLevel::WARN << "Try to get buffer but it hasn't been initialized";
-			return vk::Buffer();
+			return this->deviceBuffer->buffer();
 		}
 
 		template<class T>
 		void DeviceBuffer<T>::sync() {
+			if ((this->usage & vk::CommandBufferUsageFlagBits::eOneTimeSubmit) && !this->hostBuffer) {
+				throw ao::core::Exception("Buffer usage is eOneTimeSubmit, can't update it");
+			}
+
 			// Create command to transfer data from host to device
-			this->commandBuffer.begin(vk::CommandBufferBeginInfo(vk::CommandBufferUsageFlagBits::eSimultaneousUse));
+			this->commandBuffer.begin(vk::CommandBufferBeginInfo(this->usage));
 			{
 				this->commandBuffer.copyBuffer(this->hostBuffer->buffer(), this->deviceBuffer->buffer(), vk::BufferCopy().setSize(this->deviceBuffer->size()));
 			}
@@ -162,6 +182,17 @@ namespace ao {
 
 			// Reset fence
 			this->device->logical.resetFences(this->fence);
+
+			// Free useless resources
+			if (this->usage & vk::CommandBufferUsageFlagBits::eOneTimeSubmit) {
+				this->device->logical.freeCommandBuffers(this->device->commandPool, this->commandBuffer);
+				this->device->logical.destroyFence(this->fence);
+
+				delete this->hostBuffer;
+				this->hostBuffer = nullptr;
+
+				LOGGER << LogLevel::DEBUG << "Free resources after buffer submission";
+			}
 		}
 
 		template<class T>

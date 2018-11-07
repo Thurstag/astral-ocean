@@ -139,7 +139,7 @@ void ao::vulkan::SwapChain::init(uint64_t & width, uint64_t & height, bool vsync
 		this->buffers[i].second = this->device->logical.createImageView(colorCreateInfo);
 	}
 
-	LOGGER << LogLevel::DEBUG << "Set-up a swap chain with a buffer of " << buffers.size() << " image(s)";
+	LOGGER << LogLevel::DEBUG << "Set-up a swap chain of " << buffers.size() << " image(s)";
 
 	// Update helpers
 	this->commandBufferHelpers.second = vk::Rect2D(vk::Offset2D(), this->currentExtent);

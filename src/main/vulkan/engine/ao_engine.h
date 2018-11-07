@@ -217,10 +217,10 @@ namespace ao {
 			/// </summary>
 			virtual void setUpRenderPass() = 0;
 			/// <summary>
-			/// Method to set-up vertex buffers
+			/// Method to set-up vulkan buffers
 			/// </summary>
 			/// <returns></returns>
-			virtual void setUpVertexBuffers() = 0;
+			virtual void setUpVulkanBuffers() = 0;
 			/// <summary>
 			/// Method to create secondary command buffers
 			/// </summary>

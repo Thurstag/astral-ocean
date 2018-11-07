@@ -1,7 +1,8 @@
 #include "TriangleDemo.h"
 
 TriangleDemo::~TriangleDemo() {
-	delete this->buffer;
+	delete this->vertexBuffer;
+	delete this->indexBuffer;
 }
 
 void TriangleDemo::afterFrameSubmitted() {
@@ -33,7 +34,7 @@ void TriangleDemo::afterFrameSubmitted() {
 	}
 
 	// Update vertex buffer
-	this->buffer->update(this->vertices.data());
+	this->vertexBuffer->update(this->vertices.data());
 
 	// Update clock
 	this->clock = std::chrono::system_clock::now();
@@ -193,8 +194,12 @@ void TriangleDemo::setUpPipelines() {
 	this->pipeline->pipelines = this->device->logical.createGraphicsPipelines(this->pipeline->cache, pipelineCreateInfo);
 }
 
-void TriangleDemo::setUpVertexBuffers() {
-	this->buffer = &(new ao::vulkan::DeviceBuffer<Vertex*>(this->device))->init(sizeof(Vertex) * this->vertices.size(), this->vertices.data());
+void TriangleDemo::setUpVulkanBuffers() {
+	this->vertexBuffer = &(new ao::vulkan::DeviceBuffer<Vertex*>(this->device))
+		->init(sizeof(Vertex) * this->vertices.size(), boost::none, this->vertices.data());
+
+	this->indexBuffer = &(new ao::vulkan::DeviceBuffer<uint16_t*>(this->device, vk::CommandBufferUsageFlagBits::eOneTimeSubmit))
+		->init(sizeof(uint16_t) * this->indices.size(), vk::BufferUsageFlags(vk::BufferUsageFlagBits::eIndexBuffer), this->indices.data());
 }
 
 void TriangleDemo::createSecondaryCommandBuffers() {
@@ -205,31 +210,34 @@ std::vector<ao::vulkan::DrawInCommandBuffer> TriangleDemo::updateSecondaryComman
 	vk::CommandBuffer& commandBuffer = this->swapchain->secondaryCommandBuffers[0];
 	std::vector<ao::vulkan::DrawInCommandBuffer> commands;
 	vk::Pipeline& pipeline = this->pipeline->pipelines[0];
-	vk::Buffer& vertexBuffer = this->buffer->buffer();
+	vk::Buffer vertexBuffer = this->vertexBuffer->buffer();
+	vk::Buffer indexBuffer = this->indexBuffer->buffer();
 	std::vector<Vertex>& vertices = this->vertices;
+	std::vector<uint16_t>& indices = this->indices;
 
-	commands.push_back([commandBuffer, pipeline, vertexBuffer, vertices](vk::CommandBufferInheritanceInfo& inheritance, std::pair<std::array<vk::ClearValue, 2>, vk::Rect2D>& helpers) {
+	commands.push_back([commandBuffer, pipeline, vertexBuffer, indexBuffer, vertices, indices](vk::CommandBufferInheritanceInfo& inheritance, std::pair<std::array<vk::ClearValue, 2>, vk::Rect2D>& helpers) {
 		vk::Viewport viewPort(0, 0, static_cast<float>(helpers.second.extent.width), static_cast<float>(helpers.second.extent.height), 0, 1);
 		vk::CommandBufferBeginInfo beginInfo;
 		beginInfo.setPInheritanceInfo(&inheritance);
 
-		// Begin
+		// Draw in command
 		commandBuffer.begin(beginInfo);
+		{
+		    // Set viewport & scissor
+			commandBuffer.setViewport(0, viewPort);
+			commandBuffer.setScissor(0, helpers.second);
 
-		// Set viewport & scissor
-		commandBuffer.setViewport(0, viewPort);
-		commandBuffer.setScissor(0, helpers.second);
+			// Bind pipeline
+			commandBuffer.bindPipeline(vk::PipelineBindPoint::eGraphics, pipeline);
 
-		// Bind pipeline
-		commandBuffer.bindPipeline(vk::PipelineBindPoint::eGraphics, pipeline);
-
-		// Draw triangle
-		std::array<vk::Buffer, 1> vertexBuffers = { vertexBuffer };
-		std::array<vk::DeviceSize, 1> offsets = { 0 };
-		commandBuffer.bindVertexBuffers(0, vertexBuffers, offsets);
-		commandBuffer.draw(static_cast<uint32_t>(vertices.size()), 1, 0, 0);
-
-		// End
+			// Draw triangle
+			std::array<vk::Buffer, 1> vertexBuffers = { vertexBuffer };
+			std::array<vk::DeviceSize, 1> offsets = { 0 };
+			commandBuffer.bindVertexBuffers(0, vertexBuffers, offsets);
+			commandBuffer.bindIndexBuffer(indexBuffer, 0, vk::IndexType::eUint16);
+			
+			commandBuffer.drawIndexed(static_cast<uint32_t>(indices.size()), 1, 0, 0, 0);
+		}
 		commandBuffer.end();
 
 		return commandBuffer;

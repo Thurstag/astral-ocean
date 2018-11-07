@@ -292,8 +292,8 @@ void ao::vulkan::AOEngine::prepareVulkan() {
     // Create pipelines
 	this->createPipelines();
 
-	// Set-up vertex buffers
-	this->setUpVertexBuffers();
+	// Set-up vulkan buffers
+	this->setUpVulkanBuffers();
 
 	// Set-up frame buffer
 	this->setUpFrameBuffers();

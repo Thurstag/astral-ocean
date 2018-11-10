@@ -44,7 +44,7 @@ int main(int argc, char* argv[]) {
 	} catch (ao::core::Exception & e) {
 		LOGGER << LogLevel::FATAL << e;
 	} catch (std::exception& e) {
-		LOGGER << LogLevel::FATAL << ao::core::Exception(e);
+		LOGGER << LogLevel::FATAL << ao::core::Exception(e.what());
 	} catch (...) {
 		LOGGER << LogLevel::FATAL << "Unknown exception";
 	}

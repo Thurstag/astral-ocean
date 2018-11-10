@@ -115,7 +115,7 @@ namespace ao {
 			/// <param name="settings">Engine settings</param>
 			/// <param name="extensions">Extensions</param>
 			/// <returns>vk::Instance</returns>
-			inline vk::Instance createVkInstance(EngineSettings& settings, std::vector<char const*>& extensions) {
+			inline vk::Instance createVkInstance(EngineSettings& settings, std::vector<char const*> extensions) {
 				std::vector<char const*> validationLayer{ "VK_LAYER_LUNARG_standard_validation" };
 
 				// Create app info (TODO: Optimize this part (retrieve info in settings) !!!)
@@ -176,7 +176,7 @@ namespace ao {
 			/// </summary>
 			/// <param name="queueFamilyProperties">queueFamilyProperties</param>
 			/// <param name="flag">Flag</param>
-			inline uint32_t findQueueFamilyIndex(std::vector<vk::QueueFamilyProperties>& queueFamilyProperties, vk::QueueFlagBits flag) {
+			inline uint32_t findQueueFamilyIndex(std::vector<vk::QueueFamilyProperties> queueFamilyProperties, vk::QueueFlagBits flag) {
 				std::vector<VkQueueFlagBits> flags = { VK_QUEUE_COMPUTE_BIT, VK_QUEUE_TRANSFER_BIT, VK_QUEUE_GRAPHICS_BIT };
 
 				// Calculate value of flags whitout flag parameter

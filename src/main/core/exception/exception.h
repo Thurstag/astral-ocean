@@ -15,12 +15,16 @@ namespace ao {
 			/// Constructor
 			/// </summary>
 			/// <param name="message">Messagge</param>
-			Exception(std::string message);
+			/// <param name="stacktrace">Enable stack trace</param>
+			Exception(std::string message, bool stacktrace = true);
+
 			/// <summary>
 			/// Constructor
 			/// </summary>
-			/// <param name="e">Exception</param>
-			Exception(std::exception& e);
+			/// <param name="message">Messagge</param>
+			/// <param name="stacktrace">Enable stack trace</param>
+			Exception(char const* message, bool stacktrace = true);
+
 			/// <summary>
 			/// Destructor
 			/// </summary>

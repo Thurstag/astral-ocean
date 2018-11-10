@@ -19,15 +19,19 @@ function(create_library LIB_NAME LIB_DIRECTORY LIB_DEPENDENCIES)
 
 	# Static lib
 	add_library("${LIB_NAME}" ${LIB_SOURCES} ${LIB_HEADERS})
-	target_link_libraries("${LIB_NAME}" ${LIB_DEPENDENCIES})
+	target_link_libraries("${LIB_NAME}" ${LIB_DEPENDENCIES} ${CMAKE_DL_LIBS})
 
 	# Define group
 	set_target_properties("${LIB_NAME}" PROPERTIES FOLDER "AO-LIBRARIES")
 endfunction()
 
-# Include projects
+# Include libraries
 add_subdirectory("core")
 add_subdirectory("vulkan")
-IF(${AO_BUILD_BOOTSTRAPS})
-	add_subdirectory("win-bootstrap")
+
+# Include bootstraps
+IF(AO_BUILD_BOOTSTRAPS)
+	IF(WIN32)
+		add_subdirectory("win-bootstrap")
+	ENDIF()
 ENDIF()

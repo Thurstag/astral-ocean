@@ -1,7 +1,5 @@
 file(GLOB_RECURSE AO_TEST_FILES "*.cpp")
 
-enable_testing()
-
 FOREACH(TEST_FILE IN LISTS AO_TEST_FILES)
 	# Get relative path & file's name
 	get_filename_component(TEST_FILE_ABS_PATH "${TEST_FILE}" PATH)

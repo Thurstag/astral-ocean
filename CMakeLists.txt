@@ -2,12 +2,8 @@ cmake_minimum_required(VERSION 2.8 FATAL_ERROR)
 cmake_policy(SET CMP0048 NEW)
 
 # Define build variables
-IF(NOT DEFINED AO_BUILD_TESTS)
-	set(AO_BUILD_TESTS TRUE)
-ENDIF()
-IF(NOT DEFINED AO_BUILD_BOOTSTRAPS)
-	set(AO_BUILD_BOOTSTRAPS TRUE)
-ENDIF()
+option(AO_BUILD_TESTS "Build tests" ON)
+option(AO_BUILD_BOOTSTRAPS "Build bootstraps" ON)
 
 # Define variables
 set(PROJECT_NAME "astral-ocean")
@@ -93,12 +89,13 @@ include_directories(${AO_INCLUDE_DIR})
 # Include sub-projects
 add_subdirectory("src/main")
 IF(${AO_BUILD_TESTS})
+	enable_testing()
 	add_subdirectory("src/test")
 ENDIF()
 
 # Force folder creation
 set_target_properties(log4cpp PROPERTIES FOLDER "LOG4C++")
-IF(AO_BUILD_BOOTSTRAPS)
+IF(AO_BUILD_BOOTSTRAPS AND WIN32)
 	set_target_properties("win-bootstrap" PROPERTIES FOLDER "AO-BOOTSTRAPS")
 ENDIF()
 IF(AO_BUILD_TESTS)

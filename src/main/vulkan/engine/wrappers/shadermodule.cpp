@@ -47,7 +47,8 @@ vk::ShaderModule ao::vulkan::ShaderModule::createModule(const std::vector<char>&
 
 ao::vulkan::ShaderModule & ao::vulkan::ShaderModule::loadShader(std::string filename, vk::ShaderStageFlagBits flag) {
 	// Create module
-	vk::ShaderModule module = ao::vulkan::ShaderModule::createModule(ao::vulkan::ShaderModule::read(filename));
+	std::vector<char> code = ao::vulkan::ShaderModule::read(filename);
+	vk::ShaderModule module = ao::vulkan::ShaderModule::createModule(code);
 
 	// Destroy old one
 	auto it = this->shaders.find(flag);

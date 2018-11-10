@@ -16,7 +16,13 @@
 
 #include "vertex.hpp"
 
-class TriangleDemo : public virtual ao::vulkan::GLFWEngine {
+struct UniformBufferObject {
+	glm::mat4 model;
+	glm::mat4 view;
+	glm::mat4 proj;
+};
+
+class RectangleDemo : public virtual ao::vulkan::GLFWEngine {
 public:
 	std::chrono::time_point<std::chrono::system_clock> clock;
 	bool clockInit = false;
@@ -27,15 +33,19 @@ public:
 	ao::vulkan::Buffer<Vertex*>* vertexBuffer;
 	ao::vulkan::Buffer<uint16_t*>* indexBuffer;
 
-	TriangleDemo(ao::vulkan::EngineSettings settings) : ao::vulkan::GLFWEngine(settings), ao::vulkan::AOEngine(settings) {
+	std::vector<ao::vulkan::Buffer<UniformBufferObject*>*> uniformBuffers;
+	std::vector<UniformBufferObject> _uniformBuffers;
+
+	RectangleDemo(ao::vulkan::EngineSettings settings) : ao::vulkan::GLFWEngine(settings), ao::vulkan::AOEngine(settings) {
 		this->vertices = {
-			{ { 0.0f, -0.5f }, { 1.0f, 0.0f, 0.0f } },
-			{ {0.5f, 0.5f}, {0.0f, 1.0f, 0.0f} },
-			{ {-0.5f, 0.5f}, {0.0f, 0.0f, 1.0f} }
+			{{-0.5f, -0.5f}, {1.0f, 0.0f, 0.0f}},
+			{{0.5f, -0.5f}, {0.0f, 1.0f, 0.0f}},
+			{{0.5f, 0.5f}, {0.0f, 0.0f, 1.0f}},
+			{{-0.5f, 0.5f}, {1.0f, 1.0f, 1.0f}}
 		};
-		this->indices = { 0, 1, 2, 0 };
+		this->indices = { 0, 1, 2, 2, 3, 0 };
 	};
-	virtual ~TriangleDemo();
+	virtual ~RectangleDemo();
 
 	void afterFrameSubmitted() override;
 	void setUpRenderPass() override;
@@ -43,7 +53,7 @@ public:
 	void setUpPipelines() override;
 	void setUpVulkanBuffers() override;
 	void createSecondaryCommandBuffers() override;
-	std::vector<ao::vulkan::DrawInCommandBuffer> updateSecondaryCommandBuffers() override; 
+	std::vector<ao::vulkan::DrawInCommandBuffer> updateSecondaryCommandBuffers() override;
 	void updateUniformBuffers() override;
 	vk::QueueFlags queueFlags() override;
 	void createDescriptorSetLayouts() override;

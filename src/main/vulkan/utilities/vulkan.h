@@ -4,8 +4,8 @@
 #include <bitset>
 #include <vector>
 
-#include <ao/core/exception.h>
-#include <ao/core/logger.h>
+#include <ao/core/exception/exception.h>
+#include <ao/core/logger/logger.h>
 #include <vulkan/vulkan.hpp>
 
 #include "../engine/settings.h"

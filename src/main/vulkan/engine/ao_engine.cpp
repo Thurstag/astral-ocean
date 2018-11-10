@@ -96,6 +96,16 @@ void ao::vulkan::AOEngine::freeVulkan() {
 	delete this->swapchain;
 
 	delete this->pipeline;
+
+	for (auto& pool : this->descriptorPools) {
+		this->device->logical.destroyDescriptorPool(pool);
+	}
+	this->descriptorPools.clear();
+	for (auto& layout : this->descriptorSetLayouts) {
+		this->device->logical.destroyDescriptorSetLayout(layout);
+	}
+	this->descriptorSetLayouts.clear();
+	
 	this->device->logical.destroyRenderPass(this->renderPass);
 
 	for (auto& frameBuffer : this->frameBuffers) {
@@ -289,11 +299,18 @@ void ao::vulkan::AOEngine::prepareVulkan() {
 	// Create render pass
 	this->createRenderPass();
 
+	// Create descriptor set layouts
+	this->createDescriptorSetLayouts();
+
     // Create pipelines
 	this->createPipelines();
 
 	// Set-up vulkan buffers
 	this->setUpVulkanBuffers();
+
+	// Create descriptor pools & sets
+	this->createDescriptorPools();
+	this->createDescriptorSets();
 
 	// Set-up frame buffer
 	this->setUpFrameBuffers();
@@ -340,6 +357,9 @@ void ao::vulkan::AOEngine::render() {
 
 	// Update command buffers
 	this->updateCommandBuffers();
+
+	// Update uniform buffers
+	this->updateUniformBuffers();
 
 	// Edit submit info
 	this->submitInfo.setCommandBufferCount(1);
@@ -418,9 +438,10 @@ void ao::vulkan::AOEngine::updateCommandBuffers() {
 	std::vector<ao::vulkan::DrawInCommandBuffer> functions = this->updateSecondaryCommandBuffers();
 
 	// Execute drawing functions
+	int index = this->frameBufferIndex;
 	for (auto& function : functions) {
 		futures.push_back(this->commandBufferPool.push([&](int id) {
-			return function(inheritanceInfo, helpers);
+			return function(index, inheritanceInfo, helpers);
 		}));
 	}
 

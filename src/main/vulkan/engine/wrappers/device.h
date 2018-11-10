@@ -4,9 +4,9 @@
 #include <vector>
 #include <tuple>
 
-#include <ao/core/exception.h>
+#include <ao/core/exception/exception.h>
+#include <ao/core/logger/logger.h>
 #include <vulkan/vulkan.hpp>
-#include <ao/core/logger.h>
 
 #include "../../utilities/vulkan.h"
 

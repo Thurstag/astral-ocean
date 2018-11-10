@@ -9,7 +9,7 @@
 
 namespace ao {
 	namespace core {
-		class Exception : public std::exception {
+		class Exception : public std::runtime_error {
 		public:
 			/// <summary>
 			/// Constructor
@@ -32,7 +32,20 @@ namespace ao {
 			/// <param name="os">Stream</param>
 			/// <param name="e">Exception</param>
 			/// <returns>Stream</returns>
-			friend std::ostream& operator<<(std::ostream& os, const Exception& e);
+			friend std::ostream& operator<<(std::ostream& os, const Exception& e) {
+	            // Display message
+				os << e.what();
+
+				// Display stack trace
+				if (e.stack) {
+					std::stringstream _stack;
+					_stack << *e.stack;
+					std::string stack = _stack.str();
+
+					os << std::endl << stack.substr(0, stack.size() - 1);
+				}
+				return os;
+			}
 
 		private:
 			boost::optional<boost::stacktrace::stacktrace> stack;

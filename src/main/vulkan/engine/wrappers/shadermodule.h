@@ -6,7 +6,7 @@
 #include <string>
 #include <map>
 
-#include <ao/core/exception.h>
+#include <ao/core/exception/exception.h>
 #include <vulkan/vulkan.hpp>
 
 #include "device.h"

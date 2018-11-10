@@ -2,7 +2,7 @@
 
 #include <sstream>
 
-#include <ao/core/exception.h>
+#include <ao/core/exception/exception.h>
 #include <gtest/gtest.h>
 
 namespace ao {

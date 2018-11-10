@@ -1,6 +1,6 @@
 #pragma once
 
-#include <ao/core/logger.h>
+#include <ao/core/logger/logger.h>
 
 #include "../device.h"
 

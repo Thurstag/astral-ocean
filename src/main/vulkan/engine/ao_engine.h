@@ -5,10 +5,10 @@
 #include <mutex>
 #include <tuple>
 
-#include <ao/core/exception.h>
+#include <ao/core/exception/exception.h>
+#include <ao/core/logger/logger.h>
 #include <ao/core/plugin.hpp>
 #include <vulkan/vulkan.hpp>
-#include <ao/core/logger.h>
 #include <ctpl.h>
 
 #include "../utilities/vulkan.h"
@@ -19,7 +19,7 @@
 
 namespace ao {
 	namespace vulkan {
-		using DrawInCommandBuffer = std::function<vk::CommandBuffer(vk::CommandBufferInheritanceInfo&, std::pair<std::array<vk::ClearValue, 2>, vk::Rect2D>&)>;
+		using DrawInCommandBuffer = std::function<vk::CommandBuffer(int,vk::CommandBufferInheritanceInfo&, std::pair<std::array<vk::ClearValue, 2>, vk::Rect2D>&)>;
 
 		/// <summary>
 		/// AOEngine class
@@ -64,6 +64,10 @@ namespace ao {
 			std::pair<vk::Semaphore, vk::Semaphore> semaphores; // First = Present semaphore & Second = Render semaphore
 			std::vector<vk::Fence> waitingFences;
 			vk::Queue graphicQueue;
+
+			std::vector<vk::DescriptorSetLayout> descriptorSetLayouts;
+			std::vector<vk::DescriptorPool>	descriptorPools;
+			std::vector<vk::DescriptorSet> descriptorSets;
 
 			std::tuple<vk::Image, vk::DeviceMemory, vk::ImageView> stencilBuffer;
 			std::vector<vk::Framebuffer> frameBuffers;
@@ -230,6 +234,22 @@ namespace ao {
 			/// </summary>
 			/// <returns>Function vector</returns>
 			virtual std::vector<DrawInCommandBuffer> updateSecondaryCommandBuffers() = 0;
+			/// <summary>
+			/// Method to update uniform buffers
+			/// </summary>
+			virtual void updateUniformBuffers() = 0;
+			/// <summary>
+			/// Method to create descriptor set layouts
+			/// </summary>
+			virtual void createDescriptorSetLayouts() = 0;
+			/// <summary>
+			/// Method to create descriptor pools
+			/// </summary>
+			virtual void createDescriptorPools() = 0;
+			/// <summary>
+			/// Method to create descriptor sets
+			/// </summary>
+			virtual void createDescriptorSets() = 0;
 		private:
 			ctpl::thread_pool commandBufferPool;
 

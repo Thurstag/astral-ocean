@@ -1,6 +1,6 @@
 #pragma once
 
-#include <ao/core/exception.h>
+#include <ao/core/exception/exception.h>
 #include <boost/optional.hpp>
 #include <vulkan/vulkan.hpp>
 

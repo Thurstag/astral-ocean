@@ -75,21 +75,11 @@ void ao::vulkan::AOEngine::initVulkan() {
 	// Init logical device
 	this->device->initLogicalDevice(this->deviceExtensions(), this->deviceFeatures(), this->queueFlags(), this->commandPoolFlags());
 
-	// Get a graphics queue from the device
-	this->graphicQueue = this->device->logical.getQueue(std::get<AO_GRAPHICS_QUEUE_INDEX>(this->device->queueFamilyIndices), 0);
-
 	// Find suitable depth format
 	this->device->depthFormat = ao::vulkan::utilities::getSupportedDepthFormat(this->device->physical);
 
 	// Create swapChain
 	this->swapchain = new SwapChain(&this->instance, this->device);
-
-	// Create semaphores
-	this->semaphores.first = this->device->logical.createSemaphore(vk::SemaphoreCreateInfo());
-	this->semaphores.second = this->device->logical.createSemaphore(vk::SemaphoreCreateInfo());
-
-	// Create submit info
-	this->submitInfo = vk::SubmitInfo(1, &this->semaphores.first, &this->pipeline->submitPipelineStages, 0, nullptr, 1, &this->semaphores.second);
 }
 
 void ao::vulkan::AOEngine::freeVulkan() {
@@ -117,8 +107,7 @@ void ao::vulkan::AOEngine::freeVulkan() {
 	this->device->logical.destroyImage(std::get<0>(this->stencilBuffer));
 	this->device->logical.freeMemory(std::get<1>(this->stencilBuffer));
 
-	this->device->logical.destroySemaphore(this->semaphores.first);
-	this->device->logical.destroySemaphore(this->semaphores.second);
+	this->semaphores.clear();
 
 	for (auto& fence : this->waitingFences) {
 		this->device->logical.destroyFence(fence);
@@ -275,10 +264,28 @@ void ao::vulkan::AOEngine::createPipelines() {
 	}
 }
 
+void ao::vulkan::AOEngine::createSemaphores() {
+	this->semaphores = SemaphoreContainer(this->device);
+
+	// Create semaphores
+	vk::Semaphore renderSem = this->device->logical.createSemaphore(vk::SemaphoreCreateInfo());
+	vk::Semaphore presentSem = this->device->logical.createSemaphore(vk::SemaphoreCreateInfo());
+
+	// Create container
+	this->semaphores[std::string("graphics")].waits.push_back(presentSem);
+	this->semaphores[std::string("graphics")].signals.push_back(renderSem);
+
+	this->semaphores[std::string("present")].waits.push_back(renderSem);
+	this->semaphores[std::string("present")].signals.push_back(presentSem);
+}
+
 void ao::vulkan::AOEngine::prepareVulkan() {
 	// Init surface
 	this->initSurface(this->swapchain->surface);
 	this->swapchain->initSurface();
+
+	// Create semaphores
+	this->createSemaphores();
 
 	// Init command pool
 	this->swapchain->initCommandPool();
@@ -355,33 +362,39 @@ void ao::vulkan::AOEngine::render() {
 	// Prepare frame
 	this->prepareFrame();
 
+	// TODO: Compute stuff
+
 	// Update command buffers
 	this->updateCommandBuffers();
 
 	// Update uniform buffers
 	this->updateUniformBuffers();
 
-	// Edit submit info
-	this->submitInfo.setCommandBufferCount(1);
-	this->submitInfo.setPCommandBuffers(&this->swapchain->primaryCommandBuffers[this->frameBufferIndex]);
+	// Create submit info
+	vk::SubmitInfo submitInfo(
+		static_cast<uint32_t>(this->semaphores[std::string("graphics")].waits.size()),
+		this->semaphores[std::string("graphics")].waits.empty() ? nullptr : this->semaphores[std::string("graphics")].waits.data(),
+		&this->pipeline->submitPipelineStages,
+		1, &this->swapchain->primaryCommandBuffers[this->frameBufferIndex],
+		static_cast<uint32_t>(this->semaphores[std::string("graphics")].signals.size()),
+		this->semaphores[std::string("graphics")].signals.empty() ? nullptr : this->semaphores[std::string("graphics")].signals.data()
+	);
 
 	// Reset fence
 	this->device->logical.resetFences(this->waitingFences[this->frameBufferIndex]);
 
-	// Submit to queue
-	this->graphicQueue.submit(this->submitInfo, this->waitingFences[this->frameBufferIndex]);
+	// Submit command buffer
+	this->device->queues[vk::QueueFlagBits::eGraphics].queue.submit(submitInfo, this->waitingFences[this->frameBufferIndex]);
 
 	// Submit frame
 	this->submitFrame();
 
 	// Execute plugins...
 	this->afterFrameSubmitted();
-
-	this->device->logical.waitIdle();
 }
 
 void ao::vulkan::AOEngine::prepareFrame() {
-	vk::Result result = this->swapchain->nextImage(this->semaphores.first, this->frameBufferIndex);
+	vk::Result result = this->swapchain->nextImage(this->semaphores[std::string("present")].signals.front(), this->frameBufferIndex);
 
 	// Check result
 	if (result == vk::Result::eErrorOutOfDateKHR || result == vk::Result::eSuboptimalKHR) {
@@ -394,7 +407,7 @@ void ao::vulkan::AOEngine::prepareFrame() {
 }
 
 void ao::vulkan::AOEngine::submitFrame() {
-	vk::Result result = this->swapchain->enqueueImage(this->graphicQueue, this->frameBufferIndex, this->semaphores.second);
+	vk::Result result = this->swapchain->enqueueImage(this->frameBufferIndex, this->semaphores[std::string("present")].waits);
 
 	// Check result
 	if (result == vk::Result::eErrorOutOfDateKHR) {
@@ -402,9 +415,6 @@ void ao::vulkan::AOEngine::submitFrame() {
 		
 		this->recreateSwapChain();
 		return;
-	}
-	else if (result == vk::Result::eSuccess || result == vk::Result::eSuboptimalKHR) {
-		this->graphicQueue.waitIdle();
 	}
 	ao::vulkan::utilities::vkAssert(result, "Fail to enqueue image");
 }
@@ -415,7 +425,7 @@ void ao::vulkan::AOEngine::updateCommandBuffers() {
 	vk::Framebuffer& currentFrame = this->frameBuffers[this->frameBufferIndex];
 
 	// Create info
-	vk::CommandBufferBeginInfo beginInfo(vk::CommandBufferUsageFlagBits::eSimultaneousUse);
+	vk::CommandBufferBeginInfo beginInfo(vk::CommandBufferUsageFlagBits::eRenderPassContinue);
 
 	vk::RenderPassBeginInfo renderPassInfo(
 		this->renderPass, currentFrame, this->swapchain->commandBufferHelpers.second,
@@ -423,38 +433,37 @@ void ao::vulkan::AOEngine::updateCommandBuffers() {
 		this->swapchain->commandBufferHelpers.first.data()
 	);
 
-	// Begin
 	currentCommand.begin(&beginInfo);
-	currentCommand.beginRenderPass(renderPassInfo, vk::SubpassContents::eSecondaryCommandBuffers);
+	{
+		currentCommand.beginRenderPass(renderPassInfo, vk::SubpassContents::eSecondaryCommandBuffers);
 
-	// Create inheritance info for the secondary command buffers
-	vk::CommandBufferInheritanceInfo inheritanceInfo(this->renderPass, 0, currentFrame);
+	    // Create inheritance info for the secondary command buffers
+		vk::CommandBufferInheritanceInfo inheritanceInfo(this->renderPass, 0, currentFrame);
 
-	std::vector<vk::CommandBuffer> secondaryCommands;
-	auto& helpers = this->swapchain->commandBufferHelpers;
-	std::vector<std::future<vk::CommandBuffer>> futures;
+		std::vector<vk::CommandBuffer> secondaryCommands;
+		auto& helpers = this->swapchain->commandBufferHelpers;
+		std::vector<std::future<vk::CommandBuffer>> futures;
 
-	// Get drawing functions (TODO: Plugins can draw ???)
-	std::vector<ao::vulkan::DrawInCommandBuffer> functions = this->updateSecondaryCommandBuffers();
+		// Get drawing functions (TODO: Plugins can draw ???)
+		std::vector<ao::vulkan::DrawInCommandBuffer> functions = this->updateSecondaryCommandBuffers();
 
-	// Execute drawing functions
-	int index = this->frameBufferIndex;
-	for (auto& function : functions) {
-		futures.push_back(this->commandBufferPool.push([&](int id) {
-			return function(index, inheritanceInfo, helpers);
-		}));
+		// Execute drawing functions
+		int index = this->frameBufferIndex;
+		for (auto& function : functions) {
+			futures.push_back(this->commandBufferPool.push([&](int id) {
+				return function(index, inheritanceInfo, helpers);
+			}));
+		}
+
+		// Wait execution & add command buffer
+		for (auto& future : futures) {
+			secondaryCommands.push_back(future.get());
+		}
+
+		// Pass commands to current command buffer
+		currentCommand.executeCommands(secondaryCommands);
+		currentCommand.endRenderPass();
 	}
-
-	// Wait execution & add command buffer
-	for (auto& future : futures) {
-		secondaryCommands.push_back(future.get());
-	}
-
-	// Pass commands to current command buffer
-	currentCommand.executeCommands(secondaryCommands);
-
-	// End
-	currentCommand.endRenderPass();
 	currentCommand.end();
 }
 

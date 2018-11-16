@@ -147,44 +147,27 @@ void ao::vulkan::SwapChain::init(uint64_t & width, uint64_t & height, bool vsync
 
 void ao::vulkan::SwapChain::initSurface() {
 	// Detect if a queue supports present
-	std::vector<vk::Bool32> supportsPresent(this->device->queueFamilyProperties.size());
+	std::vector<vk::Bool32> supportsPresent(this->device->physical.getQueueFamilyProperties().size());
 	for (uint32_t i = 0; i < supportsPresent.size(); i++) {
 		supportsPresent[i] = this->device->physical.getSurfaceSupportKHR(i, this->surface);
 	}
+	
+	// Try to find a queue that supports present
+	boost::optional<vk::QueueFlagBits> flag;
+	for (auto& pair : this->device->queues) {
+		if (supportsPresent[pair.second.index] == VK_TRUE) {
+			flag = pair.first;
 
-	// Try to find a queue that support graphics & present
-	int graphicsQueueIndex = -1, presentQueueIndex = -1;
-	for (size_t i = 0; i < this->device->queueFamilyProperties.size(); i++) {
-		if (this->device->queueFamilyProperties[i].queueFlags & vk::QueueFlagBits::eGraphics) {
-			if (graphicsQueueIndex == -1) {
-				graphicsQueueIndex = static_cast<int>(i);
-			}
-
-			if (supportsPresent[i] == VK_TRUE) {
-				graphicsQueueIndex = presentQueueIndex = static_cast<int>(i);
-				break;
-			}
+			LOGGER << LogLevel::DEBUG << "Use " << to_string(pair.first) << " queue to present images";
+			break;
 		}
 	}
 
-	// Try to find separate queues
-	if (presentQueueIndex == -1) {
-		for (size_t i = 0; i < supportsPresent.size(); i++) {
-			if (supportsPresent[i] == VK_TRUE) {
-				presentQueueIndex = static_cast<int>(i);
-				break;
-			}
-		}
+	// Check index
+	if (!flag) {
+		throw core::Exception("Fail to find a queue that supports present");
 	}
-
-	// Check indexes
-	if (graphicsQueueIndex == -1 || presentQueueIndex == -1) {
-		throw ao::core::Exception("Fail to find a queue that supports graphics & present");
-	}
-	if (graphicsQueueIndex != presentQueueIndex) {
-		throw ao::core::Exception("Separate queue for graphics & present is not supported"); // TODO: Add support
-	}
-	this->queueIndex = graphicsQueueIndex;
+	this->presentQueue = this->device->queues[*flag].queue;
 
 	// Get surface formats
 	std::vector<vk::SurfaceFormatKHR> formats = ao::vulkan::utilities::surfaceFormatKHRs(this->device->physical, this->surface);
@@ -220,7 +203,7 @@ void ao::vulkan::SwapChain::initSurface() {
 }
 
 void ao::vulkan::SwapChain::initCommandPool() {
-	this->commandPool = this->device->logical.createCommandPool(vk::CommandPoolCreateInfo(vk::CommandPoolCreateFlagBits::eResetCommandBuffer, this->queueIndex));
+	this->commandPool = this->device->logical.createCommandPool(vk::CommandPoolCreateInfo(vk::CommandPoolCreateFlagBits::eResetCommandBuffer, this->device->queues[vk::QueueFlagBits::eGraphics].index));
 }
 
 void ao::vulkan::SwapChain::createCommandBuffers() {
@@ -238,9 +221,9 @@ vk::Result ao::vulkan::SwapChain::nextImage(vk::Semaphore& present, uint32_t& im
 	return this->device->logical.acquireNextImageKHR(this->swapChain, MAX_64(), present, nullptr, &imageIndex);
 }
 
-vk::Result ao::vulkan::SwapChain::enqueueImage(vk::Queue & queue, uint32_t & imageIndex, vk::Semaphore & render) {
-	vk::PresentInfoKHR presentInfo(1, &render, 1, &this->swapChain, &imageIndex);
+vk::Result ao::vulkan::SwapChain::enqueueImage(uint32_t & imageIndex, std::vector<vk::Semaphore> & waitSemaphores) {
+	vk::PresentInfoKHR presentInfo(static_cast<uint32_t>(waitSemaphores.size()), waitSemaphores.empty() ? nullptr : waitSemaphores.data(), 1, &this->swapChain, &imageIndex);
 
 	// Pass a pointer to don't trigger an exception
-	return queue.presentKHR(&presentInfo);
+	return this->presentQueue.presentKHR(&presentInfo);
 }

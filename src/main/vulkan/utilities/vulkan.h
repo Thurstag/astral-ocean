@@ -176,8 +176,9 @@ namespace ao {
 			/// </summary>
 			/// <param name="queueFamilyProperties">queueFamilyProperties</param>
 			/// <param name="flag">Flag</param>
+			/// <returns>Index or -1</returns>
 			inline uint32_t findQueueFamilyIndex(std::vector<vk::QueueFamilyProperties> queueFamilyProperties, vk::QueueFlagBits flag) {
-				std::vector<VkQueueFlagBits> flags = { VK_QUEUE_COMPUTE_BIT, VK_QUEUE_TRANSFER_BIT, VK_QUEUE_GRAPHICS_BIT };
+				std::vector<VkQueueFlagBits> flags = { VK_QUEUE_COMPUTE_BIT, VK_QUEUE_TRANSFER_BIT, VK_QUEUE_GRAPHICS_BIT, VK_QUEUE_SPARSE_BINDING_BIT, VK_QUEUE_PROTECTED_BIT };
 
 				// Calculate value of flags whitout flag parameter
 				VkQueueFlags other = std::accumulate(flags.begin(), flags.end(), 0, [flag](VkQueueFlags result, VkQueueFlagBits f) { 
@@ -190,7 +191,7 @@ namespace ao {
 				// Try to find a queue familly designed only for flag parameter
 				for (uint32_t i = 0; i < queueFamilyProperties.size(); i++) {
 					if ((queueFamilyProperties[i].queueFlags & flag) && ((VkQueueFlags(queueFamilyProperties[i].queueFlags) & other) == 0)) {
-						core::Logger::getInstance<Utilities>() << LogLevel::DEBUG << "Found a queueFamily that only supports: " << to_string(flag);
+						core::Logger::getInstance<Utilities>() << LogLevel::DEBUG << "Found a queue that only supports: " << to_string(flag);
 						return i;
 					}
 				}

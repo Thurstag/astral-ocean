@@ -68,7 +68,7 @@ namespace ao {
 			this->free();
 
 			if (!(this->usage & vk::CommandBufferUsageFlagBits::eOneTimeSubmit)) {
-				this->device->logical.freeCommandBuffers(this->device->commandPool, this->commandBuffer);
+				this->device->logical.freeCommandBuffers(this->device->transferCommandPool, this->commandBuffer);
 				this->device->logical.destroyFence(this->fence);
 			}
 		}
@@ -111,7 +111,7 @@ namespace ao {
 
 
 			// Create command buffer
-			this->commandBuffer = this->device->logical.allocateCommandBuffers(vk::CommandBufferAllocateInfo(this->device->commandPool, vk::CommandBufferLevel::ePrimary, 1))[0];
+			this->commandBuffer = this->device->logical.allocateCommandBuffers(vk::CommandBufferAllocateInfo(this->device->transferCommandPool, vk::CommandBufferLevel::ePrimary, 1))[0];
 
 			// Create fence
 			this->fence = this->device->logical.createFence(vk::FenceCreateInfo(vk::FenceCreateFlagBits::eSignaled));
@@ -174,7 +174,7 @@ namespace ao {
 				.setPCommandBuffers(&this->commandBuffer);
 
 			// Submit command
-			this->device->transferQueue.submit(submitInfo, this->fence);
+			this->device->queues[vk::QueueFlagBits::eTransfer].queue.submit(submitInfo, this->fence);
 
 			// Wait fence
 			auto MAX_64 = std::numeric_limits<uint64_t>::max;
@@ -185,7 +185,7 @@ namespace ao {
 
 			// Free useless resources
 			if (this->usage & vk::CommandBufferUsageFlagBits::eOneTimeSubmit) {
-				this->device->logical.freeCommandBuffers(this->device->commandPool, this->commandBuffer);
+				this->device->logical.freeCommandBuffers(this->device->transferCommandPool, this->commandBuffer);
 				this->device->logical.destroyFence(this->fence);
 
 				delete this->hostBuffer;

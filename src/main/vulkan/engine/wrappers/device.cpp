@@ -3,14 +3,6 @@
 ao::vulkan::Device::Device(vk::PhysicalDevice& device) {
 	this->physical = device;
 
-	// Get QueueFamilyProperties
-	this->queueFamilyProperties = this->physical.getQueueFamilyProperties();
-
-	// Check count
-	if (this->queueFamilyProperties.empty()) {
-		throw ao::core::Exception("Empty queueFamilyProperties");
-	}
-
 	// Get supported extensions
 	this->extensions = ao::vulkan::utilities::vkExtensionProperties(this->physical);
 
@@ -21,65 +13,51 @@ ao::vulkan::Device::Device(vk::PhysicalDevice& device) {
 }
 
 ao::vulkan::Device::~Device() {
-	this->logical.destroyCommandPool(this->commandPool);
+	this->logical.destroyCommandPool(this->transferCommandPool);
 
 	this->logical.destroy();
 }
 
-void ao::vulkan::Device::initLogicalDevice(std::vector<char const*> deviceExtensions, std::vector<vk::PhysicalDeviceFeatures> deviceFeatures, vk::QueueFlags qflags, vk::CommandPoolCreateFlags cflags, bool swapChain) {
+void ao::vulkan::Device::initLogicalDevice(std::vector<char const*> deviceExtensions, std::vector<vk::PhysicalDeviceFeatures> deviceFeatures, vk::QueueFlags qflags, vk::CommandPoolCreateFlags cflags, vk::QueueFlagBits defaultQueue, bool swapChain) {
+	std::vector<vk::QueueFamilyProperties> queueFamilyProperties = this->physical.getQueueFamilyProperties();
 	std::vector<vk::DeviceQueueCreateInfo> queueCreateInfos;
 	float const DEFAULT_QUEUE_PRIORITY = 0.0f;
+	std::array<vk::QueueFlagBits, 5> const allFlags = {
+	    vk::QueueFlagBits::eGraphics, vk::QueueFlagBits::eCompute,
+	    vk::QueueFlagBits::eTransfer, vk::QueueFlagBits::eSparseBinding,
+	    vk::QueueFlagBits::eProtected
+	};
 
-	/* GRAPHICS QUEUE */
-	if (qflags & vk::QueueFlagBits::eGraphics) {
-		std::get<AO_GRAPHICS_QUEUE_INDEX>(this->queueFamilyIndices) = ao::vulkan::utilities::findQueueFamilyIndex(this->queueFamilyProperties, vk::QueueFlagBits::eGraphics);
-
-		// Check result
-		if (std::get<AO_GRAPHICS_QUEUE_INDEX>(this->queueFamilyIndices) < 0) {
-			throw ao::core::Exception("Fail to find a queueFamily that supports vk::QueueFlagBits::eGraphics");
-		}
-
-		// Add info
-		queueCreateInfos.push_back(vk::DeviceQueueCreateInfo(vk::DeviceQueueCreateFlags(), std::get<AO_GRAPHICS_QUEUE_INDEX>(this->queueFamilyIndices), 1, &DEFAULT_QUEUE_PRIORITY));
-	}
-	else {
-		std::get<AO_GRAPHICS_QUEUE_INDEX>(this->queueFamilyIndices) = VK_NULL_HANDLE;
+	// Check count
+	if (queueFamilyProperties.empty()) {
+		throw ao::core::Exception("Empty queueFamilyProperties");
 	}
 
-	/* COMPUTE QUEUE */
-	if (qflags & vk::QueueFlagBits::eCompute) {
-		std::get<AO_COMPUTE_QUEUE_INDEX>(this->queueFamilyIndices) = ao::vulkan::utilities::findQueueFamilyIndex(this->queueFamilyProperties, vk::QueueFlagBits::eCompute);
+	// Find queues
+	std::map<uint32_t, vk::QueueFlagBits> indexes;
+	boost::optional<uint32_t> defaultQueueIndex;
+	for (auto& flag : allFlags) {
+		if (qflags & flag) {
+			uint32_t index = ao::vulkan::utilities::findQueueFamilyIndex(queueFamilyProperties, flag);
 
-		// Check result
-		if (std::get<AO_COMPUTE_QUEUE_INDEX>(this->queueFamilyIndices) < 0) {
-			throw ao::core::Exception("Fail to find a queueFamily that supports vk::QueueFlagBits::eCompute");
-		}
+			// Check index
+			if (index < 0) {
+				throw ao::core::Exception("Fail to find a queueFamily that supports " + to_string(flag));
+			}
 
-		// Add info if it's a new queue
-		if (std::get<AO_COMPUTE_QUEUE_INDEX>(this->queueFamilyIndices) != std::get<AO_GRAPHICS_QUEUE_INDEX>(this->queueFamilyIndices)) {
-			queueCreateInfos.push_back(vk::DeviceQueueCreateInfo(vk::DeviceQueueCreateFlags(), std::get<AO_COMPUTE_QUEUE_INDEX>(this->queueFamilyIndices), 1, &DEFAULT_QUEUE_PRIORITY));
-		}
-	}
-	else { // Use graphics queue
-		std::get<AO_COMPUTE_QUEUE_INDEX>(this->queueFamilyIndices) = std::get<AO_GRAPHICS_QUEUE_INDEX>(this->queueFamilyIndices);
-	}
-
-	/* TRANSFER QUEUE */
-	if (qflags & vk::QueueFlagBits::eTransfer) {
-		std::get<AO_TRANSFER_QUEUE_INDEX>(this->queueFamilyIndices) = ao::vulkan::utilities::findQueueFamilyIndex(this->queueFamilyProperties, vk::QueueFlagBits::eTransfer);
-
-		// Check result
-		if (std::get<AO_TRANSFER_QUEUE_INDEX>(this->queueFamilyIndices) < 0) {
-			throw ao::core::Exception("Fail to find a queueFamily that supports vk::QueueFlagBits::eTransfer");
-		}
-
-		// Add info if it's a new queue
-		if (std::get<AO_TRANSFER_QUEUE_INDEX>(this->queueFamilyIndices) != std::get<AO_GRAPHICS_QUEUE_INDEX>(this->queueFamilyIndices) && std::get<AO_TRANSFER_QUEUE_INDEX>(this->queueFamilyIndices) != std::get<AO_COMPUTE_QUEUE_INDEX>(this->queueFamilyIndices)) {
-			queueCreateInfos.push_back(vk::DeviceQueueCreateInfo(vk::DeviceQueueCreateFlags(), std::get<AO_TRANSFER_QUEUE_INDEX>(this->queueFamilyIndices), 1, &DEFAULT_QUEUE_PRIORITY));
+			// Add index to set
+			if (flag == defaultQueue) {
+				defaultQueueIndex = index;
+			}
+			if (indexes.find(index) == indexes.end()) {
+				indexes[index] = flag;
+			}
 		}
 	}
-	else { // Use graphics queue
-		std::get<AO_TRANSFER_QUEUE_INDEX>(this->queueFamilyIndices) = std::get<AO_GRAPHICS_QUEUE_INDEX>(this->queueFamilyIndices);
+
+	// Create info for queues
+	for (auto& index : indexes) {
+		queueCreateInfos.push_back(vk::DeviceQueueCreateInfo(vk::DeviceQueueCreateFlags(), index.first, 1, &DEFAULT_QUEUE_PRIORITY));
 	}
 
 	// Request swap chain extension
@@ -99,11 +77,30 @@ void ao::vulkan::Device::initLogicalDevice(std::vector<char const*> deviceExtens
 	// Create device
 	this->logical = this->physical.createDevice(deviceCreateInfo);
 
-	// Create command for transfert
-	this->commandPool = this->logical.createCommandPool(vk::CommandPoolCreateInfo(vk::CommandPoolCreateFlagBits::eResetCommandBuffer, std::get<AO_GRAPHICS_QUEUE_INDEX>(this->queueFamilyIndices)));
+	// Build queue container
+	if (!defaultQueueIndex) {
+		throw core::Exception("Fail to find a queueFamily that supports graphics");
+	}
 
-	// Get transfer queue
-	this->transferQueue = this->logical.getQueue(std::get<AO_GRAPHICS_QUEUE_INDEX>(this->queueFamilyIndices), 0);
+	vk::Queue default = this->logical.getQueue(*defaultQueueIndex, 0);
+
+	for (auto& flag : allFlags) {
+		// Find in map
+		auto it = std::find_if(indexes.begin(), indexes.end(), [flag](auto const& pair) -> bool {
+			return pair.second == flag;
+		});
+
+		// Check iterator
+		if (it != indexes.end()) {
+			this->queues[flag] = QueueData(this->logical.getQueue(it->first, 0), it->first, queueFamilyProperties[it->first]);
+		}
+		else {
+			this->queues[flag] = this->queues[defaultQueue];
+		}
+	}
+
+	// Create command pool for transfert
+	this->transferCommandPool = this->logical.createCommandPool(vk::CommandPoolCreateInfo(vk::CommandPoolCreateFlagBits::eResetCommandBuffer, this->queues[vk::QueueFlagBits::eTransfer].index));
 }
 
 uint32_t ao::vulkan::Device::memoryType(uint32_t typeBits, vk::MemoryPropertyFlags properties) {

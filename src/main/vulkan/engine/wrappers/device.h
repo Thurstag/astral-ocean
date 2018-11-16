@@ -3,16 +3,14 @@
 #include <algorithm>
 #include <vector>
 #include <tuple>
+#include <set>
 
 #include <ao/core/exception/exception.h>
 #include <ao/core/logger/logger.h>
 #include <vulkan/vulkan.hpp>
 
+#include "../containers/queue_container.h"
 #include "../../utilities/vulkan.h"
-
-#define AO_GRAPHICS_QUEUE_INDEX 0
-#define AO_COMPUTE_QUEUE_INDEX 1
-#define AO_TRANSFER_QUEUE_INDEX 2
 
 namespace ao {
 	namespace vulkan {
@@ -21,13 +19,10 @@ namespace ao {
 		/// </summary>
 		struct Device {
 		public:
-			std::vector<vk::QueueFamilyProperties> queueFamilyProperties;
-			std::tuple<uint32_t, uint32_t, uint32_t> queueFamilyIndices;
+			vk::CommandPool transferCommandPool;
+			QueueContainer queues;
 
 			std::vector<vk::ExtensionProperties> extensions;
-
-			vk::CommandPool commandPool;
-			vk::Queue transferQueue;
 
 			vk::PhysicalDevice physical;
 			vk::Format depthFormat;
@@ -54,9 +49,13 @@ namespace ao {
 			/// <param name="deviceExtensions">Extensions</param>
 			/// <param name="deviceFeatures">Features</param>
 			/// <param name="qflags">Queue Flags</param>
+			/// <param name="defaultQueue">Default queue for queue container</param>
 			/// <param name="cflags">CommandPool Flags</param>
 			/// <param name="swapChain">Enable swapChain</param>
-			void initLogicalDevice(std::vector<char const*> deviceExtensions, std::vector<vk::PhysicalDeviceFeatures> deviceFeatures, vk::QueueFlags qflags, vk::CommandPoolCreateFlags cflags, bool swapChain = true);
+			void initLogicalDevice(
+				std::vector<char const*> deviceExtensions, std::vector<vk::PhysicalDeviceFeatures> deviceFeatures, 
+				vk::QueueFlags qflags, vk::CommandPoolCreateFlags cflags, vk::QueueFlagBits defaultQueue = vk::QueueFlagBits::eGraphics, bool swapChain = true
+			);
 
 			/// <summary>
 			/// Method to get memory type

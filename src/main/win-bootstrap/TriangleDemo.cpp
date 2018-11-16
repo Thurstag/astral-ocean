@@ -217,8 +217,7 @@ std::vector<ao::vulkan::DrawInCommandBuffer> TriangleDemo::updateSecondaryComman
 
 	commands.push_back([commandBuffer, pipeline, vertexBuffer, indexBuffer, vertices, indices](int frameIndex, vk::CommandBufferInheritanceInfo& inheritance, std::pair<std::array<vk::ClearValue, 2>, vk::Rect2D>& helpers) {
 		vk::Viewport viewPort(0, 0, static_cast<float>(helpers.second.extent.width), static_cast<float>(helpers.second.extent.height), 0, 1);
-		vk::CommandBufferBeginInfo beginInfo;
-		beginInfo.setPInheritanceInfo(&inheritance);
+		vk::CommandBufferBeginInfo beginInfo = vk::CommandBufferBeginInfo(vk::CommandBufferUsageFlagBits::eRenderPassContinue).setPInheritanceInfo(&inheritance);
 
 		// Draw in command
 		commandBuffer.begin(beginInfo);

@@ -196,8 +196,9 @@ void RectangleDemo::createSecondaryCommandBuffers() {
 }
 
 std::vector<ao::vulkan::DrawInCommandBuffer> RectangleDemo::updateSecondaryCommandBuffers() {
-	vk::CommandBuffer& commandBuffer = this->swapchain->secondaryCommandBuffers[0];
 	std::vector<ao::vulkan::DrawInCommandBuffer> commands;
+
+	vk::CommandBuffer& commandBuffer = this->swapchain->secondaryCommandBuffers[0];
 	std::vector<vk::DescriptorSet>& sets = this->descriptorSets;
 	vk::Pipeline& pipeline = this->pipeline->pipelines[0];
 	vk::PipelineLayout& pipelineLayout = this->pipeline->layouts[0];
@@ -209,8 +210,7 @@ std::vector<ao::vulkan::DrawInCommandBuffer> RectangleDemo::updateSecondaryComma
 	commands.push_back([commandBuffer, pipeline, vertexBuffer, indexBuffer, vertices, indices, pipelineLayout, sets]
 	(int frameIndex, vk::CommandBufferInheritanceInfo& inheritance, std::pair<std::array<vk::ClearValue, 2>, vk::Rect2D>& helpers) {
 		vk::Viewport viewPort(0, 0, static_cast<float>(helpers.second.extent.width), static_cast<float>(helpers.second.extent.height), 0, 1);
-		vk::CommandBufferBeginInfo beginInfo;
-		beginInfo.setPInheritanceInfo(&inheritance);
+		vk::CommandBufferBeginInfo beginInfo = vk::CommandBufferBeginInfo(vk::CommandBufferUsageFlagBits::eRenderPassContinue).setPInheritanceInfo(&inheritance);
 
 		// Draw in command
 		commandBuffer.begin(beginInfo);
@@ -249,7 +249,6 @@ void RectangleDemo::updateUniformBuffers() {
 
 	// Delta time
 	float deltaTime = std::chrono::duration<float, std::chrono::seconds::period>(std::chrono::system_clock::now() - this->clock).count();
-	float angles = glm::radians(90.0f); // Rotation in 1 second
 
 	// Update uniform buffer
 	this->_uniformBuffers[this->frameBufferIndex].model = glm::rotate(glm::mat4(1.0f), deltaTime * glm::radians(90.0f), glm::vec3(0.0f, 0.0f, 1.0f));

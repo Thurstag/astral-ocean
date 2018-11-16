@@ -17,6 +17,7 @@ namespace ao {
 		struct SwapChain {
 		public:
 			std::vector<std::pair<vk::Image, vk::ImageView>> buffers;
+			vk::Queue presentQueue;
 			vk::SwapchainKHR swapChain;
 
 			std::pair<std::array<vk::ClearValue, 2>, vk::Rect2D> commandBufferHelpers;
@@ -28,7 +29,6 @@ namespace ao {
 			vk::Extent2D currentExtent;
 			vk::Format colorFormat;
 			vk::SurfaceKHR surface;
-			uint32_t queueIndex;
 
 			/// <summary>
 			/// Constructor
@@ -74,8 +74,10 @@ namespace ao {
 			/// <summary>
 			/// Method to enqueue an image
 			/// </summary>
-			/// <returns></returns>
-			vk::Result enqueueImage(vk::Queue& queue, uint32_t& imageIndex, vk::Semaphore& render);
+			/// <param name="imageIndex">ImageIndex</param>
+			/// <param name="waitSemaphores">Waiting semaphores</param>
+			/// <returns>Result</returns>
+			vk::Result enqueueImage(uint32_t& imageIndex, std::vector<vk::Semaphore>& waitSemaphores);
 		protected:
 			core::Logger LOGGER = core::Logger::getInstance<SwapChain>();
 

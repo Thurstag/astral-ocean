@@ -11,6 +11,7 @@
 #include <vulkan/vulkan.hpp>
 #include <ctpl.h>
 
+#include "containers/semaphore_container.h"
 #include "../utilities/vulkan.h"
 #include "wrappers/swapchain.h"
 #include "wrappers/pipeline.h"
@@ -61,9 +62,8 @@ namespace ao {
 		protected:
 			core::Logger LOGGER = core::Logger::getInstance<AOEngine>();
 			
-			std::pair<vk::Semaphore, vk::Semaphore> semaphores; // First = Present semaphore & Second = Render semaphore
 			std::vector<vk::Fence> waitingFences;
-			vk::Queue graphicQueue;
+			SemaphoreContainer semaphores = nullptr;
 
 			std::vector<vk::DescriptorSetLayout> descriptorSetLayouts;
 			std::vector<vk::DescriptorPool>	descriptorPools;
@@ -73,7 +73,6 @@ namespace ao {
 			std::vector<vk::Framebuffer> frameBuffers;
 			uint32_t frameBufferIndex = 0;
 
-			vk::SubmitInfo submitInfo;
 			EngineSettings _settings;
 
 			vk::RenderPass renderPass;
@@ -119,6 +118,10 @@ namespace ao {
 			/// Method to create pipelines
 			/// </summary>
 			void createPipelines();
+			/// <summary>
+			/// Method to create semaphores
+			/// </summary>
+			void createSemaphores();
 
 			/// <summary>
 			/// Method to init surface

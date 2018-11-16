@@ -63,7 +63,7 @@ namespace ao {
 			/// <param name="typeBits">Type bits</param>
 			/// <param name="properties">Properties</param>
 			/// <returns>Index</returns>
-			uint32_t memoryType(uint32_t typeBits, vk::MemoryPropertyFlags properties);
+			u32 memoryType(u32 typeBits, vk::MemoryPropertyFlags properties);
 		protected:
 			core::Logger LOGGER = core::Logger::getInstance<Device>();
 		};

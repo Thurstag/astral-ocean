@@ -48,7 +48,7 @@ namespace ao {
 			/// <param name="width">Width</param>
 			/// <param name="height">Height</param>
 			/// <param name="vsync">Vsync enabled or not</param>
-			void init(uint64_t& width, uint64_t& height, bool vsync);
+			void init(u64& width, u64& height, bool vsync);
 			/// <summary>
 			/// Method to init surface
 			/// </summary>
@@ -70,14 +70,14 @@ namespace ao {
 			/// <summary>
 			/// Method to get next image
 			/// </summary>
-			vk::Result nextImage(vk::Semaphore& present, uint32_t& imageIndex);
+			vk::Result nextImage(vk::Semaphore& present, u32& imageIndex);
 			/// <summary>
 			/// Method to enqueue an image
 			/// </summary>
 			/// <param name="imageIndex">ImageIndex</param>
 			/// <param name="waitSemaphores">Waiting semaphores</param>
 			/// <returns>Result</returns>
-			vk::Result enqueueImage(uint32_t& imageIndex, std::vector<vk::Semaphore>& waitSemaphores);
+			vk::Result enqueueImage(u32& imageIndex, std::vector<vk::Semaphore>& waitSemaphores);
 		protected:
 			core::Logger LOGGER = core::Logger::getInstance<SwapChain>();
 

@@ -10,8 +10,8 @@
 namespace ao {
 	namespace vulkan {
 		struct SemaphorePair {
-			std::vector<vk::Semaphore> waits;
 			std::vector<vk::Semaphore> signals;
+			std::vector<vk::Semaphore> waits;
 
 			/// <summary>
 			/// Constructor

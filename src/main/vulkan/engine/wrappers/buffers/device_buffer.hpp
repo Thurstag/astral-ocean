@@ -13,8 +13,8 @@ namespace ao {
 			/// Constructor
 			/// </summary>
 			/// <param name="device">Device</param>
-			/// <param name="usage">Buffer usage</param>
-			DeviceBuffer(Device* device, vk::CommandBufferUsageFlags usage = vk::CommandBufferUsageFlagBits::eSimultaneousUse);
+			/// <param name="_usage">Buffer usage</param>
+			DeviceBuffer(Device* device, vk::CommandBufferUsageFlags _usage = vk::CommandBufferUsageFlagBits::eSimultaneousUse);
 			
 			/// <summary>
 			/// Destructor
@@ -59,9 +59,7 @@ namespace ao {
 		/* IMPLEMENTATION */
 
 		template<class T>
-		DeviceBuffer<T>::DeviceBuffer(Device * device, vk::CommandBufferUsageFlags usage) : Buffer<T>(device) {
-			this->usage = usage;
-		}
+		DeviceBuffer<T>::DeviceBuffer(Device * device, vk::CommandBufferUsageFlags _usage) : Buffer<T>(device), usage(_usage) {}
 
 		template<class T>
 		DeviceBuffer<T>::~DeviceBuffer() {
@@ -177,7 +175,7 @@ namespace ao {
 			this->device->queues[vk::QueueFlagBits::eTransfer].queue.submit(submitInfo, this->fence);
 
 			// Wait fence
-			auto MAX_64 = std::numeric_limits<uint64_t>::max;
+			auto MAX_64 = std::numeric_limits<u64>::max;
 			this->device->logical.waitForFences(this->fence, VK_TRUE, MAX_64());
 
 			// Reset fence

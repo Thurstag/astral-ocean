@@ -15,6 +15,10 @@ namespace ao {
 			/// </summary>
 			/// <param name="_subject">Subject</param>
 			Plugin(T* _subject);
+
+			/// <summary>
+			/// Constructor
+			/// </summary>
 			virtual ~Plugin();
 
 			/// <summary>

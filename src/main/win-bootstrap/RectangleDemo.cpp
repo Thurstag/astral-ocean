@@ -57,8 +57,8 @@ void RectangleDemo::setUpRenderPass() {
 	);
 
 	this->renderPass = this->device->logical.createRenderPass(vk::RenderPassCreateInfo(
-		vk::RenderPassCreateFlags(), static_cast<uint32_t>(attachments.size()),
-		attachments.data(), 1, &subpassDescription, static_cast<uint32_t>(dependencies.size()),
+		vk::RenderPassCreateFlags(), static_cast<u32>(attachments.size()),
+		attachments.data(), 1, &subpassDescription, static_cast<u32>(dependencies.size()),
 		dependencies.data()
 	));
 }
@@ -67,7 +67,7 @@ void RectangleDemo::createPipelineLayouts() {
 	this->pipeline->layouts.resize(1);
 
 	this->pipeline->layouts.front() = this->device->logical.createPipelineLayout(
-		vk::PipelineLayoutCreateInfo(vk::PipelineLayoutCreateFlags(), static_cast<uint32_t>(this->descriptorSetLayouts.size()), this->descriptorSetLayouts.data())
+		vk::PipelineLayoutCreateInfo(vk::PipelineLayoutCreateFlags(), static_cast<u32>(this->descriptorSetLayouts.size()), this->descriptorSetLayouts.data())
 	);
 }
 
@@ -87,7 +87,7 @@ void RectangleDemo::setUpPipelines() {
 	// Construct the differnent states making up the pipeline
 
 	// Set pipeline shader stage info
-	pipelineCreateInfo.stageCount = static_cast<uint32_t>(shaderStages.size());
+	pipelineCreateInfo.stageCount = static_cast<u32>(shaderStages.size());
 	pipelineCreateInfo.pStages = shaderStages.data();
 
 	// Input assembly state
@@ -105,7 +105,7 @@ void RectangleDemo::setUpPipelines() {
 	blendAttachmentState[0].setColorWriteMask(vk::ColorComponentFlagBits::eR | vk::ColorComponentFlagBits::eG | vk::ColorComponentFlagBits::eB | vk::ColorComponentFlagBits::eA);
 
 	vk::PipelineColorBlendStateCreateInfo colorBlendState = vk::PipelineColorBlendStateCreateInfo()
-		.setAttachmentCount(static_cast<uint32_t>(blendAttachmentState.size()))
+		.setAttachmentCount(static_cast<u32>(blendAttachmentState.size()))
 		.setPAttachments(blendAttachmentState.data());
 
 	// Viewport state
@@ -118,7 +118,7 @@ void RectangleDemo::setUpPipelines() {
 	dynamicStateEnables.push_back(vk::DynamicState::eViewport);
 	dynamicStateEnables.push_back(vk::DynamicState::eScissor);
 
-	vk::PipelineDynamicStateCreateInfo dynamicState(vk::PipelineDynamicStateCreateFlags(), static_cast<uint32_t>(dynamicStateEnables.size()), dynamicStateEnables.data());
+	vk::PipelineDynamicStateCreateInfo dynamicState(vk::PipelineDynamicStateCreateFlags(), static_cast<u32>(dynamicStateEnables.size()), dynamicStateEnables.data());
 
 	// Depth and stencil state
 	vk::PipelineDepthStencilStateCreateInfo depthStencilState = vk::PipelineDepthStencilStateCreateInfo()
@@ -152,7 +152,7 @@ void RectangleDemo::setUpPipelines() {
 	// Vertex input state used for pipeline creation
 	vk::PipelineVertexInputStateCreateInfo vertexInputState(
 		vk::PipelineVertexInputStateCreateFlags(), 1, &vertexInputBinding,
-		static_cast<uint32_t>(vertexInputAttributes.size()), vertexInputAttributes.data()
+		static_cast<u32>(vertexInputAttributes.size()), vertexInputAttributes.data()
 	);
 
 	// Assign the pipeline states to the pipeline creation info structure
@@ -175,8 +175,8 @@ void RectangleDemo::setUpVulkanBuffers() {
 	this->vertexBuffer = &(new ao::vulkan::DeviceBuffer<Vertex*>(this->device))
 		->init(sizeof(Vertex) * this->vertices.size(), boost::none, this->vertices.data());
 
-	this->indexBuffer = &(new ao::vulkan::DeviceBuffer<uint16_t*>(this->device, vk::CommandBufferUsageFlagBits::eOneTimeSubmit))
-		->init(sizeof(uint16_t) * this->indices.size(), vk::BufferUsageFlags(vk::BufferUsageFlagBits::eIndexBuffer), this->indices.data());
+	this->indexBuffer = &(new ao::vulkan::DeviceBuffer<u16*>(this->device, vk::CommandBufferUsageFlagBits::eOneTimeSubmit))
+		->init(sizeof(u16) * this->indices.size(), vk::BufferUsageFlags(vk::BufferUsageFlagBits::eIndexBuffer), this->indices.data());
 
 	// Create uniform buffers
 	this->uniformBuffers.resize(this->swapchain->buffers.size());
@@ -205,7 +205,7 @@ std::vector<ao::vulkan::DrawInCommandBuffer> RectangleDemo::updateSecondaryComma
 	vk::Buffer vertexBuffer = this->vertexBuffer->buffer();
 	vk::Buffer indexBuffer = this->indexBuffer->buffer();
 	std::vector<Vertex>& vertices = this->vertices;
-	std::vector<uint16_t>& indices = this->indices;
+	std::vector<u16>& indices = this->indices;
 
 	commands.push_back([commandBuffer, pipeline, vertexBuffer, indexBuffer, vertices, indices, pipelineLayout, sets]
 	(int frameIndex, vk::CommandBufferInheritanceInfo& inheritance, std::pair<std::array<vk::ClearValue, 2>, vk::Rect2D>& helpers) {
@@ -229,7 +229,7 @@ std::vector<ao::vulkan::DrawInCommandBuffer> RectangleDemo::updateSecondaryComma
 			commandBuffer.bindIndexBuffer(indexBuffer, 0, vk::IndexType::eUint16);
 			commandBuffer.bindDescriptorSets(vk::PipelineBindPoint::eGraphics, pipelineLayout, 0, sets[frameIndex], {});
 
-			commandBuffer.drawIndexed(static_cast<uint32_t>(indices.size()), 1, 0, 0, 0);
+			commandBuffer.drawIndexed(static_cast<u32>(indices.size()), 1, 0, 0, 0);
 		}
 		commandBuffer.end();
 
@@ -279,17 +279,17 @@ void RectangleDemo::createDescriptorSetLayouts() {
 }
 
 void RectangleDemo::createDescriptorPools() {
-	vk::DescriptorPoolSize poolSize(vk::DescriptorType::eUniformBuffer, static_cast<uint32_t>(this->swapchain->buffers.size()));
+	vk::DescriptorPoolSize poolSize(vk::DescriptorType::eUniformBuffer, static_cast<u32>(this->swapchain->buffers.size()));
 
 	// Create pool
 	this->descriptorPools.push_back(this->device->logical.createDescriptorPool(
 		vk::DescriptorPoolCreateInfo(vk::DescriptorPoolCreateFlags(),
-		static_cast<uint32_t>(this->swapchain->buffers.size()), 1, &poolSize)
+		static_cast<u32>(this->swapchain->buffers.size()), 1, &poolSize)
 	));
 }
 
 void RectangleDemo::createDescriptorSets() {
-	vk::DescriptorSetAllocateInfo allocateInfo(this->descriptorPools[0], static_cast<uint32_t>(this->swapchain->buffers.size()), this->descriptorSetLayouts.data());
+	vk::DescriptorSetAllocateInfo allocateInfo(this->descriptorPools[0], static_cast<u32>(this->swapchain->buffers.size()), this->descriptorSetLayouts.data());
 
 	// Create sets
 	this->descriptorSets = this->device->logical.allocateDescriptorSets(allocateInfo);

@@ -42,7 +42,7 @@ std::vector<char> ao::vulkan::ShaderModule::read(std::string filename) {
 }
 
 vk::ShaderModule ao::vulkan::ShaderModule::createModule(const std::vector<char>& code) {
-	return this->device->logical.createShaderModule(vk::ShaderModuleCreateInfo(vk::ShaderModuleCreateFlags(), code.size(), reinterpret_cast<const uint32_t*>(code.data())));
+	return this->device->logical.createShaderModule(vk::ShaderModuleCreateInfo(vk::ShaderModuleCreateFlags(), code.size(), reinterpret_cast<const u32*>(code.data())));
 }
 
 ao::vulkan::ShaderModule & ao::vulkan::ShaderModule::loadShader(std::string filename, vk::ShaderStageFlagBits flag) {

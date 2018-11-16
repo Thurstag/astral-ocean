@@ -22,10 +22,10 @@ public:
 	bool clockInit = false;
 
 	std::vector<Vertex> vertices;
-	std::vector<uint16_t> indices;
+	std::vector<u16> indices;
 
 	ao::vulkan::Buffer<Vertex*>* vertexBuffer;
-	ao::vulkan::Buffer<uint16_t*>* indexBuffer;
+	ao::vulkan::Buffer<u16*>* indexBuffer;
 
 	TriangleDemo(ao::vulkan::EngineSettings settings) : ao::vulkan::GLFWEngine(settings), ao::vulkan::AOEngine(settings) {
 		this->vertices = {

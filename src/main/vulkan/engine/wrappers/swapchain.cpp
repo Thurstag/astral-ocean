@@ -19,7 +19,7 @@ ao::vulkan::SwapChain::~SwapChain() {
 	this->device->logical.destroyCommandPool(this->commandPool);
 }
 
-void ao::vulkan::SwapChain::init(uint64_t & width, uint64_t & height, bool vsync) {
+void ao::vulkan::SwapChain::init(u64 & width, u64 & height, bool vsync) {
 	// Back-up swap chain
 	vk::SwapchainKHR old = this->swapChain;
 
@@ -27,8 +27,8 @@ void ao::vulkan::SwapChain::init(uint64_t & width, uint64_t & height, bool vsync
 	vk::SurfaceCapabilitiesKHR capabilities = this->device->physical.getSurfaceCapabilitiesKHR(this->surface);
 
 	// Find best swap chain size
-	if (capabilities.currentExtent.width == (uint32_t)-1) {
-		this->currentExtent = vk::Extent2D(static_cast<uint32_t>(width), static_cast<uint32_t>(height));
+	if (capabilities.currentExtent.width == (u32)-1) {
+		this->currentExtent = vk::Extent2D(static_cast<u32>(width), static_cast<u32>(height));
 	}
 	else {
 		if (capabilities.currentExtent.width != width || capabilities.currentExtent.height != height) {
@@ -68,7 +68,7 @@ void ao::vulkan::SwapChain::init(uint64_t & width, uint64_t & height, bool vsync
 	LOGGER << LogLevel::INFO << "Use present mode: " << ao::vulkan::utilities::to_string(presentMode);
 
 	// Determine surface image capacity
-	uint32_t countSurfaceImages = capabilities.minImageCount + 1;
+	u32 countSurfaceImages = capabilities.minImageCount + 1;
 	if (capabilities.maxImageCount > 0 && countSurfaceImages > capabilities.maxImageCount) {
 		countSurfaceImages = capabilities.maxImageCount;
 	}
@@ -148,7 +148,7 @@ void ao::vulkan::SwapChain::init(uint64_t & width, uint64_t & height, bool vsync
 void ao::vulkan::SwapChain::initSurface() {
 	// Detect if a queue supports present
 	std::vector<vk::Bool32> supportsPresent(this->device->physical.getQueueFamilyProperties().size());
-	for (uint32_t i = 0; i < supportsPresent.size(); i++) {
+	for (u32 i = 0; i < supportsPresent.size(); i++) {
 		supportsPresent[i] = this->device->physical.getSurfaceSupportKHR(i, this->surface);
 	}
 	
@@ -207,7 +207,7 @@ void ao::vulkan::SwapChain::initCommandPool() {
 }
 
 void ao::vulkan::SwapChain::createCommandBuffers() {
-	this->primaryCommandBuffers = this->device->logical.allocateCommandBuffers(vk::CommandBufferAllocateInfo(this->commandPool, vk::CommandBufferLevel::ePrimary, static_cast<uint32_t>(this->buffers.size())));
+	this->primaryCommandBuffers = this->device->logical.allocateCommandBuffers(vk::CommandBufferAllocateInfo(this->commandPool, vk::CommandBufferLevel::ePrimary, static_cast<u32>(this->buffers.size())));
 }
 
 void ao::vulkan::SwapChain::freeCommandBuffers() {
@@ -215,14 +215,14 @@ void ao::vulkan::SwapChain::freeCommandBuffers() {
 	this->device->logical.freeCommandBuffers(this->commandPool, this->secondaryCommandBuffers);
 }
 
-vk::Result ao::vulkan::SwapChain::nextImage(vk::Semaphore& present, uint32_t& imageIndex) {
-	auto MAX_64 = std::numeric_limits<uint64_t>::max;
+vk::Result ao::vulkan::SwapChain::nextImage(vk::Semaphore& present, u32& imageIndex) {
+	auto MAX_64 = std::numeric_limits<u64>::max;
 
 	return this->device->logical.acquireNextImageKHR(this->swapChain, MAX_64(), present, nullptr, &imageIndex);
 }
 
-vk::Result ao::vulkan::SwapChain::enqueueImage(uint32_t & imageIndex, std::vector<vk::Semaphore> & waitSemaphores) {
-	vk::PresentInfoKHR presentInfo(static_cast<uint32_t>(waitSemaphores.size()), waitSemaphores.empty() ? nullptr : waitSemaphores.data(), 1, &this->swapChain, &imageIndex);
+vk::Result ao::vulkan::SwapChain::enqueueImage(u32 & imageIndex, std::vector<vk::Semaphore> & waitSemaphores) {
+	vk::PresentInfoKHR presentInfo(static_cast<u32>(waitSemaphores.size()), waitSemaphores.empty() ? nullptr : waitSemaphores.data(), 1, &this->swapChain, &imageIndex);
 
 	// Pass a pointer to don't trigger an exception
 	return this->presentQueue.presentKHR(&presentInfo);

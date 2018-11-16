@@ -71,9 +71,9 @@ namespace ao {
 
 			std::tuple<vk::Image, vk::DeviceMemory, vk::ImageView> stencilBuffer;
 			std::vector<vk::Framebuffer> frameBuffers;
-			uint32_t frameBufferIndex = 0;
+			u32 frameBufferIndex = 0;
 
-			EngineSettings _settings;
+			EngineSettings mSettings;
 
 			vk::RenderPass renderPass;
 			SwapChain* swapchain;

@@ -12,10 +12,10 @@ void ao::vulkan::GLFWEngine::initWindow() {
 
 	// Define properties
 	glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
-	glfwWindowHint(GLFW_RESIZABLE, this->_settings.window.rezisable ? GLFW_TRUE : GLFW_FALSE);
+	glfwWindowHint(GLFW_RESIZABLE, this->mSettings.window.rezisable ? GLFW_TRUE : GLFW_FALSE);
 
 	// Create window
-	this->window = glfwCreateWindow((int)this->_settings.window.width, (int)this->_settings.window.height, this->_settings.window.name.c_str(), nullptr, nullptr);
+	this->window = glfwCreateWindow((int)this->mSettings.window.width, (int)this->mSettings.window.height, this->mSettings.window.name.c_str(), nullptr, nullptr);
 }
 
 void ao::vulkan::GLFWEngine::initSurface(vk::SurfaceKHR& surface) {

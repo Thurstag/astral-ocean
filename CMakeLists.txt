@@ -90,7 +90,7 @@ include_directories(${AO_INCLUDE_DIR})
 add_subdirectory("src/main")
 IF(${AO_BUILD_TESTS})
 	enable_testing()
-	add_subdirectory("src/test")
+	add_subdirectory("src/tests")
 ENDIF()
 
 # Force folder creation

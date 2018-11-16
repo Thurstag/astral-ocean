@@ -1,10 +1,8 @@
 #include "ao_engine.h"
 
-ao::vulkan::AOEngine::AOEngine(EngineSettings settings) {
-	this->_settings = settings;
-
+ao::vulkan::AOEngine::AOEngine(EngineSettings settings) : mSettings(settings) {
 	// Resize pool
-	this->commandBufferPool.resize(this->_settings.threadPoolSize);
+	this->commandBufferPool.resize(this->mSettings.threadPoolSize);
 	LOGGER << LogLevel::INFO << "Init a thread pool for command buffer processing with " << this->commandBufferPool.size() << " thread(s)";
 }
 
@@ -28,7 +26,7 @@ ao::vulkan::AOEngine::~AOEngine() {
 void ao::vulkan::AOEngine::run() {
 	// Init window
 	this->initWindow();
-	LOGGER << LogLevel::INFO << "Init " << this->_settings.window.width << "x" << this->_settings.window.height << " window";
+	LOGGER << LogLevel::INFO << "Init " << this->mSettings.window.width << "x" << this->mSettings.window.height << " window";
 
 	// Init vulkan
 	this->initVulkan();
@@ -57,7 +55,7 @@ void ao::vulkan::AOEngine::add(ao::core::Plugin<AOEngine> * plugin) {
 
 void ao::vulkan::AOEngine::initVulkan() {
 	// Create instance
-	this->instance = utilities::createVkInstance(this->_settings, this->instanceExtensions());
+	this->instance = utilities::createVkInstance(this->mSettings, this->instanceExtensions());
 
 	// Get GPUs
 	std::vector<vk::PhysicalDevice> devices = ao::vulkan::utilities::vkPhysicalDevices(this->instance);
@@ -132,7 +130,7 @@ void ao::vulkan::AOEngine::createStencilBuffer() {
 	// Create info
 	vk::ImageCreateInfo imageInfo(
 		vk::ImageCreateFlags(), vk::ImageType::e2D, this->device->depthFormat,
-		vk::Extent3D(static_cast<uint32_t>(this->_settings.window.width), static_cast<uint32_t>(this->_settings.window.height), 1),
+		vk::Extent3D(static_cast<u32>(this->mSettings.window.width), static_cast<u32>(this->mSettings.window.height), 1),
 		1, 1, vk::SampleCountFlagBits::e1, vk::ImageTiling::eOptimal, vk::ImageUsageFlagBits::eDepthStencilAttachment | vk::ImageUsageFlagBits::eTransferSrc
 	);
 
@@ -178,13 +176,13 @@ void ao::vulkan::AOEngine::setUpFrameBuffers() {
 
 	// Create info
 	vk::FramebufferCreateInfo frameBufferCreateInfo(
-		vk::FramebufferCreateFlags(), renderPass, static_cast<uint32_t>(attachments.size()), attachments.data(),
-		static_cast<uint32_t>(this->_settings.window.width), static_cast<uint32_t>(this->_settings.window.height), 1
+		vk::FramebufferCreateFlags(), renderPass, static_cast<u32>(attachments.size()), attachments.data(),
+		static_cast<u32>(this->mSettings.window.width), static_cast<u32>(this->mSettings.window.height), 1
 	);
 
 	// Create frame buffers
 	this->frameBuffers.resize(this->swapchain->buffers.size());
-	for (uint32_t i = 0; i < frameBuffers.size(); i++) {
+	for (u32 i = 0; i < frameBuffers.size(); i++) {
 		attachments[0] = this->swapchain->buffers[i].second;
 
 		this->frameBuffers[i] = this->device->logical.createFramebuffer(frameBufferCreateInfo);
@@ -218,7 +216,7 @@ void ao::vulkan::AOEngine::recreateSwapChain() {
 	/* RE-CREATION PART */
 
 	// Init swap chain
-	this->swapchain->init(this->_settings.window.width, this->_settings.window.height, this->_settings.window.vsync);
+	this->swapchain->init(this->mSettings.window.width, this->mSettings.window.height, this->mSettings.window.vsync);
 
 	// Create command buffers
 	this->swapchain->createCommandBuffers();
@@ -291,7 +289,7 @@ void ao::vulkan::AOEngine::prepareVulkan() {
 	this->swapchain->initCommandPool();
 
 	// Init swap chain
-	this->swapchain->init(this->_settings.window.width, this->_settings.window.height, this->_settings.window.vsync);
+	this->swapchain->init(this->mSettings.window.width, this->mSettings.window.height, this->mSettings.window.vsync);
 
 	// Create command buffers
 	this->swapchain->createCommandBuffers();
@@ -324,11 +322,11 @@ void ao::vulkan::AOEngine::prepareVulkan() {
 }
 
 void ao::vulkan::AOEngine::setWindowTitle(std::string title) {
-	this->_settings.window.name = title;
+	this->mSettings.window.name = title;
 }
 
 ao::vulkan::EngineSettings ao::vulkan::AOEngine::settings() {
-	return this->_settings;
+	return this->mSettings;
 }
 
 void ao::vulkan::AOEngine::loop() {
@@ -356,7 +354,7 @@ void ao::vulkan::AOEngine::afterFrameSubmitted() {
 
 void ao::vulkan::AOEngine::render() {
 	// Wait fence
-	auto MAX_64 = std::numeric_limits<uint64_t>::max;
+	auto MAX_64 = std::numeric_limits<u64>::max;
 	this->device->logical.waitForFences(this->waitingFences[this->frameBufferIndex], VK_TRUE, MAX_64());
 
 	// Prepare frame
@@ -372,11 +370,11 @@ void ao::vulkan::AOEngine::render() {
 
 	// Create submit info
 	vk::SubmitInfo submitInfo(
-		static_cast<uint32_t>(this->semaphores[std::string("graphics")].waits.size()),
+		static_cast<u32>(this->semaphores[std::string("graphics")].waits.size()),
 		this->semaphores[std::string("graphics")].waits.empty() ? nullptr : this->semaphores[std::string("graphics")].waits.data(),
 		&this->pipeline->submitPipelineStages,
 		1, &this->swapchain->primaryCommandBuffers[this->frameBufferIndex],
-		static_cast<uint32_t>(this->semaphores[std::string("graphics")].signals.size()),
+		static_cast<u32>(this->semaphores[std::string("graphics")].signals.size()),
 		this->semaphores[std::string("graphics")].signals.empty() ? nullptr : this->semaphores[std::string("graphics")].signals.data()
 	);
 
@@ -429,7 +427,7 @@ void ao::vulkan::AOEngine::updateCommandBuffers() {
 
 	vk::RenderPassBeginInfo renderPassInfo(
 		this->renderPass, currentFrame, this->swapchain->commandBufferHelpers.second,
-		static_cast<uint32_t>(this->swapchain->commandBufferHelpers.first.size()),
+		static_cast<u32>(this->swapchain->commandBufferHelpers.first.size()),
 		this->swapchain->commandBufferHelpers.first.data()
 	);
 

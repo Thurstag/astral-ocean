@@ -8,14 +8,26 @@ namespace ao {
 		struct WindowSettings {
 			std::string name;
 
-			uint64_t width;
-			uint64_t height;
+			u64 width;
+			u64 height;
 
 			bool rezisable;
 			bool vsync;
 
+			/// <summary>
+			/// Constructor
+			/// </summary>
 			WindowSettings() = default;
-			WindowSettings(std::string name, uint64_t width, uint64_t height, bool rezisable = false, bool vsync = false) {
+
+			/// <summary>
+			/// Constructor
+			/// </summary>
+			/// <param name="name">Window's name</param>
+			/// <param name="width">Window's width</param>
+			/// <param name="height">Window's height</param>
+			/// <param name="rezisable">Window is rezisable</param>
+			/// <param name="vsync">V-Sync is enabled</param>
+			WindowSettings(std::string name, u64 width, u64 height, bool rezisable = false, bool vsync = false) {
 				this->name = name;
 				this->width = width;
 				this->height = height;
@@ -25,13 +37,20 @@ namespace ao {
 		};
 
 		struct EngineSettings {
-			/* WINDOW SECTION */
+			int threadPoolSize = std::thread::hardware_concurrency();
 			WindowSettings window;
 
-			int threadPoolSize = std::thread::hardware_concurrency();
-
+			/// <summary>
+			/// Constructor
+			/// </summary>
 			EngineSettings() = default;
-			EngineSettings(WindowSettings window, int threadPoolSize = std::thread::hardware_concurrency()) {
+
+			/// <summary>
+			/// Constructor
+			/// </summary>
+			/// <param name="window">Window settings</param>
+			/// <param name="threadPoolSize">Thread pool's size</param>
+			EngineSettings(WindowSettings window, u32 threadPoolSize = std::thread::hardware_concurrency()) {
 				this->window = window;
 				this->threadPoolSize = threadPoolSize;
 			}

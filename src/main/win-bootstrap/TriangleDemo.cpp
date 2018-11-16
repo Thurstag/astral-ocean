@@ -83,8 +83,8 @@ void TriangleDemo::setUpRenderPass() {
 	);
 
 	this->renderPass = this->device->logical.createRenderPass(vk::RenderPassCreateInfo(
-		vk::RenderPassCreateFlags(), static_cast<uint32_t>(attachments.size()),
-		attachments.data(), 1, &subpassDescription, static_cast<uint32_t>(dependencies.size()),
+		vk::RenderPassCreateFlags(), static_cast<u32>(attachments.size()),
+		attachments.data(), 1, &subpassDescription, static_cast<u32>(dependencies.size()),
 		dependencies.data()
 	));
 }
@@ -111,7 +111,7 @@ void TriangleDemo::setUpPipelines() {
 	// Construct the differnent states making up the pipeline
 
 	// Set pipeline shader stage info
-	pipelineCreateInfo.stageCount = static_cast<uint32_t>(shaderStages.size());
+	pipelineCreateInfo.stageCount = static_cast<u32>(shaderStages.size());
 	pipelineCreateInfo.pStages = shaderStages.data();
 
 	// Input assembly state
@@ -129,7 +129,7 @@ void TriangleDemo::setUpPipelines() {
 	blendAttachmentState[0].setColorWriteMask(vk::ColorComponentFlagBits::eR | vk::ColorComponentFlagBits::eG | vk::ColorComponentFlagBits::eB | vk::ColorComponentFlagBits::eA);
 
 	vk::PipelineColorBlendStateCreateInfo colorBlendState = vk::PipelineColorBlendStateCreateInfo()
-		.setAttachmentCount(static_cast<uint32_t>(blendAttachmentState.size()))
+		.setAttachmentCount(static_cast<u32>(blendAttachmentState.size()))
 		.setPAttachments(blendAttachmentState.data());
 
 	// Viewport state
@@ -142,7 +142,7 @@ void TriangleDemo::setUpPipelines() {
 	dynamicStateEnables.push_back(vk::DynamicState::eViewport);
 	dynamicStateEnables.push_back(vk::DynamicState::eScissor);
 
-	vk::PipelineDynamicStateCreateInfo dynamicState(vk::PipelineDynamicStateCreateFlags(), static_cast<uint32_t>(dynamicStateEnables.size()), dynamicStateEnables.data());
+	vk::PipelineDynamicStateCreateInfo dynamicState(vk::PipelineDynamicStateCreateFlags(), static_cast<u32>(dynamicStateEnables.size()), dynamicStateEnables.data());
 
 	// Depth and stencil state
 	vk::PipelineDepthStencilStateCreateInfo depthStencilState = vk::PipelineDepthStencilStateCreateInfo()
@@ -176,7 +176,7 @@ void TriangleDemo::setUpPipelines() {
 	// Vertex input state used for pipeline creation
 	vk::PipelineVertexInputStateCreateInfo vertexInputState(
 		vk::PipelineVertexInputStateCreateFlags(), 1, &vertexInputBinding,
-		static_cast<uint32_t>(vertexInputAttributes.size()), vertexInputAttributes.data()
+		static_cast<u32>(vertexInputAttributes.size()), vertexInputAttributes.data()
 	);
 
 	// Assign the pipeline states to the pipeline creation info structure
@@ -198,8 +198,8 @@ void TriangleDemo::setUpVulkanBuffers() {
 	this->vertexBuffer = &(new ao::vulkan::DeviceBuffer<Vertex*>(this->device))
 		->init(sizeof(Vertex) * this->vertices.size(), boost::none, this->vertices.data());
 
-	this->indexBuffer = &(new ao::vulkan::DeviceBuffer<uint16_t*>(this->device, vk::CommandBufferUsageFlagBits::eOneTimeSubmit))
-		->init(sizeof(uint16_t) * this->indices.size(), vk::BufferUsageFlags(vk::BufferUsageFlagBits::eIndexBuffer), this->indices.data());
+	this->indexBuffer = &(new ao::vulkan::DeviceBuffer<u16*>(this->device, vk::CommandBufferUsageFlagBits::eOneTimeSubmit))
+		->init(sizeof(u16) * this->indices.size(), vk::BufferUsageFlags(vk::BufferUsageFlagBits::eIndexBuffer), this->indices.data());
 }
 
 void TriangleDemo::createSecondaryCommandBuffers() {
@@ -213,7 +213,7 @@ std::vector<ao::vulkan::DrawInCommandBuffer> TriangleDemo::updateSecondaryComman
 	vk::Buffer vertexBuffer = this->vertexBuffer->buffer();
 	vk::Buffer indexBuffer = this->indexBuffer->buffer();
 	std::vector<Vertex>& vertices = this->vertices;
-	std::vector<uint16_t>& indices = this->indices;
+	std::vector<u16>& indices = this->indices;
 
 	commands.push_back([commandBuffer, pipeline, vertexBuffer, indexBuffer, vertices, indices](int frameIndex, vk::CommandBufferInheritanceInfo& inheritance, std::pair<std::array<vk::ClearValue, 2>, vk::Rect2D>& helpers) {
 		vk::Viewport viewPort(0, 0, static_cast<float>(helpers.second.extent.width), static_cast<float>(helpers.second.extent.height), 0, 1);
@@ -235,7 +235,7 @@ std::vector<ao::vulkan::DrawInCommandBuffer> TriangleDemo::updateSecondaryComman
 			commandBuffer.bindVertexBuffers(0, vertexBuffers, offsets);
 			commandBuffer.bindIndexBuffer(indexBuffer, 0, vk::IndexType::eUint16);
 			
-			commandBuffer.drawIndexed(static_cast<uint32_t>(indices.size()), 1, 0, 0, 0);
+			commandBuffer.drawIndexed(static_cast<u32>(indices.size()), 1, 0, 0, 0);
 		}
 		commandBuffer.end();
 

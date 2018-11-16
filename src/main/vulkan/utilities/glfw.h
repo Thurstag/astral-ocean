@@ -2,6 +2,7 @@
 
 #include <vector>
 
+#include <ao/core/utilities/types.h>
 #include <GLFW/glfw3.h>
 
 namespace ao {
@@ -24,7 +25,7 @@ namespace ao {
 			/// </summary>
 			/// <returns>Extensions</returns>
 			inline std::vector<char const*> extensions() {
-				uint32_t count;
+				u32 count;
 
 				// Get extensions
 				char const** extensions = glfwGetRequiredInstanceExtensions(&count);

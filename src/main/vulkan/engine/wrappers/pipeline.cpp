@@ -1,8 +1,6 @@
 #include "pipeline.h"
 
-ao::vulkan::Pipeline::Pipeline(Device * _device) : device(_device) {
-
-}
+ao::vulkan::Pipeline::Pipeline(Device * _device) : device(_device) {}
 
 ao::vulkan::Pipeline::~Pipeline() {
 	for (auto& pipeline : this->pipelines) {

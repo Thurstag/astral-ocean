@@ -1,9 +1,6 @@
 #include "device.h"
 
-ao::vulkan::Device::Device(vk::PhysicalDevice& device) {
-	this->physical = device;
-
-	// Get supported extensions
+ao::vulkan::Device::Device(vk::PhysicalDevice& device) : physical(device) {
 	this->extensions = ao::vulkan::utilities::vkExtensionProperties(this->physical);
 
 	// Check count
@@ -34,11 +31,11 @@ void ao::vulkan::Device::initLogicalDevice(std::vector<char const*> deviceExtens
 	}
 
 	// Find queues
-	std::map<uint32_t, vk::QueueFlagBits> indexes;
-	boost::optional<uint32_t> defaultQueueIndex;
+	std::map<u32, vk::QueueFlagBits> indexes;
+	boost::optional<u32> defaultQueueIndex;
 	for (auto& flag : allFlags) {
 		if (qflags & flag) {
-			uint32_t index = ao::vulkan::utilities::findQueueFamilyIndex(queueFamilyProperties, flag);
+			u32 index = ao::vulkan::utilities::findQueueFamilyIndex(queueFamilyProperties, flag);
 
 			// Check index
 			if (index < 0) {
@@ -65,12 +62,12 @@ void ao::vulkan::Device::initLogicalDevice(std::vector<char const*> deviceExtens
 		deviceExtensions.push_back(VK_KHR_SWAPCHAIN_EXTENSION_NAME);
 	}
 
-	vk::DeviceCreateInfo deviceCreateInfo(vk::DeviceCreateFlags(), static_cast<uint32_t>(queueCreateInfos.size()), queueCreateInfos.data());
+	vk::DeviceCreateInfo deviceCreateInfo(vk::DeviceCreateFlags(), static_cast<u32>(queueCreateInfos.size()), queueCreateInfos.data());
 	deviceCreateInfo.setPEnabledFeatures(deviceFeatures.data());
 
 	// Add extensions
 	if (!deviceExtensions.empty()) {
-		deviceCreateInfo.setEnabledExtensionCount(static_cast<uint32_t>(deviceExtensions.size()));
+		deviceCreateInfo.setEnabledExtensionCount(static_cast<u32>(deviceExtensions.size()));
 		deviceCreateInfo.setPpEnabledExtensionNames(deviceExtensions.data());
 	}
 
@@ -81,8 +78,6 @@ void ao::vulkan::Device::initLogicalDevice(std::vector<char const*> deviceExtens
 	if (!defaultQueueIndex) {
 		throw core::Exception("Fail to find a queueFamily that supports graphics");
 	}
-
-	vk::Queue default = this->logical.getQueue(*defaultQueueIndex, 0);
 
 	for (auto& flag : allFlags) {
 		// Find in map
@@ -103,10 +98,10 @@ void ao::vulkan::Device::initLogicalDevice(std::vector<char const*> deviceExtens
 	this->transferCommandPool = this->logical.createCommandPool(vk::CommandPoolCreateInfo(vk::CommandPoolCreateFlagBits::eResetCommandBuffer, this->queues[vk::QueueFlagBits::eTransfer].index));
 }
 
-uint32_t ao::vulkan::Device::memoryType(uint32_t typeBits, vk::MemoryPropertyFlags properties) {
+u32 ao::vulkan::Device::memoryType(u32 typeBits, vk::MemoryPropertyFlags properties) {
 	vk::PhysicalDeviceMemoryProperties memoryProperties = this->physical.getMemoryProperties();
 
-	for (uint32_t i = 0; i < memoryProperties.memoryTypeCount; i++) {
+	for (u32 i = 0; i < memoryProperties.memoryTypeCount; i++) {
 		if ((typeBits & 1) == 1) {
 			if ((memoryProperties.memoryTypes[i].propertyFlags & properties) == properties) {
 				return i;

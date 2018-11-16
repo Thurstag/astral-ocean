@@ -25,11 +25,11 @@ namespace ao {
 			/// Method to display frame rate
 			/// </summary>
 			/// <param name="frameRate">Frame rate</param>
-			virtual void displayFrameRate(uint64_t frameRate) = 0;
+			virtual void displayFrameRate(u64 frameRate) = 0;
 
 		private:
 			std::chrono::time_point<std::chrono::system_clock> clock;
-			uint64_t frameRate;
+			u64 frameRate;
 			bool init = false;
 		};
 	}

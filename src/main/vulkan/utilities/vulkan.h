@@ -5,6 +5,7 @@
 #include <vector>
 
 #include <ao/core/exception/exception.h>
+#include <ao/core/utilities/types.h>
 #include <ao/core/logger/logger.h>
 #include <vulkan/vulkan.hpp>
 
@@ -123,7 +124,7 @@ namespace ao {
 
 				// Create instance info
 				vk::InstanceCreateInfo instanceInfo(vk::InstanceCreateFlags(), &appInfo);
-				instanceInfo.setEnabledExtensionCount(static_cast<uint32_t>(extensions.size()));
+				instanceInfo.setEnabledExtensionCount(static_cast<u32>(extensions.size()));
 				instanceInfo.setPpEnabledExtensionNames(extensions.data());
 
 				// Create instance
@@ -138,7 +139,7 @@ namespace ao {
 			inline std::vector<vk::PhysicalDevice> vkPhysicalDevices(vk::Instance& instance) {
 				std::string error = "Fail to enumerate vk::PhysicalDevices";
 				std::vector<vk::PhysicalDevice> devices;
-				uint32_t count;
+				u32 count;
 
 				// Get count
 				vkAssert(instance.enumeratePhysicalDevices(&count, nullptr), error);
@@ -158,7 +159,7 @@ namespace ao {
 			/// <returns>vk::ExtensionProperties</returns>
 			inline std::vector<vk::ExtensionProperties> vkExtensionProperties(vk::PhysicalDevice& device) {
 				std::vector<vk::ExtensionProperties> extensions;
-				uint32_t count;
+				u32 count;
 
 				// Get count
 				device.enumerateDeviceExtensionProperties(nullptr, &count, nullptr);
@@ -177,7 +178,7 @@ namespace ao {
 			/// <param name="queueFamilyProperties">queueFamilyProperties</param>
 			/// <param name="flag">Flag</param>
 			/// <returns>Index or -1</returns>
-			inline uint32_t findQueueFamilyIndex(std::vector<vk::QueueFamilyProperties> queueFamilyProperties, vk::QueueFlagBits flag) {
+			inline u32 findQueueFamilyIndex(std::vector<vk::QueueFamilyProperties> queueFamilyProperties, vk::QueueFlagBits flag) {
 				std::vector<VkQueueFlagBits> flags = { VK_QUEUE_COMPUTE_BIT, VK_QUEUE_TRANSFER_BIT, VK_QUEUE_GRAPHICS_BIT, VK_QUEUE_SPARSE_BINDING_BIT, VK_QUEUE_PROTECTED_BIT };
 
 				// Calculate value of flags whitout flag parameter
@@ -189,7 +190,7 @@ namespace ao {
 				});
 
 				// Try to find a queue familly designed only for flag parameter
-				for (uint32_t i = 0; i < queueFamilyProperties.size(); i++) {
+				for (u32 i = 0; i < queueFamilyProperties.size(); i++) {
 					if ((queueFamilyProperties[i].queueFlags & flag) && ((VkQueueFlags(queueFamilyProperties[i].queueFlags) & other) == 0)) {
 						core::Logger::getInstance<Utilities>() << LogLevel::DEBUG << "Found a queue that only supports: " << to_string(flag);
 						return i;
@@ -197,7 +198,7 @@ namespace ao {
 				}
 
 				// Try to find a queue familly that supports flag parameter
-				for (uint32_t i = 0; i < queueFamilyProperties.size(); i++) {
+				for (u32 i = 0; i < queueFamilyProperties.size(); i++) {
 					if (queueFamilyProperties[i].queueFlags & flag) {
 						return i;
 					}
@@ -237,7 +238,7 @@ namespace ao {
 			inline std::vector<vk::SurfaceFormatKHR> surfaceFormatKHRs(vk::PhysicalDevice& device, vk::SurfaceKHR& surface) {
 				std::string error = "Fail to get supported surface formats";
 				std::vector<vk::SurfaceFormatKHR> formats;
-				uint32_t count;
+				u32 count;
 
 				// Get count
 				vkAssert(device.getSurfaceFormatsKHR(surface, &count, nullptr), error);
@@ -259,7 +260,7 @@ namespace ao {
 			inline std::vector<vk::PresentModeKHR> presentModeKHRs(vk::PhysicalDevice& device, vk::SurfaceKHR& surface) {
 				std::string error = "Fail to get present modes";
 				std::vector<vk::PresentModeKHR> modes;
-				uint32_t count;
+				u32 count;
 
 				// Get count
 				vkAssert(device.getSurfacePresentModesKHR(surface, &count, nullptr), error);
@@ -281,7 +282,7 @@ namespace ao {
 			inline std::vector<vk::Image> swapChainImages(vk::Device& device, vk::SwapchainKHR& swapChain) {
 				std::string error = "Fail to get swap chain images";
 				std::vector<vk::Image> images;
-				uint32_t count;
+				u32 count;
 
 				// Get count
 				vkAssert(device.getSwapchainImagesKHR(swapChain, &count, nullptr), error);

@@ -11,6 +11,7 @@ set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake")
 set(SUBMODULES_DIR "${CMAKE_BINARY_DIR}/submodules")
 set(glfw_INCLUDE_DIR "${SUBMODULES_DIR}/glfw/include")
 set(log4cpp_INCLUDE_DIR "${SUBMODULES_DIR}/log4cpp/include")
+set(fmt_INCLUDE_DIR "${SUBMODULES_DIR}/fmt/include")
 set(googletest_INCLUDE_DIR "${SUBMODULES_DIR}/googletest/include" "${SUBMODULES_DIR}/googlemock/include")
 set(AO_INCLUDE_DIR "${CMAKE_SOURCE_DIR}/include")
 
@@ -30,6 +31,9 @@ set(GLFW_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
 # Disable FMT unwanted builds
 set(FMT_DOC OFF CACHE BOOL "" FORCE)
 set(FMT_TEST OFF CACHE BOOL "" FORCE)
+
+# Disable Log4cpp Docs
+set(DOXYGEN_EXECUTABLE false)
 
 # Prevent overriding the parent project's compiler/linker
 set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
@@ -86,7 +90,6 @@ FOREACH(SUBMODULE ${SUBMODULES})
 	include_directories(${${SUBMODULE}_INCLUDE_DIR})
 ENDFOREACH(SUBMODULE)
 include_directories("${SUBMODULES_DIR}/CTPL/")
-include_directories("${SUBMODULES_DIR}/fmt/include")
 
 # Include headers
 include_directories(${AO_INCLUDE_DIR})

@@ -7,6 +7,7 @@
 #include <map>
 
 #include <ao/core/exception/exception.h>
+#include <ao/core/utilities/pointers.h>
 #include <vulkan/vulkan.hpp>
 
 #include "device.h"
@@ -22,7 +23,7 @@ namespace ao {
 			/// Constructor
 			/// </summary>
 			/// <param name="_device">Device</param>
-			ShaderModule(Device* _device);
+			ShaderModule(std::weak_ptr<Device> _device);
 
 			/// <summary>
 			/// Destructor
@@ -45,7 +46,7 @@ namespace ao {
 
 		protected:
 			std::map<vk::ShaderStageFlagBits, vk::PipelineShaderStageCreateInfo*> shaders;
-			Device* const device;
+			std::weak_ptr<Device> device;
 
 			/// <summary>
 			/// Method to read a shader file

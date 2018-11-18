@@ -12,5 +12,5 @@ void ao::vulkan::TitleFPSPlugin::onInit() {
 }
 
 void ao::vulkan::TitleFPSPlugin::displayFrameRate(u64 frameRate) {
-	this->subject->setWindowTitle(this->baseTitle + " - " + std::to_string(frameRate) + "FPS");
+	this->subject->setWindowTitle(fmt::format("{0} - {1}FPS", this->baseTitle, std::to_string(frameRate)));
 }

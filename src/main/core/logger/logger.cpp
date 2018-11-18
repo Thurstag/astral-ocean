@@ -20,10 +20,6 @@ ao::core::Logger::Logger(std::type_info const& type) {
 	this->category->addAppender(appender);
 }
 
-ao::core::Logger::~Logger() {
-	// this->category will be released by log4cpp lib
-}
-
 log4cpp::CategoryStream ao::core::Logger::operator<<(log4cpp::Priority::Value priority) {
 	return this->category->getStream(priority);
 }

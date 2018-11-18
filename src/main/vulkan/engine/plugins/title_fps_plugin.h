@@ -2,6 +2,8 @@
 
 #include <string>
 
+#include <fmt/format.h>
+
 #include "fps_plugin.h"
 
 namespace ao {

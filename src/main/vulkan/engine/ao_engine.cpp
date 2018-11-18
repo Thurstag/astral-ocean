@@ -3,7 +3,7 @@
 ao::vulkan::AOEngine::AOEngine(EngineSettings settings) : mSettings(settings) {
 	// Resize pool
 	this->commandBufferPool.resize(this->mSettings.core.threadPoolSize);
-	LOGGER << LogLevel::INFO << "Init a thread pool for command buffer processing with " << this->commandBufferPool.size() << " thread(s)";
+	LOGGER << LogLevel::INFO << fmt::format("Init a thread pool for command buffer processing with {0} thread{1}", this->commandBufferPool.size(), this->commandBufferPool.size() > 1 ? "s": "");
 }
 
 ao::vulkan::AOEngine::~AOEngine() {
@@ -26,7 +26,7 @@ ao::vulkan::AOEngine::~AOEngine() {
 void ao::vulkan::AOEngine::run() {
 	// Init window
 	this->initWindow();
-	LOGGER << LogLevel::INFO << "Init " << this->mSettings.window.width << "x" << this->mSettings.window.height << " window";
+	LOGGER << LogLevel::INFO << fmt::format("Init {0}x{1} window", this->mSettings.window.width, this->mSettings.window.height);
 
 	// Init vulkan
 	this->initVulkan();
@@ -55,7 +55,7 @@ void ao::vulkan::AOEngine::add(ao::core::Plugin<AOEngine> * plugin) {
 
 void ao::vulkan::AOEngine::initVulkan() {
 	// Create instance
-	this->instance = utilities::createVkInstance(this->mSettings, this->instanceExtensions());
+	this->instance = std::make_shared<vk::Instance>(utilities::createVkInstance(this->mSettings, this->instanceExtensions()));
 
 	// Set-up debugging
 	if (this->mSettings.core.validationLayers) {
@@ -63,7 +63,7 @@ void ao::vulkan::AOEngine::initVulkan() {
 	}
 
 	// Get GPUs
-	std::vector<vk::PhysicalDevice> devices = ao::vulkan::utilities::vkPhysicalDevices(this->instance);
+	std::vector<vk::PhysicalDevice> devices = ao::vulkan::utilities::vkPhysicalDevices(*this->instance);
 
 	// Check count
 	if (devices.empty()) {
@@ -71,7 +71,7 @@ void ao::vulkan::AOEngine::initVulkan() {
 	}
 
 	// Select a vk::PhysicalDevice & wrap it
-	this->device = new Device(devices[this->selectVkPhysicalDevice(devices)]);
+	this->device = std::make_shared<ao::vulkan::Device>(devices[this->selectVkPhysicalDevice(devices)]);
 
 	LOGGER << LogLevel::INFO << "Select physical device: " << this->device->physical.getProperties().deviceName;
 
@@ -82,13 +82,13 @@ void ao::vulkan::AOEngine::initVulkan() {
 	this->device->depthFormat = ao::vulkan::utilities::getSupportedDepthFormat(this->device->physical);
 
 	// Create swapChain
-	this->swapchain = new SwapChain(&this->instance, this->device);
+	this->swapchain = std::make_shared<ao::vulkan::SwapChain>(this->instance, this->device);
 }
 
 void ao::vulkan::AOEngine::freeVulkan() {
-	delete this->swapchain;
+	this->swapchain.reset();
 
-	delete this->pipeline;
+	this->pipeline.reset();
 
 	for (auto& pool : this->descriptorPools) {
 		this->device->logical.destroyDescriptorPool(pool);
@@ -117,23 +117,23 @@ void ao::vulkan::AOEngine::freeVulkan() {
 	}
 	this->waitingFences.clear();
 
-	delete this->device;
+	this->device.reset();
 
 	if (this->mSettings.core.validationLayers) {
-		PFN_vkDestroyDebugReportCallbackEXT DestroyDebugReportCallback = reinterpret_cast<PFN_vkDestroyDebugReportCallbackEXT>(vkGetInstanceProcAddr(instance, "vkDestroyDebugReportCallbackEXT"));
-		DestroyDebugReportCallback(this->instance, this->debugCallBack, nullptr);
+		PFN_vkDestroyDebugReportCallbackEXT DestroyDebugReportCallback = reinterpret_cast<PFN_vkDestroyDebugReportCallbackEXT>(vkGetInstanceProcAddr(*this->instance, "vkDestroyDebugReportCallbackEXT"));
+		DestroyDebugReportCallback(*this->instance, this->debugCallBack, nullptr);
 	}
 
-	this->instance.destroy();
+	this->instance->destroy();
 }
 
 void ao::vulkan::AOEngine::setUpDebugging() {
-	PFN_vkCreateDebugReportCallbackEXT CreateDebugReportCallback = reinterpret_cast<PFN_vkCreateDebugReportCallbackEXT>(this->instance.getProcAddr("vkCreateDebugReportCallbackEXT"));
+	PFN_vkCreateDebugReportCallbackEXT CreateDebugReportCallback = reinterpret_cast<PFN_vkCreateDebugReportCallbackEXT>(this->instance->getProcAddr("vkCreateDebugReportCallbackEXT"));
 	VkDebugReportCallbackCreateInfoEXT createInfo = vk::DebugReportCallbackCreateInfoEXT(this->debugReportFlags(), debugReportCallBack);
 	VkDebugReportCallbackEXT callback = this->debugCallBack;
 
 	// Create callback
-	CreateDebugReportCallback(this->instance, &createInfo, nullptr, &callback);
+	CreateDebugReportCallback(*this->instance, &createInfo, nullptr, &callback);
 
 	// Update real callback
 	this->debugCallBack = vk::DebugReportCallbackEXT(callback);
@@ -217,7 +217,7 @@ void ao::vulkan::AOEngine::recreateSwapChain() {
 	this->device->logical.waitIdle();
 
 	// Destroy pipeline
-	delete this->pipeline;
+	this->pipeline.reset();
 
 	// Destroy render pass
 	this->device->logical.destroyRenderPass(this->renderPass);
@@ -263,7 +263,7 @@ void ao::vulkan::AOEngine::recreateSwapChain() {
 
 void ao::vulkan::AOEngine::createPipelines() {
 	// Create pipeline
-	this->pipeline = new ao::vulkan::Pipeline(this->device);
+	this->pipeline = std::make_shared<ao::vulkan::Pipeline>(this->device);
 
 	// Create pipeline cache
 	this->pipeline->cache = this->device->logical.createPipelineCache(vk::PipelineCacheCreateInfo());
@@ -377,8 +377,7 @@ void ao::vulkan::AOEngine::afterFrameSubmitted() {
 
 void ao::vulkan::AOEngine::render() {
 	// Wait fence
-	auto MAX_64 = std::numeric_limits<u64>::max;
-	this->device->logical.waitForFences(this->waitingFences[this->frameBufferIndex], VK_TRUE, MAX_64());
+	this->device->logical.waitForFences(this->waitingFences[this->frameBufferIndex], VK_TRUE, (std::numeric_limits<u64>::max)());
 
 	// Prepare frame
 	this->prepareFrame();
@@ -534,20 +533,20 @@ VKAPI_ATTR VkBool32 VKAPI_CALL ao::vulkan::AOEngine::debugReportCallBack(VkDebug
 	// Log
 	switch (flag.get()) {
 		case vk::DebugReportFlagBitsEXT::eInformation:
-			LOGGER << LogLevel::INFO << "[" << to_string(flag.get()) << "] " << message;
+			LOGGER << LogLevel::INFO << fmt::format("[{0}] {1}", to_string(flag.get()), message);
 			break;
 
 		case vk::DebugReportFlagBitsEXT::eWarning:
 		case vk::DebugReportFlagBitsEXT::ePerformanceWarning:
-			LOGGER << LogLevel::WARN << "[" << to_string(flag.get()) << "] " << message;
+			LOGGER << LogLevel::WARN << fmt::format("[{0}] {1}", to_string(flag.get()), message);
 			break;
 
 		case vk::DebugReportFlagBitsEXT::eError:
-			LOGGER << LogLevel::ERROR << "[" << to_string(flag.get()) << "] " << message;
+			LOGGER << LogLevel::FATAL << fmt::format("[{0}] {1}", to_string(flag.get()), message);
 			return VK_TRUE;
 
 		case vk::DebugReportFlagBitsEXT::eDebug:
-			LOGGER << LogLevel::DEBUG << "[" << to_string(flag.get()) << "] " << message;
+			LOGGER << LogLevel::DEBUG << fmt::format("[{0}] {1}", to_string(flag.get()), message);
 			break;
 
 		default:

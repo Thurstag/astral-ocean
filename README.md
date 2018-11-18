@@ -39,6 +39,7 @@ TODO
 | LOG4CPP     | **2.9.0**@683cbb7 |
 | Google Test | **1.8.1**@88c15b5 |
 | CTPL        | **0.0.2**@437e135 |
+| FMT         | **5.2.1**@6c95fb3 |
 
 ## Credits
 

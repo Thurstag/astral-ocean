@@ -2,6 +2,7 @@
 
 #include <vector>
 
+#include <ao/core/utilities/pointers.h>
 #include <vulkan/vulkan.hpp>
 
 #include "swapchain.h"
@@ -28,14 +29,14 @@ namespace ao {
 			/// Constructor
 			/// </summary>
 			/// <param name="_device">Device</param>
-			Pipeline(Device* _device);
+			Pipeline(std::weak_ptr<Device> _device);
 
 			/// <summary>
 			/// Destructor
 			/// </summary>
 			virtual ~Pipeline();
 		protected:
-			Device* const device;
+			std::weak_ptr<Device> device;
 		};
 	}
 }

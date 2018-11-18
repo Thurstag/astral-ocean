@@ -9,4 +9,3 @@ set_target_properties("win-bootstrap" PROPERTIES  RUNTIME_OUTPUT_DIRECTORY "${CM
 
 # Import libraries
 target_link_libraries("win-bootstrap" "ao-vulkan")
-#install(TARGETS "win-bootstrap")

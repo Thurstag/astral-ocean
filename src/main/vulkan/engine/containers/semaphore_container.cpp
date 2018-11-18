@@ -10,17 +10,19 @@ void ao::vulkan::SemaphoreContainer::clear() {
 	std::vector<vk::Semaphore> cleared;
 
 	// Destroy semaphores
-	for (auto& pair : map) {
-		for (auto& semaphore : pair.second.waits) {
-			if (std::find(cleared.begin(), cleared.end(), semaphore) == cleared.end()) {
-				this->device->logical.destroySemaphore(semaphore);
-				cleared.push_back(semaphore);
+	if (auto _device = ao::core::get(this->device)) {
+		for (auto& pair : map) {
+			for (auto& semaphore : pair.second.waits) {
+				if (std::find(cleared.begin(), cleared.end(), semaphore) == cleared.end()) {
+					_device->logical.destroySemaphore(semaphore);
+					cleared.push_back(semaphore);
+				}
 			}
-		}
-		for (auto& semaphore : pair.second.signals) {
-			if (std::find(cleared.begin(), cleared.end(), semaphore) == cleared.end()) {
-				this->device->logical.destroySemaphore(semaphore);
-				cleared.push_back(semaphore);
+			for (auto& semaphore : pair.second.signals) {
+				if (std::find(cleared.begin(), cleared.end(), semaphore) == cleared.end()) {
+					_device->logical.destroySemaphore(semaphore);
+					cleared.push_back(semaphore);
+				}
 			}
 		}
 	}

@@ -1,13 +1,15 @@
 #include "shadermodule.h"
 
-ao::vulkan::ShaderModule::ShaderModule(Device* _device) : device(_device) {}
+ao::vulkan::ShaderModule::ShaderModule(std::weak_ptr<Device> _device) : device(_device) {}
 
 ao::vulkan::ShaderModule::~ShaderModule() {
-	for (auto& pair : this->shaders) {
-		this->device->logical.destroyShaderModule(pair.second->module);
-		delete pair.second;
+	if (auto _device = ao::core::get(this->device)) {
+		for (auto& pair : this->shaders) {
+			_device->logical.destroyShaderModule(pair.second->module);
+			delete pair.second;
+		}
+		this->shaders.clear();
 	}
-	this->shaders.clear();
 }
 
 std::vector<char> ao::vulkan::ShaderModule::read(std::string filename) {
@@ -17,7 +19,7 @@ std::vector<char> ao::vulkan::ShaderModule::read(std::string filename) {
 
 	// Check file
 	if (!file.is_open()) {
-		throw ao::core::Exception("Fail to open: " + filename);
+		throw ao::core::Exception(fmt::format("Fail to open: {0}", filename));
 	}
 
 	// Get size
@@ -42,10 +44,12 @@ std::vector<char> ao::vulkan::ShaderModule::read(std::string filename) {
 }
 
 vk::ShaderModule ao::vulkan::ShaderModule::createModule(const std::vector<char>& code) {
-	return this->device->logical.createShaderModule(vk::ShaderModuleCreateInfo(vk::ShaderModuleCreateFlags(), code.size(), reinterpret_cast<const u32*>(code.data())));
+	return ao::core::get(this->device)->logical.createShaderModule(vk::ShaderModuleCreateInfo(vk::ShaderModuleCreateFlags(), code.size(), reinterpret_cast<const u32*>(code.data())));
 }
 
 ao::vulkan::ShaderModule & ao::vulkan::ShaderModule::loadShader(std::string filename, vk::ShaderStageFlagBits flag) {
+	auto _device = ao::core::get(this->device);
+
 	// Create module
 	std::vector<char> code = ao::vulkan::ShaderModule::read(filename);
 	vk::ShaderModule module = ao::vulkan::ShaderModule::createModule(code);
@@ -53,7 +57,7 @@ ao::vulkan::ShaderModule & ao::vulkan::ShaderModule::loadShader(std::string file
 	// Destroy old one
 	auto it = this->shaders.find(flag);
 	if (it != this->shaders.end()) {
-		this->device->logical.destroyShaderModule(this->shaders[flag]->module);
+		_device->logical.destroyShaderModule(this->shaders[flag]->module);
 		delete this->shaders[flag];
 
 		this->shaders.erase(it);

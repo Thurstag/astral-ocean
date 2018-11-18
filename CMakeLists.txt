@@ -16,7 +16,7 @@ set(AO_INCLUDE_DIR "${CMAKE_SOURCE_DIR}/include")
 
 # Define dependencies
 set(DEPENDENCIES Vulkan Threads Boost GLM)
-set(SUBMODULES glfw log4cpp)
+set(SUBMODULES glfw log4cpp fmt)
 
 IF(AO_BUILD_TESTS)
 	set(SUBMODULES ${SUBMODULES} googletest)
@@ -26,6 +26,10 @@ ENDIF()
 set(GLFW_BUILD_DOCS OFF CACHE BOOL "" FORCE)
 set(GLFW_BUILD_TESTS OFF CACHE BOOL "" FORCE)
 set(GLFW_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
+
+# Disable FMT unwanted builds
+set(FMT_DOC OFF CACHE BOOL "" FORCE)
+set(FMT_TEST OFF CACHE BOOL "" FORCE)
 
 # Prevent overriding the parent project's compiler/linker
 set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
@@ -82,6 +86,7 @@ FOREACH(SUBMODULE ${SUBMODULES})
 	include_directories(${${SUBMODULE}_INCLUDE_DIR})
 ENDFOREACH(SUBMODULE)
 include_directories("${SUBMODULES_DIR}/CTPL/")
+include_directories("${SUBMODULES_DIR}/fmt/include")
 
 # Include headers
 include_directories(${AO_INCLUDE_DIR})
@@ -95,6 +100,7 @@ ENDIF()
 
 # Force folder creation
 set_target_properties(log4cpp PROPERTIES FOLDER "LOG4C++")
+set_target_properties(fmt PROPERTIES FOLDER "FMT")
 IF(AO_BUILD_BOOTSTRAPS AND WIN32)
 	set_target_properties("win-bootstrap" PROPERTIES FOLDER "AO-BOOTSTRAPS")
 ENDIF()

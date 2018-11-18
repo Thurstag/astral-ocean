@@ -39,7 +39,7 @@ void ao::vulkan::Device::initLogicalDevice(std::vector<char const*> deviceExtens
 
 			// Check index
 			if (index < 0) {
-				throw ao::core::Exception("Fail to find a queueFamily that supports " + to_string(flag));
+				throw ao::core::Exception(fmt::format("Fail to find a queueFamily that supports: {0}", to_string(flag)));
 			}
 
 			// Add index to set

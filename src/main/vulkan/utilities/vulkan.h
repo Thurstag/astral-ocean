@@ -8,6 +8,7 @@
 #include <ao/core/utilities/types.h>
 #include <ao/core/logger/logger.h>
 #include <vulkan/vulkan.hpp>
+#include <fmt/format.h>
 
 #include "../engine/settings.h"
 
@@ -79,7 +80,7 @@ namespace ao {
 					case VK_ERROR_NOT_PERMITTED_EXT:
 						return vk::Result::eErrorNotPermittedEXT;
 					default:
-						throw core::Exception("Unknown vk::Result: " + std::to_string(result));
+						throw core::Exception(fmt::format("Unknown vk::Result: {0}", std::to_string(result)));
 				}
 			}
 
@@ -325,7 +326,7 @@ namespace ao {
 					case vk::PresentModeKHR::eSharedContinuousRefresh:
 						return "PresentModeKHR::eSharedContinuousRefresh";
 					default:
-						throw core::Exception("Unknown vk::PresentModeKHR: " + std::to_string(static_cast<int>(presentMode)));
+						throw core::Exception(fmt::format("Unknown vk::PresentModeKHR: {0}", std::to_string(static_cast<int>(presentMode))));
 				}
 			}
 		}

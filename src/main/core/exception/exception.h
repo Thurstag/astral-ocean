@@ -9,6 +9,9 @@
 
 namespace ao {
 	namespace core {
+		/// <summary>
+		/// Exception with a stack trace
+		/// </summary>
 		class Exception : public std::runtime_error {
 		public:
 			/// <summary>
@@ -28,7 +31,7 @@ namespace ao {
 			/// <summary>
 			/// Destructor
 			/// </summary>
-			virtual ~Exception();
+			virtual ~Exception() = default;
 
 			/// <summary>
 			/// Method to define << operator

@@ -35,7 +35,7 @@ namespace ao {
 			/// </summary>
 			/// <param name="_instance">Instance</param>
 			/// <param name="_device">Device</param>
-			SwapChain(vk::Instance* _instance, Device* _device);
+			SwapChain(std::weak_ptr<vk::Instance> _instance, std::weak_ptr<Device> _device);
 
 			/// <summary>
 			/// Destructor
@@ -81,8 +81,8 @@ namespace ao {
 		protected:
 			core::Logger LOGGER = core::Logger::getInstance<SwapChain>();
 
-			vk::Instance* const instance;
-			Device* const device;
+			std::weak_ptr<vk::Instance> instance;
+			std::weak_ptr<Device> device;
 		};
 	}
 }

@@ -16,7 +16,7 @@ namespace ao {
 			/// Constructor
 			/// </summary>
 			/// <param name="_device">Device</param>
-			BasicBuffer(Device* _device);
+			BasicBuffer(std::weak_ptr<Device> _device);
 
 			/// <summary>
 			/// Destructor
@@ -27,7 +27,7 @@ namespace ao {
 			/// Method to free buffer (buffer + memory)
 			/// </summary>
 			void free();
-			
+
 			/// <summary>
 			/// Method to init buffer, memory & data.
 			/// 
@@ -64,7 +64,7 @@ namespace ao {
 		/* IMPLEMENTATION */
 
 		template<class T>
-		BasicBuffer<T>::BasicBuffer(Device * _device) : Buffer<T>(_device) {}
+		BasicBuffer<T>::BasicBuffer(std::weak_ptr<Device> _device) : Buffer<T>(_device) {}
 
 		template<class T>
 		BasicBuffer<T>::~BasicBuffer() {
@@ -73,12 +73,14 @@ namespace ao {
 
 		template<class T>
 		void BasicBuffer<T>::free() {
+			auto _device = ao::core::get(this->device);
+
 			if (!this->memory) {
-				this->device->logical.unmapMemory(this->memory);
+				_device->logical.unmapMemory(this->memory);
 			}
 
-			this->device->logical.destroyBuffer(this->mBuffer);
-			this->device->logical.freeMemory(this->memory);
+			_device->logical.destroyBuffer(this->mBuffer);
+			_device->logical.freeMemory(this->memory);
 
 			this->mHasBuffer = false;
 			this->mapper = nullptr;
@@ -89,20 +91,21 @@ namespace ao {
 			if (this->hasBuffer()) {
 				this->free();
 			}
+			auto _device = ao::core::get(this->device);
 
 			// Create buffer
-			this->mBuffer = this->device->logical.createBuffer(vk::BufferCreateInfo(vk::BufferCreateFlags(), size, usageFlags, sharingMode));
+			this->mBuffer = _device->logical.createBuffer(vk::BufferCreateInfo(vk::BufferCreateFlags(), size, usageFlags, sharingMode));
 
 			// Get memory requirements
-			vk::MemoryRequirements memRequirements = this->device->logical.getBufferMemoryRequirements(this->mBuffer);
+			vk::MemoryRequirements memRequirements = _device->logical.getBufferMemoryRequirements(this->mBuffer);
 
 			// Allocate memory
-			this->memory = this->device->logical.allocateMemory(
-				vk::MemoryAllocateInfo(memRequirements.size, this->device->memoryType(memRequirements.memoryTypeBits, memoryFlags))
+			this->memory = _device->logical.allocateMemory(
+				vk::MemoryAllocateInfo(memRequirements.size, _device->memoryType(memRequirements.memoryTypeBits, memoryFlags))
 			);
 
 			// Bind memory and buffer
-			this->device->logical.bindBufferMemory(this->mBuffer, this->memory, 0);
+			_device->logical.bindBufferMemory(this->mBuffer, this->memory, 0);
 
 			// Update fields
 			this->mHasBuffer = true;
@@ -121,7 +124,7 @@ namespace ao {
 			if (this->mapper) {
 				throw ao::core::Exception("Buffer is already mapped");
 			}
-			this->mapper = this->device->logical.mapMemory(this->memory, 0, mSize);
+			this->mapper = ao::core::get(this->device)->logical.mapMemory(this->memory, 0, mSize);
 			return *this;
 		}
 

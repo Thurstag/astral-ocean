@@ -3,6 +3,7 @@
 #include <string>
 
 #include <ao/core/memory/map_container.hpp>
+#include <ao/core/utilities/pointers.h>
 #include <vulkan/vulkan.hpp>
 
 #include "../wrappers/device.h"
@@ -37,7 +38,7 @@ namespace ao {
 			/// Constructor
 			/// </summary>
 			/// <param name="_device">Device</param>
-			SemaphoreContainer(Device* _device) : device(_device) {}
+			SemaphoreContainer(std::weak_ptr<Device> _device) : device(_device) {}
 
 			/// <summary>
 			/// Destructor
@@ -47,7 +48,7 @@ namespace ao {
 			virtual void clear() override;
 
 		protected:
-			Device* device = nullptr;
+			std::weak_ptr<Device> device;
 		};
 	}
 }

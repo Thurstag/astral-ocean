@@ -20,7 +20,7 @@ void ao::vulkan::GLFWEngine::initWindow() {
 
 void ao::vulkan::GLFWEngine::initSurface(vk::SurfaceKHR& surface) {
 	VkSurfaceKHR _s;
-	ao::vulkan::utilities::vkAssert(glfwCreateWindowSurface(this->instance, this->window, nullptr, &_s), "Fail to create surface");
+	ao::vulkan::utilities::vkAssert(glfwCreateWindowSurface(*this->instance, this->window, nullptr, &_s), "Fail to create surface");
 
 	surface = _s;
 }

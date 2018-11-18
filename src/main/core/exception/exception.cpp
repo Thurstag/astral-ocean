@@ -12,8 +12,4 @@ ao::core::Exception::Exception(char const * message, bool stacktrace) : std::run
 	if (stacktrace) {
 		this->stack = boost::make_optional(boost::stacktrace::stacktrace(3, static_cast<std::size_t>(-1)));
 	}
-}
-
-ao::core::Exception::~Exception() {
-
 } 

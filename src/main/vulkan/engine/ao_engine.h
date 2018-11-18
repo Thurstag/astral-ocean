@@ -63,7 +63,7 @@ namespace ao {
 			core::Logger LOGGER = core::Logger::getInstance<AOEngine>();
 			
 			std::vector<vk::Fence> waitingFences;
-			SemaphoreContainer semaphores = nullptr;
+			SemaphoreContainer semaphores;
 
 			std::vector<vk::DescriptorSetLayout> descriptorSetLayouts;
 			std::vector<vk::DescriptorPool>	descriptorPools;
@@ -75,11 +75,11 @@ namespace ao {
 
 			EngineSettings mSettings;
 
+			std::shared_ptr<vk::Instance> instance;
+			std::shared_ptr<SwapChain> swapchain;
+			std::shared_ptr<Pipeline> pipeline;
+			std::shared_ptr<Device> device;
 			vk::RenderPass renderPass;
-			SwapChain* swapchain;
-			vk::Instance instance;
-			Pipeline* pipeline;
-			Device* device;
 
 			/// <summary>
 			/// Method to init vulkan

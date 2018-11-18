@@ -1,30 +1,38 @@
+#include <ao/core/utilities/pointers.h>
+
 #include "swapchain.h"
 
-ao::vulkan::SwapChain::SwapChain(vk::Instance* _instance, Device* _device) : instance(_instance), device(_device) {
+ao::vulkan::SwapChain::SwapChain(std::weak_ptr<vk::Instance> _instance, std::weak_ptr<Device> _device) : instance(_instance), device(_device) {
 	// Init helpers
 	this->commandBufferHelpers.first[0].setColor(vk::ClearColorValue());
 	this->commandBufferHelpers.first[1].setDepthStencil(vk::ClearDepthStencilValue(1));
 }
 
 ao::vulkan::SwapChain::~SwapChain() {
-	for (auto& buffer : this->buffers) {
-		this->device->logical.destroyImageView(buffer.second);
-	}
-	this->buffers.clear();
-	
-	this->device->logical.destroySwapchainKHR(this->swapChain);
-	this->instance->destroySurfaceKHR(this->surface);
+	if (auto _device = ao::core::get(this->device)) {
+		for (auto& buffer : this->buffers) {
+			_device->logical.destroyImageView(buffer.second);
+		}
+		this->buffers.clear();
 
-	this->freeCommandBuffers();
-	this->device->logical.destroyCommandPool(this->commandPool);
+		_device->logical.destroySwapchainKHR(this->swapChain);
+		if (auto _instance = ao::core::get(this->instance)) {
+			_instance->destroySurfaceKHR(this->surface);
+		}
+
+		this->freeCommandBuffers();
+		_device->logical.destroyCommandPool(this->commandPool);
+	}
 }
 
 void ao::vulkan::SwapChain::init(u64 & width, u64 & height, bool vsync) {
 	// Back-up swap chain
 	vk::SwapchainKHR old = this->swapChain;
 
+	auto _device = ao::core::get(this->device);
+
 	// Get physical device surface properties and formats
-	vk::SurfaceCapabilitiesKHR capabilities = this->device->physical.getSurfaceCapabilitiesKHR(this->surface);
+	vk::SurfaceCapabilitiesKHR capabilities = _device->physical.getSurfaceCapabilitiesKHR(this->surface);
 
 	// Find best swap chain size
 	if (capabilities.currentExtent.width == (u32)-1) {
@@ -32,7 +40,7 @@ void ao::vulkan::SwapChain::init(u64 & width, u64 & height, bool vsync) {
 	}
 	else {
 		if (capabilities.currentExtent.width != width || capabilities.currentExtent.height != height) {
-			LOGGER << LogLevel::WARN << "Surface size is defined, change reference size from " << width << "x" << height << " to " << capabilities.currentExtent.width << "x" << capabilities.currentExtent.height;
+			LOGGER << LogLevel::WARN << fmt::format("Surface size is defined, change reference size from {0}x{1} to {2}x{3}", width, height, capabilities.currentExtent.width, capabilities.currentExtent.height);
 		}
 
 		this->currentExtent = capabilities.currentExtent;
@@ -47,7 +55,7 @@ void ao::vulkan::SwapChain::init(u64 & width, u64 & height, bool vsync) {
 	}
 	else {
 		// Get present modes
-		std::vector<vk::PresentModeKHR> presentModes = ao::vulkan::utilities::presentModeKHRs(this->device->physical, this->surface);
+		std::vector<vk::PresentModeKHR> presentModes = ao::vulkan::utilities::presentModeKHRs(_device->physical, this->surface);
 
 		// Check size
 		if (presentModes.empty()) {
@@ -107,18 +115,18 @@ void ao::vulkan::SwapChain::init(u64 & width, u64 & height, bool vsync) {
 	}
 
 	// Create swap chain
-	this->swapChain = this->device->logical.createSwapchainKHR(createInfo);
-	
+	this->swapChain = _device->logical.createSwapchainKHR(createInfo);
+
 	// Free old swap chain
 	if (old) {
 		for (auto& buffer : this->buffers) {
-			this->device->logical.destroyImageView(buffer.second);
+			_device->logical.destroyImageView(buffer.second);
 		}
-		this->device->logical.destroySwapchainKHR(old);
+		_device->logical.destroySwapchainKHR(old);
 	}
 
 	// Get images
-	std::vector<vk::Image> images = ao::vulkan::utilities::swapChainImages(this->device->logical, this->swapChain);
+	std::vector<vk::Image> images = ao::vulkan::utilities::swapChainImages(_device->logical, this->swapChain);
 
 	// Resize buffer vector
 	this->buffers.resize(images.size());
@@ -136,29 +144,31 @@ void ao::vulkan::SwapChain::init(u64 & width, u64 & height, bool vsync) {
 		buffers[i].first = images[i];
 
 		// Create view
-		this->buffers[i].second = this->device->logical.createImageView(colorCreateInfo);
+		this->buffers[i].second = _device->logical.createImageView(colorCreateInfo);
 	}
 
-	LOGGER << LogLevel::DEBUG << "Set-up a swap chain of " << buffers.size() << " image(s)";
+	LOGGER << LogLevel::DEBUG << fmt::format("Set-up a swap chain of {0} image{1}", buffers.size(), buffers.size() > 1 ? "s" : "");
 
 	// Update helpers
 	this->commandBufferHelpers.second = vk::Rect2D(vk::Offset2D(), this->currentExtent);
 }
 
 void ao::vulkan::SwapChain::initSurface() {
+	auto _device = ao::core::get(this->device);
+
 	// Detect if a queue supports present
-	std::vector<vk::Bool32> supportsPresent(this->device->physical.getQueueFamilyProperties().size());
+	std::vector<vk::Bool32> supportsPresent(_device->physical.getQueueFamilyProperties().size());
 	for (u32 i = 0; i < supportsPresent.size(); i++) {
-		supportsPresent[i] = this->device->physical.getSurfaceSupportKHR(i, this->surface);
+		supportsPresent[i] = _device->physical.getSurfaceSupportKHR(i, this->surface);
 	}
 	
 	// Try to find a queue that supports present
 	boost::optional<vk::QueueFlagBits> flag;
-	for (auto& pair : this->device->queues) {
+	for (auto& pair : _device->queues) {
 		if (supportsPresent[pair.second.index] == VK_TRUE) {
 			flag = pair.first;
 
-			LOGGER << LogLevel::DEBUG << "Use " << to_string(pair.first) << " queue to present images";
+			LOGGER << LogLevel::DEBUG << fmt::format("Use {0} queue to present images", to_string(pair.first));
 			break;
 		}
 	}
@@ -167,10 +177,10 @@ void ao::vulkan::SwapChain::initSurface() {
 	if (!flag) {
 		throw core::Exception("Fail to find a queue that supports present");
 	}
-	this->presentQueue = this->device->queues[*flag].queue;
+	this->presentQueue = _device->queues[*flag].queue;
 
 	// Get surface formats
-	std::vector<vk::SurfaceFormatKHR> formats = ao::vulkan::utilities::surfaceFormatKHRs(this->device->physical, this->surface);
+	std::vector<vk::SurfaceFormatKHR> formats = ao::vulkan::utilities::surfaceFormatKHRs(_device->physical, this->surface);
 
 	// Check size
 	if (formats.empty()) {
@@ -203,22 +213,27 @@ void ao::vulkan::SwapChain::initSurface() {
 }
 
 void ao::vulkan::SwapChain::initCommandPool() {
-	this->commandPool = this->device->logical.createCommandPool(vk::CommandPoolCreateInfo(vk::CommandPoolCreateFlagBits::eResetCommandBuffer, this->device->queues[vk::QueueFlagBits::eGraphics].index));
+	if (auto _device = ao::core::get(this->device)) {
+		this->commandPool = _device->logical.createCommandPool(vk::CommandPoolCreateInfo(vk::CommandPoolCreateFlagBits::eResetCommandBuffer, _device->queues[vk::QueueFlagBits::eGraphics].index));
+	}
 }
 
 void ao::vulkan::SwapChain::createCommandBuffers() {
-	this->primaryCommandBuffers = this->device->logical.allocateCommandBuffers(vk::CommandBufferAllocateInfo(this->commandPool, vk::CommandBufferLevel::ePrimary, static_cast<u32>(this->buffers.size())));
+	this->primaryCommandBuffers = ao::core::get(this->device)->logical.allocateCommandBuffers(vk::CommandBufferAllocateInfo(this->commandPool, vk::CommandBufferLevel::ePrimary, static_cast<u32>(this->buffers.size())));
 }
 
 void ao::vulkan::SwapChain::freeCommandBuffers() {
-	this->device->logical.freeCommandBuffers(this->commandPool, this->primaryCommandBuffers);
-	this->device->logical.freeCommandBuffers(this->commandPool, this->secondaryCommandBuffers);
+	if (auto _device = ao::core::get(this->device)) {
+		_device->logical.freeCommandBuffers(this->commandPool, this->primaryCommandBuffers);
+		_device->logical.freeCommandBuffers(this->commandPool, this->secondaryCommandBuffers);
+	}
 }
 
 vk::Result ao::vulkan::SwapChain::nextImage(vk::Semaphore& present, u32& imageIndex) {
-	auto MAX_64 = std::numeric_limits<u64>::max;
-
-	return this->device->logical.acquireNextImageKHR(this->swapChain, MAX_64(), present, nullptr, &imageIndex);
+	if (auto _device = ao::core::get(this->device)) {
+		return _device->logical.acquireNextImageKHR(this->swapChain, (std::numeric_limits<u64>::max)(), present, nullptr, &imageIndex);
+	}
+	return vk::Result::eErrorDeviceLost;
 }
 
 vk::Result ao::vulkan::SwapChain::enqueueImage(u32 & imageIndex, std::vector<vk::Semaphore> & waitSemaphores) {

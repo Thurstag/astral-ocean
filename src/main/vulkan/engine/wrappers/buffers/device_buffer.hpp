@@ -14,8 +14,8 @@ namespace ao {
 			/// </summary>
 			/// <param name="device">Device</param>
 			/// <param name="_usage">Buffer usage</param>
-			DeviceBuffer(Device* device, vk::CommandBufferUsageFlags _usage = vk::CommandBufferUsageFlagBits::eSimultaneousUse);
-			
+			DeviceBuffer(std::weak_ptr<Device> device, vk::CommandBufferUsageFlags _usage = vk::CommandBufferUsageFlagBits::eSimultaneousUse);
+
 			/// <summary>
 			/// Destructor
 			/// </summary>
@@ -35,7 +35,7 @@ namespace ao {
 			/// <param name="usageFlags">Additional usage flags</param>
 			/// <param name="data">Data</param>
 			/// <returns>This</returns>
-			virtual DeviceBuffer<T>& init(vk::DeviceSize size, boost::optional<vk::BufferUsageFlags> usageFlags = boost::none,  boost::optional<T> data = boost::none);
+			virtual DeviceBuffer<T>& init(vk::DeviceSize size, boost::optional<vk::BufferUsageFlags> usageFlags = boost::none, boost::optional<T> data = boost::none);
 
 			DeviceBuffer<T>& update(T data) override;
 			vk::DeviceSize size() override;
@@ -59,15 +59,16 @@ namespace ao {
 		/* IMPLEMENTATION */
 
 		template<class T>
-		DeviceBuffer<T>::DeviceBuffer(Device * device, vk::CommandBufferUsageFlags _usage) : Buffer<T>(device), usage(_usage) {}
+		DeviceBuffer<T>::DeviceBuffer(std::weak_ptr<Device> device, vk::CommandBufferUsageFlags _usage) : Buffer<T>(device), usage(_usage) {}
 
 		template<class T>
 		DeviceBuffer<T>::~DeviceBuffer() {
 			this->free();
 
+			auto _device = ao::core::get(this->device);
 			if (!(this->usage & vk::CommandBufferUsageFlagBits::eOneTimeSubmit)) {
-				this->device->logical.freeCommandBuffers(this->device->transferCommandPool, this->commandBuffer);
-				this->device->logical.destroyFence(this->fence);
+				_device->logical.freeCommandBuffers(_device->transferCommandPool, this->commandBuffer);
+				_device->logical.destroyFence(this->fence);
 			}
 		}
 
@@ -92,10 +93,10 @@ namespace ao {
 			// Init buffer in host's memory
 			this->hostBuffer = &(new BasicBuffer<T>(this->device))
 				->init(vk::BufferUsageFlagBits::eTransferSrc, vk::SharingMode::eExclusive,
-					  vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent,
-					  size, data);
+					   vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent,
+					   size, data);
 
-			// Init buffer in device's memory
+			 // Init buffer in device's memory
 			if (usageFlags) {
 				this->deviceBuffer = &(new BasicBuffer<T>(this->device))
 					->init(vk::BufferUsageFlagBits::eTransferDst | usageFlags.get(), vk::SharingMode::eExclusive,
@@ -108,11 +109,13 @@ namespace ao {
 			}
 
 
-			// Create command buffer
-			this->commandBuffer = this->device->logical.allocateCommandBuffers(vk::CommandBufferAllocateInfo(this->device->transferCommandPool, vk::CommandBufferLevel::ePrimary, 1))[0];
+			if (auto _device = ao::core::get(this->device)) {
+				// Create command buffer
+				this->commandBuffer = _device->logical.allocateCommandBuffers(vk::CommandBufferAllocateInfo(_device->transferCommandPool, vk::CommandBufferLevel::ePrimary, 1))[0];
 
-			// Create fence
-			this->fence = this->device->logical.createFence(vk::FenceCreateInfo(vk::FenceCreateFlagBits::eSignaled));
+				// Create fence
+				this->fence = _device->logical.createFence(vk::FenceCreateInfo(vk::FenceCreateFlagBits::eSignaled));
+			}
 
 			// Synchronize memories
 			if (data) {
@@ -159,6 +162,7 @@ namespace ao {
 			if ((this->usage & vk::CommandBufferUsageFlagBits::eOneTimeSubmit) && !this->hostBuffer) {
 				throw ao::core::Exception("Buffer usage is eOneTimeSubmit, can't update it");
 			}
+			auto _device = ao::core::get(this->device);
 
 			// Create command to transfer data from host to device
 			this->commandBuffer.begin(vk::CommandBufferBeginInfo(this->usage));
@@ -172,19 +176,18 @@ namespace ao {
 				.setPCommandBuffers(&this->commandBuffer);
 
 			// Submit command
-			this->device->queues[vk::QueueFlagBits::eTransfer].queue.submit(submitInfo, this->fence);
+			_device->queues[vk::QueueFlagBits::eTransfer].queue.submit(submitInfo, this->fence);
 
 			// Wait fence
-			auto MAX_64 = std::numeric_limits<u64>::max;
-			this->device->logical.waitForFences(this->fence, VK_TRUE, MAX_64());
+			_device->logical.waitForFences(this->fence, VK_TRUE, (std::numeric_limits<u64>::max)());
 
 			// Reset fence
-			this->device->logical.resetFences(this->fence);
+			_device->logical.resetFences(this->fence);
 
 			// Free useless resources
 			if (this->usage & vk::CommandBufferUsageFlagBits::eOneTimeSubmit) {
-				this->device->logical.freeCommandBuffers(this->device->transferCommandPool, this->commandBuffer);
-				this->device->logical.destroyFence(this->fence);
+				_device->logical.freeCommandBuffers(_device->transferCommandPool, this->commandBuffer);
+				_device->logical.destroyFence(this->fence);
 
 				delete this->hostBuffer;
 				this->hostBuffer = nullptr;

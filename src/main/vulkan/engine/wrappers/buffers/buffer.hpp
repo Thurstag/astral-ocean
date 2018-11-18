@@ -13,12 +13,12 @@ namespace ao {
 			/// Constructor
 			/// </summary>
 			/// <param name="_device">Device</param>
-			Buffer(Device* _device);
+			Buffer(std::weak_ptr<Device> _device);
 
 			/// <summary>
 			/// Destructor
 			/// </summary>
-			virtual ~Buffer();
+			virtual ~Buffer() = default;
 
 			/// <summary>
 			/// Method to know if object has a buffer
@@ -47,15 +47,12 @@ namespace ao {
 
 		protected:
 			core::Logger LOGGER = core::Logger::getInstance<Buffer<T>>();
-			Device* const device;
+			std::weak_ptr<Device> device;
 		};
 
 		/* IMPLEMENTATION */
 
 		template<class T>
-		Buffer<T>::Buffer(Device * _device) : device(_device) {}
-
-		template<class T>
-		Buffer<T>::~Buffer() {}
+		Buffer<T>::Buffer(std::weak_ptr<Device> _device) : device(_device) {}
 	}
 }

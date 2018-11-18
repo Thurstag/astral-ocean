@@ -35,7 +35,7 @@ namespace ao {
 			/// <summary>
 			/// Destructor
 			/// </summary>
-			virtual ~Logger();
+			virtual ~Logger() = default;
 
 			/// <summary>
 			/// Method to get a logger instance

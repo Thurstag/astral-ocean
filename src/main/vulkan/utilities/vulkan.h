@@ -122,10 +122,20 @@ namespace ao {
 				// Create app info (TODO: Optimize this part (retrieve info in settings) !!!)
 				vk::ApplicationInfo appInfo("Hello Triangle", VK_MAKE_VERSION(1, 0, 0), "No Engine", VK_MAKE_VERSION(1, 0, 0), VK_API_VERSION_1_0);
 
+				// Add validation extension
+				if (settings.core.validationLayers) {
+					extensions.push_back(VK_EXT_DEBUG_REPORT_EXTENSION_NAME);
+				}
+
 				// Create instance info
-				vk::InstanceCreateInfo instanceInfo(vk::InstanceCreateFlags(), &appInfo);
-				instanceInfo.setEnabledExtensionCount(static_cast<u32>(extensions.size()));
-				instanceInfo.setPpEnabledExtensionNames(extensions.data());
+				vk::InstanceCreateInfo instanceInfo = vk::InstanceCreateInfo(vk::InstanceCreateFlags(), &appInfo)
+					.setEnabledExtensionCount(static_cast<u32>(extensions.size()))
+					.setPpEnabledExtensionNames(extensions.data());
+
+				if (settings.core.validationLayers) {
+					instanceInfo.setEnabledLayerCount(static_cast<u32>(validationLayer.size()))
+						.setPpEnabledLayerNames(validationLayer.data());
+				}
 
 				// Create instance
 				return vk::createInstance(instanceInfo);

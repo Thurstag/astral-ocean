@@ -95,6 +95,10 @@ namespace ao {
 			void freeVulkan();
 
 			/// <summary>
+			/// Method to set-up debugging
+			/// </summary>
+			void setUpDebugging();
+			/// <summary>
 			/// Method to create waiting fences
 			/// </summary>
 			void createWaitingFences();
@@ -185,23 +189,45 @@ namespace ao {
 			/// <summary>
 			/// Method to get device extensions that must be enabled
 			/// </summary>
-			/// <returns></returns>
+			/// <returns>Extensions</returns>
 			virtual std::vector<char const*> deviceExtensions();
 			/// <summary>
 			/// Method to get device features that must be enabled
 			/// </summary>
-			/// <returns></returns>
+			/// <returns>Features</returns>
 			virtual std::vector<vk::PhysicalDeviceFeatures> deviceFeatures();
 			/// <summary>
 			/// Method to define queue flags
 			/// </summary>
-			/// <returns>flags</returns>
+			/// <returns>Flags</returns>
 			virtual vk::QueueFlags queueFlags();
 			/// <summary>
 			/// Method to define command pool flags
 			/// </summary>
-			/// <returns>flags</returns>
+			/// <returns>Flags</returns>
 			virtual vk::CommandPoolCreateFlags commandPoolFlags();
+			/// <summary>
+			/// Method to define debug report flags
+			/// </summary>
+			/// <returns>Flags</returns>
+			virtual vk::DebugReportFlagsEXT debugReportFlags();
+
+			/// <summary>
+			/// Method to define a report callback
+			/// </summary>
+			/// <param name="flags">Flags</param>
+			/// <param name="type">Type</param>
+			/// <param name="srcObject">Source object</param>
+			/// <param name="location">Location</param>
+			/// <param name="msgCode">Message code</param>
+			/// <param name="pLayerPrefix">Layer prefix</param>
+			/// <param name="pMsg">Message</param>
+			/// <param name="pUserData">Use data</param>
+			/// <returns>True or False</returns>
+			static VKAPI_ATTR VkBool32 VKAPI_CALL debugReportCallBack(
+				VkDebugReportFlagsEXT flags, VkDebugReportObjectTypeEXT type,
+				u64 srcObject, size_t location, s32 msgCode, const char* pLayerPrefix,
+				const char* message,  void* pUserData);
 
 			/// <summary>
 			/// Method to select a vk::PhysicalDevice
@@ -254,6 +280,8 @@ namespace ao {
 			/// </summary>
 			virtual void createDescriptorSets() = 0;
 		private:
+			vk::DebugReportCallbackEXT debugCallBack;
+
 			ctpl::thread_pool commandBufferPool;
 
 			std::vector<core::Plugin<AOEngine>*> plugins;

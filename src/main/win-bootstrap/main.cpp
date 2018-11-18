@@ -30,7 +30,10 @@ int main(int argc, char* argv[]) {
 	ao::core::Logger LOGGER = ao::core::Logger::getInstance<Main>();
 
 	// Define settings
-	ao::vulkan::EngineSettings settings = { {std::string("TEST"), 1280, 720, true, true} };
+	ao::vulkan::EngineSettings settings(
+		ao::vulkan::WindowSettings("Win-Bootstrap", 1280, 720, true, true),
+		ao::vulkan::CoreSettings(std::thread::hardware_concurrency(), true)
+	);
 	ao::vulkan::AOEngine* engine;
 
 	try {

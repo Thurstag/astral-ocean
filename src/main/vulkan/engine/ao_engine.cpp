@@ -2,7 +2,7 @@
 
 ao::vulkan::AOEngine::AOEngine(EngineSettings settings) : mSettings(settings) {
 	// Resize pool
-	this->commandBufferPool.resize(this->mSettings.threadPoolSize);
+	this->commandBufferPool.resize(this->mSettings.core.threadPoolSize);
 	LOGGER << LogLevel::INFO << "Init a thread pool for command buffer processing with " << this->commandBufferPool.size() << " thread(s)";
 }
 
@@ -56,6 +56,11 @@ void ao::vulkan::AOEngine::add(ao::core::Plugin<AOEngine> * plugin) {
 void ao::vulkan::AOEngine::initVulkan() {
 	// Create instance
 	this->instance = utilities::createVkInstance(this->mSettings, this->instanceExtensions());
+
+	// Set-up debugging
+	if (this->mSettings.core.validationLayers) {
+		this->setUpDebugging();
+	}
 
 	// Get GPUs
 	std::vector<vk::PhysicalDevice> devices = ao::vulkan::utilities::vkPhysicalDevices(this->instance);
@@ -113,7 +118,25 @@ void ao::vulkan::AOEngine::freeVulkan() {
 	this->waitingFences.clear();
 
 	delete this->device;
+
+	if (this->mSettings.core.validationLayers) {
+		PFN_vkDestroyDebugReportCallbackEXT DestroyDebugReportCallback = reinterpret_cast<PFN_vkDestroyDebugReportCallbackEXT>(vkGetInstanceProcAddr(instance, "vkDestroyDebugReportCallbackEXT"));
+		DestroyDebugReportCallback(this->instance, this->debugCallBack, nullptr);
+	}
+
 	this->instance.destroy();
+}
+
+void ao::vulkan::AOEngine::setUpDebugging() {
+	PFN_vkCreateDebugReportCallbackEXT CreateDebugReportCallback = reinterpret_cast<PFN_vkCreateDebugReportCallbackEXT>(this->instance.getProcAddr("vkCreateDebugReportCallbackEXT"));
+	VkDebugReportCallbackCreateInfoEXT createInfo = vk::DebugReportCallbackCreateInfoEXT(this->debugReportFlags(), debugReportCallBack);
+	VkDebugReportCallbackEXT callback = this->debugCallBack;
+
+	// Create callback
+	CreateDebugReportCallback(this->instance, &createInfo, nullptr, &callback);
+
+	// Update real callback
+	this->debugCallBack = vk::DebugReportCallbackEXT(callback);
 }
 
 void ao::vulkan::AOEngine::createWaitingFences() {
@@ -479,6 +502,59 @@ vk::QueueFlags ao::vulkan::AOEngine::queueFlags() {
 
 vk::CommandPoolCreateFlags ao::vulkan::AOEngine::commandPoolFlags() {
 	return vk::CommandPoolCreateFlagBits::eResetCommandBuffer;
+}
+
+vk::DebugReportFlagsEXT ao::vulkan::AOEngine::debugReportFlags() {
+	return vk::DebugReportFlagBitsEXT::eError | vk::DebugReportFlagBitsEXT::eWarning | 
+		vk::DebugReportFlagBitsEXT::eDebug | vk::DebugReportFlagBitsEXT::ePerformanceWarning;
+}
+
+VKAPI_ATTR VkBool32 VKAPI_CALL ao::vulkan::AOEngine::debugReportCallBack(VkDebugReportFlagsEXT flags, VkDebugReportObjectTypeEXT type, u64 srcObject, size_t location, s32 msgCode, const char * pLayerPrefix, const char * message, void * pUserData) {
+	ao::core::Logger LOGGER = core::Logger::getInstance<ao::vulkan::AOEngine>();
+	std::array<vk::DebugReportFlagBitsEXT, 5> Allflags = {
+		vk::DebugReportFlagBitsEXT::eError, vk::DebugReportFlagBitsEXT::eWarning,
+		vk::DebugReportFlagBitsEXT::eDebug, vk::DebugReportFlagBitsEXT::eInformation,
+		vk::DebugReportFlagBitsEXT::ePerformanceWarning 
+	};
+
+	// Find best flag
+	vk::DebugReportFlagsEXT _flags(flags);
+	boost::optional<vk::DebugReportFlagBitsEXT> flag;
+	for (auto& _flag : Allflags) {
+		if ((_flags & _flag) && (!flag || flag.get() < _flag)) {
+			flag = _flag;
+		}
+	}
+
+	// Check flag
+	if (!flag) {
+		throw ao::core::Exception("Fail to find best vk::DebugReportFlagBitsEXT");
+	}
+
+	// Log
+	switch (flag.get()) {
+		case vk::DebugReportFlagBitsEXT::eInformation:
+			LOGGER << LogLevel::INFO << "[" << to_string(flag.get()) << "] " << message;
+			break;
+
+		case vk::DebugReportFlagBitsEXT::eWarning:
+		case vk::DebugReportFlagBitsEXT::ePerformanceWarning:
+			LOGGER << LogLevel::WARN << "[" << to_string(flag.get()) << "] " << message;
+			break;
+
+		case vk::DebugReportFlagBitsEXT::eError:
+			LOGGER << LogLevel::ERROR << "[" << to_string(flag.get()) << "] " << message;
+			return VK_TRUE;
+
+		case vk::DebugReportFlagBitsEXT::eDebug:
+			LOGGER << LogLevel::DEBUG << "[" << to_string(flag.get()) << "] " << message;
+			break;
+
+		default:
+			throw ao::core::Exception("Unknown vk::DebugReportFlagBitsEXT");
+	}
+
+	return VK_FALSE; // Avoid to abort
 }
 
 size_t ao::vulkan::AOEngine::selectVkPhysicalDevice(std::vector<vk::PhysicalDevice>& devices) {

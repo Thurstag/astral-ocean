@@ -26,7 +26,7 @@ namespace ao {
 		 	explicit SemaphorePair(std::vector<vk::Semaphore> _waits , std::vector<vk::Semaphore> _signals) : waits(_waits), signals(_signals) {}
 		};
 
-		class SemaphoreContainer : public core::MapContainer<std::string, SemaphorePair> {
+		class SemaphoreContainer : public core::MapContainer<std::string, SemaphorePair, std::map<std::string, SemaphorePair>::iterator> {
 		public:
 			/// <summary>
 			/// Constructor

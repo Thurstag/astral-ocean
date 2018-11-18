@@ -11,8 +11,8 @@ namespace ao {
 			u64 width;
 			u64 height;
 
-			bool rezisable;
-			bool vsync;
+			bool rezisable = true;
+			bool vsync = false;
 
 			/// <summary>
 			/// Constructor
@@ -22,23 +22,36 @@ namespace ao {
 			/// <summary>
 			/// Constructor
 			/// </summary>
-			/// <param name="name">Window's name</param>
-			/// <param name="width">Window's width</param>
-			/// <param name="height">Window's height</param>
-			/// <param name="rezisable">Window is rezisable</param>
-			/// <param name="vsync">V-Sync is enabled</param>
-			WindowSettings(std::string name, u64 width, u64 height, bool rezisable = false, bool vsync = false) {
-				this->name = name;
-				this->width = width;
-				this->height = height;
-				this->rezisable = rezisable;
-				this->vsync = vsync;
-			}
+			/// <param name="_name">Window's name</param>
+			/// <param name="_width">Window's width</param>
+			/// <param name="_height">Window's height</param>
+			/// <param name="_rezisable">Window is rezisable</param>
+			/// <param name="_vsync">V-Sync is enabled</param>
+			explicit WindowSettings(std::string _name, u64 _width, u64 _height, bool _rezisable = true, bool _vsync = false) :
+				name(_name), width(_width), height(_height), rezisable(_rezisable), vsync(_vsync) {}
+		};
+
+		struct CoreSettings {
+			int threadPoolSize = std::thread::hardware_concurrency();
+			bool validationLayers = false;
+
+			/// <summary>
+			/// Constructor
+			/// </summary>
+			CoreSettings() = default;
+
+			/// <summary>
+			/// Constructor
+			/// </summary>
+			/// <param name="_threadPoolSize">Thread pool's size</param>
+			/// <param name="_validationLayers">Enable validation layers</param>
+			explicit CoreSettings(int _threadPoolSize = std::thread::hardware_concurrency(), bool _validationLayers = false) :
+				threadPoolSize(_threadPoolSize), validationLayers(_validationLayers) {}
 		};
 
 		struct EngineSettings {
-			int threadPoolSize = std::thread::hardware_concurrency();
 			WindowSettings window;
+			CoreSettings core;
 
 			/// <summary>
 			/// Constructor
@@ -48,12 +61,9 @@ namespace ao {
 			/// <summary>
 			/// Constructor
 			/// </summary>
-			/// <param name="window">Window settings</param>
-			/// <param name="threadPoolSize">Thread pool's size</param>
-			EngineSettings(WindowSettings window, u32 threadPoolSize = std::thread::hardware_concurrency()) {
-				this->window = window;
-				this->threadPoolSize = threadPoolSize;
-			}
+			/// <param name="_window">Window settings</param>
+			/// <param name="_core">Core settings</param>
+			explicit EngineSettings(WindowSettings _window, CoreSettings _core) : window(_window), core(_core) {}
 		};
 	}
 }

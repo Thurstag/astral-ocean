@@ -14,7 +14,7 @@ FOREACH(TEST_FILE IN LISTS AO_TEST_FILES)
 	set_target_properties("${TEST_FILE_NAME}" PROPERTIES FOLDER "AO-TESTS/${TEST_FILE_PATH}" RUNTIME_OUTPUT_DIRECTORY "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/tests")
 
 	# Link libraries
-	target_link_libraries("${TEST_FILE_NAME}" gtest_main "ao-core" ${Boost_LIBRARIES})
+	target_link_libraries("${TEST_FILE_NAME}" gtest_main "ao-core" ${Boost_LIBRARIES} "ao-vulkan")
 
 	# Define test
 	add_test(NAME "${TEST_FILE_NAME}" COMMAND "${TEST_FILE_NAME}" WORKING_DIRECTORY) 

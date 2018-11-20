@@ -5,7 +5,7 @@
 #include <algorithm>
 #include <vector>
 
-#include <ao/vulkan/engine/wrappers/buffers/device_buffer.hpp>
+#include <ao/vulkan/engine/wrappers/buffers/staging_buffer.hpp>
 #include <ao/vulkan/engine/wrappers/shadermodule.h>
 #include <ao/vulkan/engine/glfw_engine.h>
 #include <ao/vulkan/engine/settings.h>
@@ -24,8 +24,8 @@ public:
 	std::vector<Vertex> vertices;
 	std::vector<u16> indices;
 
-	ao::vulkan::Buffer<Vertex*>* vertexBuffer;
-	ao::vulkan::Buffer<u16*>* indexBuffer;
+	std::unique_ptr<ao::vulkan::TupleBuffer<Vertex*>> vertexBuffer;
+	std::unique_ptr<ao::vulkan::TupleBuffer<u16*>> indexBuffer;
 
 	TriangleDemo(ao::vulkan::EngineSettings settings) : ao::vulkan::GLFWEngine(settings), ao::vulkan::AOEngine(settings) {
 		this->vertices = {

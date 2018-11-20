@@ -10,7 +10,7 @@ void ao::vulkan::SemaphoreContainer::clear() {
 	std::vector<vk::Semaphore> cleared;
 
 	// Destroy semaphores
-	if (auto _device = ao::core::get(this->device)) {
+	if (auto _device = ao::core::shared(this->device)) {
 		for (auto& pair : map) {
 			for (auto& semaphore : pair.second.waits) {
 				if (std::find(cleared.begin(), cleared.end(), semaphore) == cleared.end()) {

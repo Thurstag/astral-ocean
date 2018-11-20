@@ -1,37 +1,30 @@
 #pragma once
 
+#include <memory>
+
 #include <ao/core/logger/logger.h>
 
 #include "../device.h"
 
 namespace ao {
 	namespace vulkan {
-		template<class T>
 		class Buffer {
 		public:
 			/// <summary>
 			/// Constructor
 			/// </summary>
-			/// <param name="_device">Device</param>
 			Buffer(std::weak_ptr<Device> _device);
 
 			/// <summary>
 			/// Destructor
 			/// </summary>
-			virtual ~Buffer() = default;
+			~Buffer() = default;
 
 			/// <summary>
 			/// Method to know if object has a buffer
 			/// </summary>
 			/// <returns>True or False</returns>
 			virtual bool hasBuffer() = 0;
-
-			/// <summary>
-			/// Method to update buffer
-			/// </summary>
-			/// <param name="data">Data</param>
-			/// <returns>This</returns>
-			virtual Buffer<T>& update(T data) = 0;
 
 			/// <summary>
 			/// Method to get buffer
@@ -46,13 +39,9 @@ namespace ao {
 			virtual vk::DeviceSize size() = 0;
 
 		protected:
-			core::Logger LOGGER = core::Logger::getInstance<Buffer<T>>();
+			core::Logger LOGGER = core::Logger::getInstance<Buffer>();
 			std::weak_ptr<Device> device;
+			bool mHasBuffer;
 		};
-
-		/* IMPLEMENTATION */
-
-		template<class T>
-		Buffer<T>::Buffer(std::weak_ptr<Device> _device) : device(_device) {}
 	}
 }

@@ -1,100 +1,135 @@
 #pragma once
 
-#include <ao/core/exception/exception.h>
-#include <boost/optional.hpp>
-#include <vulkan/vulkan.hpp>
+#include <ao/core/utilities/pointers.h>
 
-#include "../device.h"
-#include "buffer.hpp"
+#include "tuple_buffer.hpp"
 
 namespace ao {
 	namespace vulkan {
-		template<class T>
-		class BasicBuffer : public Buffer<T> {
+		template<class... T>
+		class BasicTupleBuffer : public TupleBuffer<T...> {
 		public:
 			/// <summary>
 			/// Constructor
 			/// </summary>
-			/// <param name="_device">Device</param>
-			BasicBuffer(std::weak_ptr<Device> _device);
+			/// <param name="device">Device</param>
+			BasicTupleBuffer(std::weak_ptr<Device> device);
 
 			/// <summary>
 			/// Destructor
 			/// </summary>
-			virtual ~BasicBuffer();
+			virtual ~BasicTupleBuffer();
 
 			/// <summary>
-			/// Method to free buffer (buffer + memory)
+			/// Method to free buffer
 			/// </summary>
 			void free();
 
 			/// <summary>
-			/// Method to init buffer, memory & data.
+			/// Method to map memory
+			/// </summary>
+			/// <returns>This</returns>
+			BasicTupleBuffer<T...>* map();
+
+			/// <summary>
+			/// Method to init buffer
 			/// 
 			/// If object already stores a buffer, it will free the old one
 			/// </summary>
 			/// <param name="usageFlags">Usage flags</param>
 			/// <param name="sharingMode">Sharing mode</param>
 			/// <param name="memoryFlags">Memory flags</param>
-			/// <param name="size">Data size</param>
-			/// <param name="data">Data</param>
+			/// <param name="sizes">Fragment sizes</param>
 			/// <returns>This</returns>
-			virtual BasicBuffer<T>& init(vk::BufferUsageFlags usageFlags, vk::SharingMode sharingMode, vk::MemoryPropertyFlags memoryFlags, vk::DeviceSize size, boost::optional<T> data = boost::none);
+			BasicTupleBuffer<T...>* init(vk::BufferUsageFlags usageFlags, vk::SharingMode sharingMode, vk::MemoryPropertyFlags memoryFlags, std::vector<vk::DeviceSize> sizes);
 
-			/// <summary>
-			/// Method to map memory
-			/// </summary>
-			/// <returns>This</returns>
-			virtual BasicBuffer<T>& map();
-
-			BasicBuffer<T>& update(T data) override;
-			vk::DeviceSize size() override;
+			TupleBuffer<T...>* update(T... data) override;
+			TupleBuffer<T...>* updateFragment(std::size_t index, void* data) override;
 			vk::Buffer& buffer() override;
-			bool hasBuffer() override;
+			vk::DeviceSize size() override;
+			vk::DeviceSize offset(size_t index) override;
 
 		protected:
-			bool mHasBuffer = false;
+			std::vector<std::pair<vk::DeviceSize, void*>> fragments;    // In pair, First = fragment's size / Second fragment's mapper
+			std::vector<vk::DeviceSize> offsets;
 
 			vk::DeviceMemory memory;
 			vk::DeviceSize mSize;
 			vk::Buffer mBuffer;
-			void* mapper = nullptr;
+
+			bool hasMapper;
 		};
 
 		/* IMPLEMENTATION */
 
-		template<class T>
-		BasicBuffer<T>::BasicBuffer(std::weak_ptr<Device> _device) : Buffer<T>(_device) {}
+		template<class ...T>
+		BasicTupleBuffer<T...>::BasicTupleBuffer(std::weak_ptr<Device> device) : TupleBuffer<T...>(device), hasMapper(false) {
+			this->fragments.resize(sizeof...(T));
+			this->offsets.resize(sizeof...(T));
+		}
 
-		template<class T>
-		BasicBuffer<T>::~BasicBuffer() {
+		template<class ...T>
+		BasicTupleBuffer<T...>::~BasicTupleBuffer() {
 			this->free();
 		}
 
-		template<class T>
-		void BasicBuffer<T>::free() {
-			auto _device = ao::core::get(this->device);
+		template<class ...T>
+		void BasicTupleBuffer<T...>::free() {
+			auto _device = ao::core::shared(this->device);
 
 			if (!this->memory) {
 				_device->logical.unmapMemory(this->memory);
 			}
-
 			_device->logical.destroyBuffer(this->mBuffer);
 			_device->logical.freeMemory(this->memory);
 
 			this->mHasBuffer = false;
-			this->mapper = nullptr;
+			this->hasMapper = false;
 		}
 
-		template<class T>
-		BasicBuffer<T>& BasicBuffer<T>::init(vk::BufferUsageFlags usageFlags, vk::SharingMode sharingMode, vk::MemoryPropertyFlags memoryFlags, vk::DeviceSize size, boost::optional<T> data) {
+		template<class ...T>
+		BasicTupleBuffer<T...>* BasicTupleBuffer<T...>::map() {
+			if (this->hasMapper) {
+				throw ao::core::Exception("Buffer is already mapped");
+			}
+
+			auto _device = ao::core::shared(this->device);
+			u64 offset = 0;
+
+			// Map each fragment
+			for (size_t i = 0; i < sizeof...(T); i++) {
+				this->fragments[i].second = _device->logical.mapMemory(this->memory, offset, this->fragments[i].first);
+
+				this->offsets[i] = offset;
+				offset += this->fragments[i].first;
+			}
+
+			this->hasMapper = true;
+			return this;
+		}
+
+		template<class ...T>
+		BasicTupleBuffer<T...>* BasicTupleBuffer<T...>::init(vk::BufferUsageFlags usageFlags, vk::SharingMode sharingMode, vk::MemoryPropertyFlags memoryFlags, std::vector<vk::DeviceSize> sizes) {
 			if (this->hasBuffer()) {
 				this->free();
 			}
-			auto _device = ao::core::get(this->device);
+			auto _device = ao::core::shared(this->device);
+
+			// Check sizes' size
+			if (sizes.size() != sizeof...(T)) {
+				throw core::Exception("Sizes argument should have the same size as template arguments");
+			}
+
+			// Init map
+			for (size_t i = 0; i < sizes.size(); i++) {
+				this->fragments[i].first = sizes[i];
+			}
+
+			// Get total size
+			this->mSize = std::accumulate(sizes.begin(), sizes.end(), vk::DeviceSize(), std::plus<vk::DeviceSize>());
 
 			// Create buffer
-			this->mBuffer = _device->logical.createBuffer(vk::BufferCreateInfo(vk::BufferCreateFlags(), size, usageFlags, sharingMode));
+			this->mBuffer = _device->logical.createBuffer(vk::BufferCreateInfo(vk::BufferCreateFlags(), this->mSize, usageFlags, sharingMode));
 
 			// Get memory requirements
 			vk::MemoryRequirements memRequirements = _device->logical.getBufferMemoryRequirements(this->mBuffer);
@@ -106,54 +141,60 @@ namespace ao {
 
 			// Bind memory and buffer
 			_device->logical.bindBufferMemory(this->mBuffer, this->memory, 0);
-
-			// Update fields
 			this->mHasBuffer = true;
-			this->mSize = size;
 
-			// Copy data into buffer
-			if (data) {
-				this->map();
-				std::memcpy(this->mapper, data.get(), size);
-			}
-			return *this;
+			return this;
 		}
 
-		template<class T>
-		BasicBuffer<T>& BasicBuffer<T>::map() {
-			if (this->mapper) {
-				throw ao::core::Exception("Buffer is already mapped");
+		template<class ...T>
+		TupleBuffer<T...>* BasicTupleBuffer<T...>::update(T... data) {
+			std::vector<void*> _data = { data... };
+
+			// Update fragments
+			for (size_t i = 0; i < _data.size(); i++) {
+				this->updateFragment(i, _data[i]);
 			}
-			this->mapper = ao::core::get(this->device)->logical.mapMemory(this->memory, 0, mSize);
-			return *this;
+
+			return this;
 		}
 
-		template<class T>
-		BasicBuffer<T>& BasicBuffer<T>::update(T data) {
+		template<class ...T>
+		TupleBuffer<T...>* BasicTupleBuffer<T...>::updateFragment(std::size_t index, void* data) {
 			if (!this->hasBuffer()) {
-				throw ao::core::Exception("Buffer hasn't been initialized");
+				throw core::Exception("Buffer hasn't been initialized");
 			}
-			if (!this->mapper) {
+
+			// Check index
+			if (index < 0 || index >= sizeof...(T)) {
+				throw core::Exception("Index out of range");
+			}
+
+			// Map memory
+			if (!this->hasMapper) {
 				this->map();
 			}
 
-			// Copy data into buffer
-			std::memcpy(this->mapper, data, this->mSize);
-			return *this;
+			// Copy into buffer
+			std::memcpy(this->fragments[index].second, data, this->fragments[index].first);
+			return this;
 		}
 
-		template<class T>
-		vk::Buffer & BasicBuffer<T>::buffer() {
+		template<class ...T>
+		vk::Buffer & BasicTupleBuffer<T...>::buffer() {
 			return this->mBuffer;
 		}
 
-		template<class T>
-		bool BasicBuffer<T>::hasBuffer() {
-			return this->mHasBuffer;
-		}
-		template<class T>
-		vk::DeviceSize BasicBuffer<T>::size() {
+		template<class ...T>
+		vk::DeviceSize BasicTupleBuffer<T...>::size() {
 			return this->mSize;
+		}
+
+		template<class ...T>
+		vk::DeviceSize BasicTupleBuffer<T...>::offset(size_t index) {
+			if (!this->hasMapper) {
+				throw ao::core::Exception("Buffer is not mapped");
+			}
+			return this->offsets[index];
 		}
 	}
 }

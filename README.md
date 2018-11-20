@@ -51,3 +51,4 @@ Thanks to the authors of these works:
 * https://renderdoc.org/vulkan-in-30-minutes.html
 * https://www.khronos.org/registry/vulkan/specs/1.1-extensions/html/vkspec.html
 * http://opengl.datenwolf.net/gltut/html/index.html
+* https://developer.nvidia.com/vulkan-memory-management

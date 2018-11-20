@@ -130,7 +130,7 @@ void ao::vulkan::AOEngine::freeVulkan() {
 void ao::vulkan::AOEngine::setUpDebugging() {
 	PFN_vkCreateDebugReportCallbackEXT CreateDebugReportCallback = reinterpret_cast<PFN_vkCreateDebugReportCallbackEXT>(this->instance->getProcAddr("vkCreateDebugReportCallbackEXT"));
 	VkDebugReportCallbackCreateInfoEXT createInfo = vk::DebugReportCallbackCreateInfoEXT(this->debugReportFlags(), debugReportCallBack);
-	VkDebugReportCallbackEXT callback = this->debugCallBack;
+	VkDebugReportCallbackEXT callback;
 
 	// Create callback
 	CreateDebugReportCallback(*this->instance, &createInfo, nullptr, &callback);

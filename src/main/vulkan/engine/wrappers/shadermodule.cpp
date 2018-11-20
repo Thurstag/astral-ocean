@@ -3,7 +3,7 @@
 ao::vulkan::ShaderModule::ShaderModule(std::weak_ptr<Device> _device) : device(_device) {}
 
 ao::vulkan::ShaderModule::~ShaderModule() {
-	if (auto _device = ao::core::get(this->device)) {
+	if (auto _device = ao::core::shared(this->device)) {
 		for (auto& pair : this->shaders) {
 			_device->logical.destroyShaderModule(pair.second->module);
 			delete pair.second;
@@ -44,11 +44,11 @@ std::vector<char> ao::vulkan::ShaderModule::read(std::string filename) {
 }
 
 vk::ShaderModule ao::vulkan::ShaderModule::createModule(const std::vector<char>& code) {
-	return ao::core::get(this->device)->logical.createShaderModule(vk::ShaderModuleCreateInfo(vk::ShaderModuleCreateFlags(), code.size(), reinterpret_cast<const u32*>(code.data())));
+	return ao::core::shared(this->device)->logical.createShaderModule(vk::ShaderModuleCreateInfo(vk::ShaderModuleCreateFlags(), code.size(), reinterpret_cast<const u32*>(code.data())));
 }
 
 ao::vulkan::ShaderModule & ao::vulkan::ShaderModule::loadShader(std::string filename, vk::ShaderStageFlagBits flag) {
-	auto _device = ao::core::get(this->device);
+	auto _device = ao::core::shared(this->device);
 
 	// Create module
 	std::vector<char> code = ao::vulkan::ShaderModule::read(filename);

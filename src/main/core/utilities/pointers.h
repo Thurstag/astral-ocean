@@ -8,7 +8,7 @@ namespace ao {
 		/// Method to get shared_ptr from a weak_ptr. Throw an exception if	weak_ptr is expired
 		/// </summary>
 		template<class T>
-		inline std::shared_ptr<T> get(std::weak_ptr<T> ptr) {
+		inline std::shared_ptr<T> shared(std::weak_ptr<T> ptr) {
 			if (auto _ptr = ptr.lock()) {
 				return _ptr;
 			}

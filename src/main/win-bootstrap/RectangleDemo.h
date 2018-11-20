@@ -5,7 +5,7 @@
 #include <algorithm>
 #include <vector>
 
-#include <ao/vulkan/engine/wrappers/buffers/device_buffer.hpp>
+#include <ao/vulkan/engine/wrappers/buffers/staging_buffer.hpp>
 #include <ao/vulkan/engine/wrappers/shadermodule.h>
 #include <ao/vulkan/engine/glfw_engine.h>
 #include <ao/vulkan/engine/settings.h>
@@ -30,10 +30,9 @@ public:
 	std::vector<Vertex> vertices;
 	std::vector<u16> indices;
 
-	ao::vulkan::Buffer<Vertex*>* vertexBuffer;
-	ao::vulkan::Buffer<u16*>* indexBuffer;
+	std::unique_ptr<ao::vulkan::TupleBuffer<Vertex*, u16*>> rectangleBuffer;
+	std::vector<std::unique_ptr<ao::vulkan::TupleBuffer<UniformBufferObject*>>> uniformBuffers;
 
-	std::vector<ao::vulkan::Buffer<UniformBufferObject*>*> uniformBuffers;
 	std::vector<UniformBufferObject> _uniformBuffers;
 
 	RectangleDemo(ao::vulkan::EngineSettings settings) : ao::vulkan::GLFWEngine(settings), ao::vulkan::AOEngine(settings) {
@@ -47,7 +46,6 @@ public:
 	};
 	virtual ~RectangleDemo();
 
-	void afterFrameSubmitted() override;
 	void setUpRenderPass() override;
 	void createPipelineLayouts() override;
 	void setUpPipelines() override;

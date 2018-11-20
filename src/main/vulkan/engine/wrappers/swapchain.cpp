@@ -9,14 +9,14 @@ ao::vulkan::SwapChain::SwapChain(std::weak_ptr<vk::Instance> _instance, std::wea
 }
 
 ao::vulkan::SwapChain::~SwapChain() {
-	if (auto _device = ao::core::get(this->device)) {
+	if (auto _device = ao::core::shared(this->device)) {
 		for (auto& buffer : this->buffers) {
 			_device->logical.destroyImageView(buffer.second);
 		}
 		this->buffers.clear();
 
 		_device->logical.destroySwapchainKHR(this->swapChain);
-		if (auto _instance = ao::core::get(this->instance)) {
+		if (auto _instance = ao::core::shared(this->instance)) {
 			_instance->destroySurfaceKHR(this->surface);
 		}
 
@@ -29,7 +29,7 @@ void ao::vulkan::SwapChain::init(u64 & width, u64 & height, bool vsync) {
 	// Back-up swap chain
 	vk::SwapchainKHR old = this->swapChain;
 
-	auto _device = ao::core::get(this->device);
+	auto _device = ao::core::shared(this->device);
 
 	// Get physical device surface properties and formats
 	vk::SurfaceCapabilitiesKHR capabilities = _device->physical.getSurfaceCapabilitiesKHR(this->surface);
@@ -154,7 +154,7 @@ void ao::vulkan::SwapChain::init(u64 & width, u64 & height, bool vsync) {
 }
 
 void ao::vulkan::SwapChain::initSurface() {
-	auto _device = ao::core::get(this->device);
+	auto _device = ao::core::shared(this->device);
 
 	// Detect if a queue supports present
 	std::vector<vk::Bool32> supportsPresent(_device->physical.getQueueFamilyProperties().size());
@@ -213,24 +213,24 @@ void ao::vulkan::SwapChain::initSurface() {
 }
 
 void ao::vulkan::SwapChain::initCommandPool() {
-	if (auto _device = ao::core::get(this->device)) {
+	if (auto _device = ao::core::shared(this->device)) {
 		this->commandPool = _device->logical.createCommandPool(vk::CommandPoolCreateInfo(vk::CommandPoolCreateFlagBits::eResetCommandBuffer, _device->queues[vk::QueueFlagBits::eGraphics].index));
 	}
 }
 
 void ao::vulkan::SwapChain::createCommandBuffers() {
-	this->primaryCommandBuffers = ao::core::get(this->device)->logical.allocateCommandBuffers(vk::CommandBufferAllocateInfo(this->commandPool, vk::CommandBufferLevel::ePrimary, static_cast<u32>(this->buffers.size())));
+	this->primaryCommandBuffers = ao::core::shared(this->device)->logical.allocateCommandBuffers(vk::CommandBufferAllocateInfo(this->commandPool, vk::CommandBufferLevel::ePrimary, static_cast<u32>(this->buffers.size())));
 }
 
 void ao::vulkan::SwapChain::freeCommandBuffers() {
-	if (auto _device = ao::core::get(this->device)) {
+	if (auto _device = ao::core::shared(this->device)) {
 		_device->logical.freeCommandBuffers(this->commandPool, this->primaryCommandBuffers);
 		_device->logical.freeCommandBuffers(this->commandPool, this->secondaryCommandBuffers);
 	}
 }
 
 vk::Result ao::vulkan::SwapChain::nextImage(vk::Semaphore& present, u32& imageIndex) {
-	if (auto _device = ao::core::get(this->device)) {
+	if (auto _device = ao::core::shared(this->device)) {
 		return _device->logical.acquireNextImageKHR(this->swapChain, (std::numeric_limits<u64>::max)(), present, nullptr, &imageIndex);
 	}
 	return vk::Result::eErrorDeviceLost;

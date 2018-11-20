@@ -3,7 +3,7 @@
 ao::vulkan::Pipeline::Pipeline(std::weak_ptr<ao::vulkan::Device> _device) : device(_device) {}
 
 ao::vulkan::Pipeline::~Pipeline() {
-	if (auto _device = ao::core::get(this->device)) {
+	if (auto _device = ao::core::shared(this->device)) {
 		for (auto& pipeline : this->pipelines) {
 			_device->logical.destroyPipeline(pipeline);
 		}

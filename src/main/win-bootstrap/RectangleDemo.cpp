@@ -1,17 +1,8 @@
 #include "RectangleDemo.h"
 
 RectangleDemo::~RectangleDemo() {
-	delete this->vertexBuffer;
-	delete this->indexBuffer;
-
-	for (auto& uniformBuffer : this->uniformBuffers) {
-		delete uniformBuffer;
-	}
+	this->rectangleBuffer.reset();
 	this->uniformBuffers.clear();
-}
-
-void RectangleDemo::afterFrameSubmitted() {
-	ao::vulkan::GLFWEngine::afterFrameSubmitted();
 }
 
 void RectangleDemo::setUpRenderPass() {
@@ -172,23 +163,27 @@ void RectangleDemo::setUpPipelines() {
 
 void RectangleDemo::setUpVulkanBuffers() {
 	// Create vertices & indices
-	this->vertexBuffer = &(new ao::vulkan::DeviceBuffer<Vertex*>(this->device))
-		->init(sizeof(Vertex) * this->vertices.size(), boost::none, this->vertices.data());
+	this->rectangleBuffer = std::unique_ptr<ao::vulkan::TupleBuffer<Vertex*, u16*>>(
+		(new ao::vulkan::StagingTupleBuffer<Vertex*, u16*>(this->device))
+		->init({ sizeof(Vertex) * this->vertices.size(), sizeof(u16) * this->indices.size() })
+		->update(this->vertices.data(), this->indices.data())
+	);
 
-	this->indexBuffer = &(new ao::vulkan::DeviceBuffer<u16*>(this->device, vk::CommandBufferUsageFlagBits::eOneTimeSubmit))
-		->init(sizeof(u16) * this->indices.size(), vk::BufferUsageFlags(vk::BufferUsageFlagBits::eIndexBuffer), this->indices.data());
-
-	// Create uniform buffers
-	this->uniformBuffers.resize(this->swapchain->buffers.size());
+	// Resize uniform buffers vector
 	this->_uniformBuffers.resize(this->swapchain->buffers.size());
+	this->uniformBuffers.resize(this->swapchain->buffers.size());
 
-	for (size_t i = 0; i < this->uniformBuffers.size(); i++) {
-		// Init buffer
-		this->uniformBuffers[i] = &(new ao::vulkan::BasicBuffer<UniformBufferObject*>(this->device))
-			->init(vk::BufferUsageFlagBits::eUniformBuffer, vk::SharingMode::eExclusive,
-				   vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent,
-				   sizeof(UniformBufferObject));
+	// Update buffers
+	for (size_t i = 0; i < this->_uniformBuffers.size(); i++) {
+		this->_uniformBuffers[i] = UniformBufferObject();
+
+		this->uniformBuffers[i] = std::unique_ptr<ao::vulkan::TupleBuffer<UniformBufferObject*>>(
+			(new ao::vulkan::BasicTupleBuffer<UniformBufferObject*>(this->device))
+			->init(vk::BufferUsageFlagBits::eUniformBuffer, vk::SharingMode::eExclusive, vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent,
+			{ sizeof(UniformBufferObject) })
+		);
 	}
+
 }
 
 void RectangleDemo::createSecondaryCommandBuffers() {
@@ -202,12 +197,11 @@ std::vector<ao::vulkan::DrawInCommandBuffer> RectangleDemo::updateSecondaryComma
 	std::vector<vk::DescriptorSet>& sets = this->descriptorSets;
 	vk::Pipeline& pipeline = this->pipeline->pipelines[0];
 	vk::PipelineLayout& pipelineLayout = this->pipeline->layouts[0];
-	vk::Buffer vertexBuffer = this->vertexBuffer->buffer();
-	vk::Buffer indexBuffer = this->indexBuffer->buffer();
+	ao::vulkan::TupleBuffer<Vertex*, u16*>* rectangle = this->rectangleBuffer.get();
 	std::vector<Vertex>& vertices = this->vertices;
 	std::vector<u16>& indices = this->indices;
 
-	commands.push_back([commandBuffer, pipeline, vertexBuffer, indexBuffer, vertices, indices, pipelineLayout, sets]
+	commands.push_back([commandBuffer, pipeline, rectangle, vertices, indices, pipelineLayout, sets]
 	(int frameIndex, vk::CommandBufferInheritanceInfo& inheritance, std::pair<std::array<vk::ClearValue, 2>, vk::Rect2D>& helpers) {
 		vk::Viewport viewPort(0, 0, static_cast<float>(helpers.second.extent.width), static_cast<float>(helpers.second.extent.height), 0, 1);
 		vk::CommandBufferBeginInfo beginInfo = vk::CommandBufferBeginInfo(vk::CommandBufferUsageFlagBits::eRenderPassContinue).setPInheritanceInfo(&inheritance);
@@ -223,10 +217,8 @@ std::vector<ao::vulkan::DrawInCommandBuffer> RectangleDemo::updateSecondaryComma
 			commandBuffer.bindPipeline(vk::PipelineBindPoint::eGraphics, pipeline);
 
 			// Draw rectangle
-			std::array<vk::Buffer, 1> vertexBuffers = { vertexBuffer };
-			std::array<vk::DeviceSize, 1> offsets = { 0 };
-			commandBuffer.bindVertexBuffers(0, vertexBuffers, offsets);
-			commandBuffer.bindIndexBuffer(indexBuffer, 0, vk::IndexType::eUint16);
+			commandBuffer.bindVertexBuffers(0, rectangle->buffer(), { 0 });
+			commandBuffer.bindIndexBuffer(rectangle->buffer(), rectangle->offset(1), vk::IndexType::eUint16);
 			commandBuffer.bindDescriptorSets(vk::PipelineBindPoint::eGraphics, pipelineLayout, 0, sets[frameIndex], {});
 
 			commandBuffer.drawIndexed(static_cast<u32>(indices.size()), 1, 0, 0, 0);

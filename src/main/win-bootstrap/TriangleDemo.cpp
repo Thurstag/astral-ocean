@@ -1,8 +1,8 @@
 #include "TriangleDemo.h"
 
 TriangleDemo::~TriangleDemo() {
-	delete this->vertexBuffer;
-	delete this->indexBuffer;
+	this->vertexBuffer.reset();
+	this->indexBuffer.reset();
 }
 
 void TriangleDemo::afterFrameSubmitted() {
@@ -91,7 +91,6 @@ void TriangleDemo::setUpRenderPass() {
 
 void TriangleDemo::createPipelineLayouts() {
 	this->pipeline->layouts.resize(1);
-
 	this->pipeline->layouts[0] = this->device->logical.createPipelineLayout(vk::PipelineLayoutCreateInfo());
 }
 
@@ -195,11 +194,17 @@ void TriangleDemo::setUpPipelines() {
 }
 
 void TriangleDemo::setUpVulkanBuffers() {
-	this->vertexBuffer = &(new ao::vulkan::DeviceBuffer<Vertex*>(this->device))
-		->init(sizeof(Vertex) * this->vertices.size(), boost::none, this->vertices.data());
+	this->vertexBuffer = std::unique_ptr<ao::vulkan::TupleBuffer<Vertex*>>(
+		(new ao::vulkan::StagingTupleBuffer<Vertex*>(this->device, vk::CommandBufferUsageFlagBits::eSimultaneousUse, true))
+		->init({ sizeof(Vertex) * this->vertices.size() }, vk::BufferUsageFlags(vk::BufferUsageFlagBits::eVertexBuffer))
+		->update(this->vertices.data())
+	);
 
-	this->indexBuffer = &(new ao::vulkan::DeviceBuffer<u16*>(this->device, vk::CommandBufferUsageFlagBits::eOneTimeSubmit))
-		->init(sizeof(u16) * this->indices.size(), vk::BufferUsageFlags(vk::BufferUsageFlagBits::eIndexBuffer), this->indices.data());
+	this->indexBuffer = std::unique_ptr<ao::vulkan::TupleBuffer<u16*>>(
+		(new ao::vulkan::StagingTupleBuffer<u16*>(this->device, vk::CommandBufferUsageFlagBits::eOneTimeSubmit))
+		->init({ sizeof(u16) * this->indices.size() }, vk::BufferUsageFlags(vk::BufferUsageFlagBits::eIndexBuffer))
+		->update(this->indices.data())
+	);
 }
 
 void TriangleDemo::createSecondaryCommandBuffers() {
@@ -208,6 +213,8 @@ void TriangleDemo::createSecondaryCommandBuffers() {
 
 std::vector<ao::vulkan::DrawInCommandBuffer> TriangleDemo::updateSecondaryCommandBuffers() {
 	vk::CommandBuffer& commandBuffer = this->swapchain->secondaryCommandBuffers[0];
+	u32 graphicQueue = this->device->queues[vk::QueueFlagBits::eGraphics].index;
+	u32 transferQueue = this->device->queues[vk::QueueFlagBits::eTransfer].index;
 	std::vector<ao::vulkan::DrawInCommandBuffer> commands;
 	vk::Pipeline& pipeline = this->pipeline->pipelines[0];
 	vk::Buffer vertexBuffer = this->vertexBuffer->buffer();
@@ -215,7 +222,8 @@ std::vector<ao::vulkan::DrawInCommandBuffer> TriangleDemo::updateSecondaryComman
 	std::vector<Vertex>& vertices = this->vertices;
 	std::vector<u16>& indices = this->indices;
 
-	commands.push_back([commandBuffer, pipeline, vertexBuffer, indexBuffer, vertices, indices](int frameIndex, vk::CommandBufferInheritanceInfo& inheritance, std::pair<std::array<vk::ClearValue, 2>, vk::Rect2D>& helpers) {
+	commands.push_back([commandBuffer, pipeline, vertexBuffer, indexBuffer, vertices, indices, graphicQueue, transferQueue]
+	(int frameIndex, vk::CommandBufferInheritanceInfo& inheritance, std::pair<std::array<vk::ClearValue, 2>, vk::Rect2D>& helpers) {
 		vk::Viewport viewPort(0, 0, static_cast<float>(helpers.second.extent.width), static_cast<float>(helpers.second.extent.height), 0, 1);
 		vk::CommandBufferBeginInfo beginInfo = vk::CommandBufferBeginInfo(vk::CommandBufferUsageFlagBits::eRenderPassContinue).setPInheritanceInfo(&inheritance);
 
@@ -229,12 +237,17 @@ std::vector<ao::vulkan::DrawInCommandBuffer> TriangleDemo::updateSecondaryComman
 			// Bind pipeline
 			commandBuffer.bindPipeline(vk::PipelineBindPoint::eGraphics, pipeline);
 
+			// Memory barrier
+			vk::BufferMemoryBarrier barrier(
+				vk::AccessFlags(), vk::AccessFlagBits::eVertexAttributeRead,
+				transferQueue, graphicQueue, vertexBuffer
+			);
+			commandBuffer.pipelineBarrier(vk::PipelineStageFlagBits::eTopOfPipe, vk::PipelineStageFlagBits::eVertexInput, vk::DependencyFlags(), {}, barrier, {});
+
 			// Draw triangle
-			std::array<vk::Buffer, 1> vertexBuffers = { vertexBuffer };
-			std::array<vk::DeviceSize, 1> offsets = { 0 };
-			commandBuffer.bindVertexBuffers(0, vertexBuffers, offsets);
+			commandBuffer.bindVertexBuffers(0, { vertexBuffer }, { 0 });
 			commandBuffer.bindIndexBuffer(indexBuffer, 0, vk::IndexType::eUint16);
-			
+
 			commandBuffer.drawIndexed(static_cast<u32>(indices.size()), 1, 0, 0, 0);
 		}
 		commandBuffer.end();

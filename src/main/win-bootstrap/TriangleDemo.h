@@ -24,8 +24,8 @@ public:
 	std::vector<Vertex> vertices;
 	std::vector<u16> indices;
 
-	std::unique_ptr<ao::vulkan::TupleBuffer<Vertex*>> vertexBuffer;
-	std::unique_ptr<ao::vulkan::TupleBuffer<u16*>> indexBuffer;
+	std::unique_ptr<ao::vulkan::TupleBuffer<Vertex>> vertexBuffer;
+	std::unique_ptr<ao::vulkan::TupleBuffer<u16>> indexBuffer;
 
 	TriangleDemo(ao::vulkan::EngineSettings settings) : ao::vulkan::GLFWEngine(settings), ao::vulkan::AOEngine(settings) {
 		this->vertices = {

@@ -194,14 +194,14 @@ void TriangleDemo::setUpPipelines() {
 }
 
 void TriangleDemo::setUpVulkanBuffers() {
-	this->vertexBuffer = std::unique_ptr<ao::vulkan::TupleBuffer<Vertex*>>(
-		(new ao::vulkan::StagingTupleBuffer<Vertex*>(this->device, vk::CommandBufferUsageFlagBits::eSimultaneousUse, true))
+	this->vertexBuffer = std::unique_ptr<ao::vulkan::TupleBuffer<Vertex>>(
+		(new ao::vulkan::StagingTupleBuffer<Vertex>(this->device, vk::CommandBufferUsageFlagBits::eSimultaneousUse, true))
 		->init({ sizeof(Vertex) * this->vertices.size() }, vk::BufferUsageFlags(vk::BufferUsageFlagBits::eVertexBuffer))
 		->update(this->vertices.data())
 	);
 
-	this->indexBuffer = std::unique_ptr<ao::vulkan::TupleBuffer<u16*>>(
-		(new ao::vulkan::StagingTupleBuffer<u16*>(this->device, vk::CommandBufferUsageFlagBits::eOneTimeSubmit))
+	this->indexBuffer = std::unique_ptr<ao::vulkan::TupleBuffer<u16>>(
+		(new ao::vulkan::StagingTupleBuffer<u16>(this->device, vk::CommandBufferUsageFlagBits::eOneTimeSubmit))
 		->init({ sizeof(u16) * this->indices.size() }, vk::BufferUsageFlags(vk::BufferUsageFlagBits::eIndexBuffer))
 		->update(this->indices.data())
 	);

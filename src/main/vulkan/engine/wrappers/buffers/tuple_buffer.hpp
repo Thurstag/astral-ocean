@@ -24,7 +24,7 @@ namespace ao {
 			/// </summary>
 			/// <param name="data">Data</param>
 			/// <returns></returns>
-			virtual TupleBuffer<T...>* update(T... data) = 0;
+			virtual TupleBuffer<T...>* update(T*... data) = 0;
 
 			/// <summary>
 			/// Method to update a fragment of buffer
@@ -42,12 +42,15 @@ namespace ao {
 			virtual vk::DeviceSize offset(size_t index) = 0;
 
 			virtual bool hasBuffer() override;
+
+		protected:
+			bool mHasBuffer;
 		};
 
 		/* IMPLEMENTATION */
 
 		template<class ...T>
-		TupleBuffer<T...>::TupleBuffer(std::weak_ptr<Device> _device) : Buffer(_device) {}
+		TupleBuffer<T...>::TupleBuffer(std::weak_ptr<Device> _device) : Buffer(_device), mHasBuffer(false) {}
 
 		template<class ...T>
 		bool TupleBuffer<T...>::hasBuffer() {

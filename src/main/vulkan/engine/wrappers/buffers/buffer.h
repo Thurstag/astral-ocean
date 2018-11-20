@@ -2,6 +2,7 @@
 
 #include <memory>
 
+#include <ao/core/utilities/pointers.h>
 #include <ao/core/logger/logger.h>
 
 #include "../device.h"
@@ -41,7 +42,6 @@ namespace ao {
 		protected:
 			core::Logger LOGGER = core::Logger::getInstance<Buffer>();
 			std::weak_ptr<Device> device;
-			bool mHasBuffer;
 		};
 	}
 }

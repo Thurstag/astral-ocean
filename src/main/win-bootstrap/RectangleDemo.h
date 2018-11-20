@@ -30,10 +30,10 @@ public:
 	std::vector<Vertex> vertices;
 	std::vector<u16> indices;
 
-	std::unique_ptr<ao::vulkan::TupleBuffer<Vertex*, u16*>> rectangleBuffer;
-	std::vector<std::unique_ptr<ao::vulkan::TupleBuffer<UniformBufferObject*>>> uniformBuffers;
+	std::unique_ptr<ao::vulkan::TupleBuffer<Vertex, u16>> rectangleBuffer;
+	std::unique_ptr<ao::vulkan::TupleBuffer<UniformBufferObject>> uniformBuffer;
 
-	std::vector<UniformBufferObject> _uniformBuffers;
+	UniformBufferObject _uniformBuffer;
 
 	RectangleDemo(ao::vulkan::EngineSettings settings) : ao::vulkan::GLFWEngine(settings), ao::vulkan::AOEngine(settings) {
 		this->vertices = {

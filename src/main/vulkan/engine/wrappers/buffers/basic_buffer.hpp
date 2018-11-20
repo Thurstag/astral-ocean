@@ -43,7 +43,7 @@ namespace ao {
 			/// <returns>This</returns>
 			BasicTupleBuffer<T...>* init(vk::BufferUsageFlags usageFlags, vk::SharingMode sharingMode, vk::MemoryPropertyFlags memoryFlags, std::vector<vk::DeviceSize> sizes);
 
-			TupleBuffer<T...>* update(T... data) override;
+			TupleBuffer<T...>* update(T*... data) override;
 			TupleBuffer<T...>* updateFragment(std::size_t index, void* data) override;
 			vk::Buffer& buffer() override;
 			vk::DeviceSize size() override;
@@ -51,6 +51,7 @@ namespace ao {
 
 		protected:
 			std::vector<std::pair<vk::DeviceSize, void*>> fragments;    // In pair, First = fragment's size / Second fragment's mapper
+			vk::MemoryPropertyFlags memoryFlags;
 			std::vector<vk::DeviceSize> offsets;
 
 			vk::DeviceMemory memory;
@@ -126,7 +127,7 @@ namespace ao {
 			}
 
 			// Get total size
-			this->mSize = std::accumulate(sizes.begin(), sizes.end(), vk::DeviceSize(), std::plus<vk::DeviceSize>());
+			this->mSize = std::accumulate(sizes.begin(), sizes.end(), vk::DeviceSize(0), std::plus<vk::DeviceSize>());
 
 			// Create buffer
 			this->mBuffer = _device->logical.createBuffer(vk::BufferCreateInfo(vk::BufferCreateFlags(), this->mSize, usageFlags, sharingMode));
@@ -141,18 +142,33 @@ namespace ao {
 
 			// Bind memory and buffer
 			_device->logical.bindBufferMemory(this->mBuffer, this->memory, 0);
+			this->memoryFlags = memoryFlags;
 			this->mHasBuffer = true;
 
 			return this;
 		}
 
 		template<class ...T>
-		TupleBuffer<T...>* BasicTupleBuffer<T...>::update(T... data) {
+		TupleBuffer<T...>* BasicTupleBuffer<T...>::update(T*... data) {
+			if (!this->hasBuffer()) {
+				throw core::Exception("Buffer hasn't been initialized");
+			}
 			std::vector<void*> _data = { data... };
+
+			// Map memory
+			if (!this->hasMapper) {
+				this->map();
+			}
 
 			// Update fragments
 			for (size_t i = 0; i < _data.size(); i++) {
-				this->updateFragment(i, _data[i]);
+				std::memcpy(this->fragments[i].second, _data[i], this->fragments[i].first);
+			}
+
+			// Notify changes
+			if (!(this->memoryFlags & vk::MemoryPropertyFlagBits::eHostCoherent)) {
+				vk::MappedMemoryRange range(this->memory, 0, this->mSize);
+				ao::core::shared(this->device)->logical.flushMappedMemoryRanges(range);
 			}
 
 			return this;
@@ -176,6 +192,13 @@ namespace ao {
 
 			// Copy into buffer
 			std::memcpy(this->fragments[index].second, data, this->fragments[index].first);
+
+			// Notify changes
+			if (!(this->memoryFlags & vk::MemoryPropertyFlagBits::eHostCoherent)) {
+				vk::MappedMemoryRange range(this->memory, this->offset(index), this->fragments[index].first);
+				ao::core::shared(this->device)->logical.flushMappedMemoryRanges(range);
+			}
+
 			return this;
 		}
 

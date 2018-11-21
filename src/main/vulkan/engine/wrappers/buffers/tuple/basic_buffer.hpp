@@ -2,7 +2,7 @@
 
 #include <ao/core/utilities/pointers.h>
 
-#include "tuple_buffer.hpp"
+#include "buffer.hpp"
 
 namespace ao {
 	namespace vulkan {
@@ -167,8 +167,7 @@ namespace ao {
 
 			// Notify changes
 			if (!(this->memoryFlags & vk::MemoryPropertyFlagBits::eHostCoherent)) {
-				vk::MappedMemoryRange range(this->memory, 0, this->mSize);
-				ao::core::shared(this->device)->logical.flushMappedMemoryRanges(range);
+				ao::core::shared(this->device)->logical.flushMappedMemoryRanges(vk::MappedMemoryRange(this->memory, 0, this->mSize));
 			}
 
 			return this;
@@ -195,8 +194,7 @@ namespace ao {
 
 			// Notify changes
 			if (!(this->memoryFlags & vk::MemoryPropertyFlagBits::eHostCoherent)) {
-				vk::MappedMemoryRange range(this->memory, this->offset(index), this->fragments[index].first);
-				ao::core::shared(this->device)->logical.flushMappedMemoryRanges(range);
+				ao::core::shared(this->device)->logical.flushMappedMemoryRanges(vk::MappedMemoryRange(this->memory, this->offset(index), this->fragments[index].first));
 			}
 
 			return this;

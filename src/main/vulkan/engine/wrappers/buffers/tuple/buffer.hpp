@@ -1,8 +1,6 @@
 #pragma once
 
-#include <fmt/format.h>
-
-#include "buffer.h"
+#include "../buffer.h"
 
 namespace ao {
 	namespace vulkan {
@@ -12,7 +10,8 @@ namespace ao {
 			/// <summary>
 			/// Constructor
 			/// </summary>
-			TupleBuffer(std::weak_ptr<Device> _device);
+			/// <param name="device">Device</param>
+			TupleBuffer(std::weak_ptr<Device> device);
 
 			/// <summary>
 			/// Destructor
@@ -23,7 +22,7 @@ namespace ao {
 			/// Method to update entire buffer
 			/// </summary>
 			/// <param name="data">Data</param>
-			/// <returns></returns>
+			/// <returns>This</returns>
 			virtual TupleBuffer<T...>* update(T*... data) = 0;
 
 			/// <summary>
@@ -41,6 +40,12 @@ namespace ao {
 			/// <returns>Offset</returns>
 			virtual vk::DeviceSize offset(size_t index) = 0;
 
+			/// <summary>
+			/// Method to map buffer
+			/// </summary>
+			/// <returns></returns>
+			virtual TupleBuffer<T...>* map() = 0;
+
 			virtual bool hasBuffer() override;
 
 		protected:
@@ -50,7 +55,7 @@ namespace ao {
 		/* IMPLEMENTATION */
 
 		template<class ...T>
-		TupleBuffer<T...>::TupleBuffer(std::weak_ptr<Device> _device) : Buffer(_device), mHasBuffer(false) {}
+		TupleBuffer<T...>::TupleBuffer(std::weak_ptr<Device> device) : Buffer(device), mHasBuffer(false) {}
 
 		template<class ...T>
 		bool TupleBuffer<T...>::hasBuffer() {

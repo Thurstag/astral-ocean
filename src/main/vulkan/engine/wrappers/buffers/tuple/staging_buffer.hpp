@@ -37,6 +37,7 @@ namespace ao {
 
 			TupleBuffer<T...>* update(T*... data) override;
 			TupleBuffer<T...>* updateFragment(std::size_t index, void* data) override;
+			TupleBuffer<T...>* map() override;
 			vk::Buffer& buffer() override;
 			vk::DeviceSize size() override;
 			bool hasBuffer() override;
@@ -119,8 +120,6 @@ namespace ao {
 				throw core::Exception("Buffer hasn't been initialized");
 			}
 
-			std::vector<void*> _data = { data... };
-
 			// Update host buffer & synchronize memories
 			this->hostBuffer->update(data...);
 			this->sync();
@@ -139,6 +138,11 @@ namespace ao {
 			this->sync();
 
 			return this;
+		}
+
+		template<class ...T>
+		TupleBuffer<T...>* StagingTupleBuffer<T...>::map() {
+			return this->hostBuffer->map();;
 		}
 
 		template<class ...T>

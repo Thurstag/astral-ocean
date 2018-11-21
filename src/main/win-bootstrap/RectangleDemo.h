@@ -5,7 +5,8 @@
 #include <algorithm>
 #include <vector>
 
-#include <ao/vulkan/engine/wrappers/buffers/staging_buffer.hpp>
+#include <ao/vulkan/engine/wrappers/buffers/tuple/staging_buffer.hpp>
+#include <ao/vulkan/engine/wrappers/buffers/array/basic_buffer.hpp>
 #include <ao/vulkan/engine/wrappers/shadermodule.h>
 #include <ao/vulkan/engine/glfw_engine.h>
 #include <ao/vulkan/engine/settings.h>
@@ -31,9 +32,9 @@ public:
 	std::vector<u16> indices;
 
 	std::unique_ptr<ao::vulkan::TupleBuffer<Vertex, u16>> rectangleBuffer;
-	std::unique_ptr<ao::vulkan::TupleBuffer<UniformBufferObject>> uniformBuffer;
+	std::unique_ptr<ao::vulkan::DynamicArrayBuffer<UniformBufferObject>> uniformBuffer;
 
-	UniformBufferObject _uniformBuffer;
+	std::vector<UniformBufferObject> _uniformBuffers;
 
 	RectangleDemo(ao::vulkan::EngineSettings settings) : ao::vulkan::GLFWEngine(settings), ao::vulkan::AOEngine(settings) {
 		this->vertices = {

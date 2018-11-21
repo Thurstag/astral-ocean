@@ -169,14 +169,17 @@ void RectangleDemo::setUpVulkanBuffers() {
 		->update(this->vertices.data(), this->indices.data())
 	);
 
-	this->uniformBuffer = std::unique_ptr<ao::vulkan::TupleBuffer<UniformBufferObject>>(
-		(new ao::vulkan::BasicTupleBuffer<UniformBufferObject>(this->device))
-		->init(vk::BufferUsageFlagBits::eUniformBuffer, vk::SharingMode::eExclusive, vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent,
-		{ sizeof(UniformBufferObject) })
+	this->uniformBuffer = std::unique_ptr<ao::vulkan::DynamicArrayBuffer<UniformBufferObject>>(
+		(new ao::vulkan::BasicDynamicArrayBuffer<UniformBufferObject>(this->swapchain->buffers.size(), this->device))
+		->init(vk::BufferUsageFlagBits::eUniformBuffer, vk::SharingMode::eExclusive, vk::MemoryPropertyFlagBits::eHostVisible,
+		ao::vulkan::Buffer::CalculateUBOAligmentSize(this->device->physical, sizeof(UniformBufferObject)))
 	);
 
-	// Update buffer
-	this->_uniformBuffer = UniformBufferObject();
+	// Map buffer
+	this->uniformBuffer->map();
+
+	// Resize uniform buffers vector
+	this->_uniformBuffers.resize(this->swapchain->buffers.size());
 }
 
 void RectangleDemo::createSecondaryCommandBuffers() {
@@ -212,7 +215,7 @@ std::vector<ao::vulkan::DrawInCommandBuffer> RectangleDemo::updateSecondaryComma
 			// Draw rectangle
 			commandBuffer.bindVertexBuffers(0, rectangle->buffer(), { 0 });
 			commandBuffer.bindIndexBuffer(rectangle->buffer(), rectangle->offset(1), vk::IndexType::eUint16);
-			commandBuffer.bindDescriptorSets(vk::PipelineBindPoint::eGraphics, pipelineLayout, 0, sets.front(), {});
+			commandBuffer.bindDescriptorSets(vk::PipelineBindPoint::eGraphics, pipelineLayout, 0, sets[frameIndex], {});
 
 			commandBuffer.drawIndexed(static_cast<u32>(indices.size()), 1, 0, 0, 0);
 		}
@@ -236,13 +239,13 @@ void RectangleDemo::updateUniformBuffers() {
 	float deltaTime = std::chrono::duration<float, std::chrono::seconds::period>(std::chrono::system_clock::now() - this->clock).count();
 
 	// Update uniform buffer
-	this->_uniformBuffer.model = glm::rotate(glm::mat4(1.0f), deltaTime * glm::radians(90.0f), glm::vec3(0.0f, 0.0f, 1.0f));
-	this->_uniformBuffer.view = glm::lookAt(glm::vec3(2.0f, 2.0f, 2.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f));
-	this->_uniformBuffer.proj = glm::perspective(glm::radians(45.0f), this->swapchain->currentExtent.width / (float)this->swapchain->currentExtent.height, 0.1f, 10.0f);
-	this->_uniformBuffer.proj[1][1] *= -1; // Adapt for vulkan
+	this->_uniformBuffers[this->frameBufferIndex].model = glm::rotate(glm::mat4(1.0f), deltaTime * glm::radians(90.0f), glm::vec3(0.0f, 0.0f, 1.0f));
+	this->_uniformBuffers[this->frameBufferIndex].view = glm::lookAt(glm::vec3(2.0f, 2.0f, 2.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f));
+	this->_uniformBuffers[this->frameBufferIndex].proj = glm::perspective(glm::radians(45.0f), this->swapchain->currentExtent.width / (float)this->swapchain->currentExtent.height, 0.1f, 10.0f);
+	this->_uniformBuffers[this->frameBufferIndex].proj[1][1] *= -1; // Adapt for vulkan
 
 	// Update buffer
-	this->uniformBuffer->update(&this->_uniformBuffer);
+	this->uniformBuffer->updateFragment(this->frameBufferIndex, &this->_uniformBuffers[this->frameBufferIndex]);
 }
 
 vk::QueueFlags RectangleDemo::queueFlags() {
@@ -257,26 +260,31 @@ void RectangleDemo::createDescriptorSetLayouts() {
 	// Create info
 	vk::DescriptorSetLayoutCreateInfo createInfo(vk::DescriptorSetLayoutCreateFlags(), 1, &binding);
 
-	// Create layout
-	this->descriptorSetLayouts.push_back(this->device->logical.createDescriptorSetLayout(createInfo));
+	// Create layouts
+	for (size_t i = 0; i < this->swapchain->buffers.size(); i++) {
+		this->descriptorSetLayouts.push_back(this->device->logical.createDescriptorSetLayout(createInfo));
+	}
 }
 
 void RectangleDemo::createDescriptorPools() {
-	vk::DescriptorPoolSize poolSize(vk::DescriptorType::eUniformBuffer, 1);
+	vk::DescriptorPoolSize poolSize(vk::DescriptorType::eUniformBuffer, static_cast<u32>(this->swapchain->buffers.size()));
 
 	// Create pool
 	this->descriptorPools.push_back(this->device->logical.createDescriptorPool(
-		vk::DescriptorPoolCreateInfo(vk::DescriptorPoolCreateFlags(), 1, 1, &poolSize)
+		vk::DescriptorPoolCreateInfo(vk::DescriptorPoolCreateFlags(),
+		static_cast<u32>(this->swapchain->buffers.size()), 1, &poolSize)
 	));
 }
 
 void RectangleDemo::createDescriptorSets() {
-	vk::DescriptorSetAllocateInfo allocateInfo(this->descriptorPools.front(), 1, this->descriptorSetLayouts.data());
+	vk::DescriptorSetAllocateInfo allocateInfo(this->descriptorPools[0], static_cast<u32>(this->swapchain->buffers.size()), this->descriptorSetLayouts.data());
 
 	// Create sets
 	this->descriptorSets = this->device->logical.allocateDescriptorSets(allocateInfo);
 
 	// Configure
-	vk::DescriptorBufferInfo bufferInfo(this->uniformBuffer->buffer(), 0, sizeof(UniformBufferObject));
-	this->device->logical.updateDescriptorSets(vk::WriteDescriptorSet(this->descriptorSets.front(), 0, 0, 1, vk::DescriptorType::eUniformBuffer, nullptr, &bufferInfo), {});
+	for (size_t i = 0; i < this->swapchain->buffers.size(); i++) {
+		vk::DescriptorBufferInfo bufferInfo(this->uniformBuffer->buffer(), this->uniformBuffer->offset(i), sizeof(UniformBufferObject));
+		this->device->logical.updateDescriptorSets(vk::WriteDescriptorSet(this->descriptorSets[i], 0, 0, 1, vk::DescriptorType::eUniformBuffer, nullptr, &bufferInfo), {});
+	}
 }

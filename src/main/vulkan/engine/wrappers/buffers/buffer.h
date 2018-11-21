@@ -39,6 +39,21 @@ namespace ao {
 			/// <returns>Size</returns>
 			virtual vk::DeviceSize size() = 0;
 
+			/// <summary>
+			/// Method to calculate ubo size with aligment
+			/// </summary>
+			/// <param name="objectSize">UBO's size</param>
+			/// <returns>Aligment size</returns>
+			size_t calculateUBOAligmentSize(size_t objectSize);
+
+			/// <summary>
+			/// Method to calculate ubo size with aligment
+			/// </summary>
+			/// <param name="device">Device</param>
+			/// <param name="objectSize">UBO's size</param>
+			/// <returns>Aligment size</returns>
+			static size_t CalculateUBOAligmentSize(vk::PhysicalDevice device, size_t objectSize);
+
 		protected:
 			core::Logger LOGGER = core::Logger::getInstance<Buffer>();
 			std::weak_ptr<Device> device;

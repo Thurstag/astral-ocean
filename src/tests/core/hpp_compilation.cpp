@@ -1,6 +1,10 @@
-#include <ao/vulkan/engine/wrappers/buffers/staging_buffer.hpp>
-#include <ao/vulkan/engine/wrappers/buffers/tuple_buffer.hpp>
-#include <ao/vulkan/engine/wrappers/buffers/basic_buffer.hpp>
+#include <ao/vulkan/engine/wrappers/buffers/tuple/staging_buffer.hpp>
+#include <ao/vulkan/engine/wrappers/buffers/tuple/basic_buffer.hpp>
+#include <ao/vulkan/engine/wrappers/buffers/tuple/buffer.hpp>
+
+#include <ao/vulkan/engine/wrappers/buffers/array/staging_buffer.hpp>
+#include <ao/vulkan/engine/wrappers/buffers/array/basic_buffer.hpp>
+#include <ao/vulkan/engine/wrappers/buffers/array/buffer.hpp>
 
 #include <ao/core/memory/iterable_container.hpp>
 #include <ao/core/memory/map_container.hpp>

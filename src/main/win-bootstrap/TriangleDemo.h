@@ -5,7 +5,7 @@
 #include <algorithm>
 #include <vector>
 
-#include <ao/vulkan/engine/wrappers/buffers/staging_buffer.hpp>
+#include <ao/vulkan/engine/wrappers/buffers/tuple/staging_buffer.hpp>
 #include <ao/vulkan/engine/wrappers/shadermodule.h>
 #include <ao/vulkan/engine/glfw_engine.h>
 #include <ao/vulkan/engine/settings.h>

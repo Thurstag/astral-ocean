@@ -42,6 +42,12 @@ namespace ao {
 			/// Method to clear container
 			/// </summary>
 			virtual void clear() = 0;
+
+			/// <summary>
+			/// Method to get container's size
+			/// </summary>
+			/// <returns>Size</returns>
+			virtual size_t size() = 0;
 		};
 	}
 }

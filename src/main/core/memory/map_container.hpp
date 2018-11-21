@@ -23,6 +23,7 @@ namespace ao {
 			virtual bool remove(T index) override;
 			virtual bool exists(T index) override;
 			virtual void clear() override;
+			virtual size_t size() override;
 			V begin() override;
 			V end() override;
 
@@ -54,6 +55,11 @@ namespace ao {
 		template<class T, class U, class V>
 		void MapContainer<T, U, V>::clear() {
 			this->map.clear();
+		}
+
+		template<class T, class U, class V>
+		size_t MapContainer<T, U, V>::size() {
+			return this->map.size();
 		}
 
 		template<class T, class U, class V>

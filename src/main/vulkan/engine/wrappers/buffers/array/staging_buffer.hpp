@@ -204,7 +204,7 @@ namespace ao {
 
 			// Update host buffer & synchronize memories
 			if (auto host = static_cast<ArrayBuffer<T, N>*>(this->hostBuffer.get())) {
-				host->update(data...);
+				host->update(data);
 			}
 			else {
 				throw core::Exception("Fail to update host buffer");

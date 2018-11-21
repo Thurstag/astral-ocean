@@ -78,14 +78,14 @@ namespace ao {
 		void BasicTupleBuffer<T...>::free() {
 			auto _device = ao::core::shared(this->device);
 
-			if (!this->memory) {
+			if (this->hasMapper) {
 				_device->logical.unmapMemory(this->memory);
+				this->hasMapper = false;
 			}
 			_device->logical.destroyBuffer(this->mBuffer);
 			_device->logical.freeMemory(this->memory);
 
 			this->mHasBuffer = false;
-			this->hasMapper = false;
 		}
 
 		template<class ...T>

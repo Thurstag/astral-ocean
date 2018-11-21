@@ -69,14 +69,14 @@ namespace ao {
 		void BasicDynamicArrayBuffer<T>::free() {
 			auto _device = ao::core::shared(this->device);
 
-			if (!this->memory) {
+			if (this->hasMapper) {
 				_device->logical.unmapMemory(this->memory);
+				this->hasMapper = false;
 			}
 			_device->logical.destroyBuffer(this->mBuffer);
 			_device->logical.freeMemory(this->memory);
 
 			this->mHasBuffer = false;
-			this->hasMapper = false;
 		}
 
 		template<class T>
@@ -144,7 +144,7 @@ namespace ao {
 			}
 
 			// Check index
-			if (index < 0 || index >= this->count) {
+			if (index >= this->count) {
 				throw core::Exception("Index out of range");
 			}
 
@@ -166,6 +166,9 @@ namespace ao {
 
 		template<class T>
 		vk::DeviceSize BasicDynamicArrayBuffer<T>::offset(size_t index) {
+			if (index >= this->count) {
+				throw core::Exception("Index out of range");
+			}
 			return index * this->mSize / this->count;
 		}
 
@@ -256,14 +259,14 @@ namespace ao {
 		void BasicArrayBuffer<T, N>::free() {
 			auto _device = ao::core::shared(this->device);
 
-			if (!this->memory) {
+			if (this->hasMapper) {
 				_device->logical.unmapMemory(this->memory);
+				this->hasMapper = false;
 			}
 			_device->logical.destroyBuffer(this->mBuffer);
 			_device->logical.freeMemory(this->memory);
 
 			this->mHasBuffer = false;
-			this->hasMapper = false;
 		}
 
 		template<class T, size_t N>
@@ -326,7 +329,7 @@ namespace ao {
 			}
 
 			// Check index
-			if (index < 0 || index >= N) {
+			if (index >= N) {
 				throw core::Exception("Index out of range");
 			}
 
@@ -348,6 +351,9 @@ namespace ao {
 
 		template<class T, size_t N>
 		vk::DeviceSize BasicArrayBuffer<T, N>::offset(size_t index) {
+			if (index >= N) {
+				throw core::Exception("Index out of range");
+			}
 			return index * this->mSize / N;
 		}
 

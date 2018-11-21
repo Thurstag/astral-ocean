@@ -36,6 +36,12 @@ namespace ao {
 			/// <returns>This</returns>
 			virtual DynamicArrayBuffer<T>* updateFragment(std::size_t index, T* data) = 0;
 
+			/// <summary>
+			/// Method to get capacity
+			/// </summary>
+			/// <returns>Capacity</returns>
+			size_t capacity();
+
 			virtual bool hasBuffer() override;
 		protected:
 			size_t count;
@@ -46,6 +52,11 @@ namespace ao {
 
 		template<class T>
 		DynamicArrayBuffer<T>::DynamicArrayBuffer(size_t _count, std::weak_ptr<Device> device) : Buffer(device), count(_count), mHasBuffer(false) {}
+
+		template<class T>
+		size_t DynamicArrayBuffer<T>::capacity() {
+			return this->count;
+		}
 
 		template<class T>
 		bool DynamicArrayBuffer<T>::hasBuffer() {

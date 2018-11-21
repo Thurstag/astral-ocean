@@ -3,6 +3,8 @@
 #include <string>
 #include <thread>
 
+#include <ao/core/utilities/types.h>
+
 namespace ao {
 	namespace vulkan {
 		struct WindowSettings {

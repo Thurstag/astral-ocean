@@ -382,13 +382,11 @@ void ao::vulkan::AOEngine::render() {
 	// Prepare frame
 	this->prepareFrame();
 
-	// TODO: Compute stuff
+	// Update uniform buffers
+	this->updateUniformBuffers();
 
 	// Update command buffers
 	this->updateCommandBuffers();
-
-	// Update uniform buffers
-	this->updateUniformBuffers();
 
 	// Create submit info
 	vk::SubmitInfo submitInfo(
@@ -464,7 +462,7 @@ void ao::vulkan::AOEngine::updateCommandBuffers() {
 		auto& helpers = this->swapchain->commandBufferHelpers;
 		std::vector<std::future<vk::CommandBuffer>> futures;
 
-		// Get drawing functions (TODO: Plugins can draw ???)
+		// Get functions
 		std::vector<ao::vulkan::DrawInCommandBuffer> functions = this->updateSecondaryCommandBuffers();
 
 		// Execute drawing functions

@@ -33,19 +33,6 @@ namespace ao {
 			/// <returns>This</returns>
 			virtual TupleBuffer<T...>* updateFragment(std::size_t index, void* data) = 0;
 
-			/// <summary>
-			/// Method to get offset of fragment at index
-			/// </summary>
-			/// <param name="index">Fragment index</param>
-			/// <returns>Offset</returns>
-			virtual vk::DeviceSize offset(size_t index) = 0;
-
-			/// <summary>
-			/// Method to map buffer
-			/// </summary>
-			/// <returns></returns>
-			virtual TupleBuffer<T...>* map() = 0;
-
 			virtual bool hasBuffer() override;
 
 		protected:

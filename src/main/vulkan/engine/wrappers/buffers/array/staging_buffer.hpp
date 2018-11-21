@@ -1,11 +1,12 @@
 #pragma once
 
+#include "../staging_buffer.h"
 #include "basic_buffer.hpp"
 
 namespace ao {
 	namespace vulkan {
 		template<class T>
-		class StagingDynamicArrayBuffer : public DynamicArrayBuffer<T> {
+		class StagingDynamicArrayBuffer : public virtual DynamicArrayBuffer<T>, public virtual StagingBuffer {
 		public:
 			/// <summary>
 			/// Constructor
@@ -18,12 +19,7 @@ namespace ao {
 			/// <summary>
 			/// Destructor
 			/// </summary>
-			virtual ~StagingDynamicArrayBuffer();
-
-			/// <summary>
-			/// Method to free buffer
-			/// </summary>
-			void free();
+			virtual ~StagingDynamicArrayBuffer() = default;
 
 			/// <summary>
 			/// Method to init buffer
@@ -37,51 +33,17 @@ namespace ao {
 
 			DynamicArrayBuffer<T>* update(std::vector<T>& data) override;
 			DynamicArrayBuffer<T>* updateFragment(std::size_t index, T* data) override;
-			vk::DeviceSize offset(size_t index) override;
+			bool hasBuffer() override;
 			vk::Buffer& buffer() override;
 			vk::DeviceSize size() override;
-			DynamicArrayBuffer<T>* map() override;
-
-		protected:
-			bool memoryBarrier;
-
-			std::unique_ptr<DynamicArrayBuffer<T>> deviceBuffer;
-			std::unique_ptr<DynamicArrayBuffer<T>> hostBuffer;
-			vk::CommandBufferUsageFlags usage;
-
-			vk::CommandBuffer commandBuffer;
-			vk::Fence fence;
-
-			/// <summary>
-			/// Method to synchronize host & device memories
-			/// </summary>
-			void sync();
+			vk::DeviceSize offset(size_t index) override;
+			Buffer* map() override;
 		};
 
 		/* IMPLEMENTATION */
 
 		template<class T>
-		StagingDynamicArrayBuffer<T>::StagingDynamicArrayBuffer(std::weak_ptr<Device> device, vk::CommandBufferUsageFlags _usage, bool _memoryBarrier) : DynamicArrayBuffer<T>(device), usage(_usage), memoryBarrier(_memoryBarrier) {}
-
-		template<class T>
-		StagingDynamicArrayBuffer<T>::~StagingDynamicArrayBuffer() {
-			this->free();
-
-			if (auto _device = ao::core::shared(this->device)) {
-				_device->logical.freeCommandBuffers(_device->transferCommandPool, this->commandBuffer);
-				_device->logical.destroyFence(this->fence);
-			}
-		}
-
-		template<class T>
-		void StagingDynamicArrayBuffer<T>::free() {
-			if (this->hostBuffer.get() != nullptr) {
-				this->hostBuffer.reset(nullptr);
-			}
-			if (this->deviceBuffer.get() != nullptr) {
-				this->deviceBuffer.reset(nullptr);
-			}
-		}
+		StagingDynamicArrayBuffer<T>::StagingDynamicArrayBuffer(std::weak_ptr<Device> device, vk::CommandBufferUsageFlags _usage, bool _memoryBarrier) : DynamicArrayBuffer<T>(device), StagingBuffer(device, _usage, _memoryBarrier) {}
 
 		template<class T>
 		StagingDynamicArrayBuffer<T>* StagingDynamicArrayBuffer<T>::init(vk::DeviceSize size, boost::optional<vk::BufferUsageFlags> usageFlags) {
@@ -91,19 +53,19 @@ namespace ao {
 
 			// Init buffer in host's memory
 			this->hostBuffer = std::unique_ptr<DynamicArrayBuffer<T>>(
-				(new BasicDynamicArrayBuffer<T>(this->count, this->device))
+				(new BasicDynamicArrayBuffer<T>(this->count, StagingBuffer::device))
 				->init(vk::BufferUsageFlagBits::eTransferSrc, vk::SharingMode::eExclusive,
 				vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent, size)
 			);
 
 			// Init buffer in device's memory
 			this->deviceBuffer = std::unique_ptr<DynamicArrayBuffer<T>>(
-				(new BasicDynamicArrayBuffer<T>(this->count, this->device))
+				(new BasicDynamicArrayBuffer<T>(this->count, StagingBuffer::device))
 				->init(usageFlags ? vk::BufferUsageFlagBits::eTransferDst | usageFlags.get() : vk::BufferUsageFlagBits::eTransferDst,
 				vk::SharingMode::eExclusive, vk::MemoryPropertyFlagBits::eDeviceLocal, size)
 			);
 
-			if (auto _device = ao::core::shared(this->device)) {
+			if (auto _device = ao::core::shared(StagingBuffer::device)) {
 				// Create command buffer
 				this->commandBuffer = _device->logical.allocateCommandBuffers(vk::CommandBufferAllocateInfo(_device->transferCommandPool, vk::CommandBufferLevel::ePrimary, 1))[0];
 
@@ -140,67 +102,32 @@ namespace ao {
 		}
 
 		template<class T>
-		vk::DeviceSize StagingDynamicArrayBuffer<T>::offset(size_t index) {
-			return this->hostBuffer->offset(index);
+		bool StagingDynamicArrayBuffer<T>::hasBuffer() {
+			return StagingBuffer::hasBuffer();
 		}
 
 		template<class T>
 		vk::Buffer & StagingDynamicArrayBuffer<T>::buffer() {
-			if (this->deviceBuffer.get() == nullptr) {
-				throw ao::core::Exception("Device buffer hasn't been initialized");
-			}
-			return this->deviceBuffer->buffer();
+			return StagingBuffer::buffer();
 		}
 
 		template<class T>
 		vk::DeviceSize StagingDynamicArrayBuffer<T>::size() {
-			if (this->deviceBuffer.get() == nullptr) {
-				throw ao::core::Exception("Device buffer hasn't been initialized");
-			}
-			return this->deviceBuffer->size();
+			return StagingBuffer::size();
 		}
 
 		template<class T>
-		DynamicArrayBuffer<T>* StagingDynamicArrayBuffer<T>::map() {
-			return this->hostBuffer->map();
+		vk::DeviceSize StagingDynamicArrayBuffer<T>::offset(size_t index) {
+			return StagingBuffer::offset(index);
 		}
 
 		template<class T>
-		void StagingDynamicArrayBuffer<T>::sync() {
-			auto _device = ao::core::shared(this->device);
-
-	        // Create command to transfer data from host to device
-			this->commandBuffer.begin(vk::CommandBufferBeginInfo(this->usage));
-			{
-				// Memory barrier
-				if (this->memoryBarrier) {
-					vk::BufferMemoryBarrier barrier(
-						vk::AccessFlagBits::eTransferWrite,
-						vk::AccessFlags(), _device->queues[vk::QueueFlagBits::eTransfer].index,
-						_device->queues[vk::QueueFlagBits::eGraphics].index, this->deviceBuffer->buffer()
-					);
-					this->commandBuffer.pipelineBarrier(vk::PipelineStageFlagBits::eTopOfPipe, vk::PipelineStageFlagBits::eVertexInput, vk::DependencyFlags(), {}, barrier, {});
-				}
-
-				// Copy buffer
-				this->commandBuffer.copyBuffer(this->hostBuffer->buffer(), this->deviceBuffer->buffer(), vk::BufferCopy().setSize(this->deviceBuffer->size()));
-			}
-			this->commandBuffer.end();
-
-			// Submit command
-			_device->queues[vk::QueueFlagBits::eTransfer].queue.submit(vk::SubmitInfo().setCommandBufferCount(1)
-																	   .setPCommandBuffers(&this->commandBuffer),
-																	   this->fence);
-
-			// Wait fence
-			_device->logical.waitForFences(this->fence, VK_TRUE, (std::numeric_limits<u64>::max)());
-
-			// Reset fence
-			_device->logical.resetFences(this->fence);
+		Buffer * StagingDynamicArrayBuffer<T>::map() {
+			return StagingBuffer::map();
 		}
 
 		template<class T, size_t N>
-		class StagingArrayBuffer : public ArrayBuffer<T, N> {
+		class StagingArrayBuffer : public virtual ArrayBuffer<T, N>, public StagingBuffer {
 		public:
 			/// <summary>
 			/// Constructor
@@ -213,12 +140,7 @@ namespace ao {
 			/// <summary>
 			/// Destructor
 			/// </summary>
-			virtual ~StagingArrayBuffer();
-
-			/// <summary>
-			/// Method to free buffer
-			/// </summary>
-			void free();
+			virtual ~StagingArrayBuffer() = default;
 
 			/// <summary>
 			/// Method to init buffer
@@ -232,51 +154,17 @@ namespace ao {
 
 			ArrayBuffer<T, N>* update(std::array<T, N> data) override;
 			ArrayBuffer<T, N>* updateFragment(std::size_t index, T* data) override;
-			vk::DeviceSize offset(size_t index) override;
+			bool hasBuffer() override;
 			vk::Buffer& buffer() override;
 			vk::DeviceSize size() override;
-			ArrayBuffer<T, N>* map() override;
-
-		protected:
-			bool memoryBarrier;
-
-			std::unique_ptr<ArrayBuffer<T, N>> deviceBuffer;
-			std::unique_ptr<ArrayBuffer<T, N>> hostBuffer;
-			vk::CommandBufferUsageFlags usage;
-
-			vk::CommandBuffer commandBuffer;
-			vk::Fence fence;
-
-			/// <summary>
-			/// Method to synchronize host & device memories
-			/// </summary>
-			void sync();
+			vk::DeviceSize offset(size_t index) override;
+			Buffer* map() override;
 		};
 
 		/* IMPLEMENTATION */
 
 		template<class T, size_t N>
-		StagingArrayBuffer<T, N>::StagingArrayBuffer(std::weak_ptr<Device> device, vk::CommandBufferUsageFlags _usage, bool _memoryBarrier) : ArrayBuffer<T, N>(device), usage(_usage), memoryBarrier(_memoryBarrier) {}
-
-		template<class T, size_t N>
-		StagingArrayBuffer<T, N>::~StagingArrayBuffer() {
-			this->free();
-
-			if (auto _device = ao::core::shared(this->device)) {
-				_device->logical.freeCommandBuffers(_device->transferCommandPool, this->commandBuffer);
-				_device->logical.destroyFence(this->fence);
-			}
-		}
-
-		template<class T, size_t N>
-		void StagingArrayBuffer<T, N>::free() {
-			if (this->hostBuffer.get() != nullptr) {
-				this->hostBuffer.reset(nullptr);
-			}
-			if (this->deviceBuffer.get() != nullptr) {
-				this->deviceBuffer.reset(nullptr);
-			}
-		}
+		StagingArrayBuffer<T, N>::StagingArrayBuffer(std::weak_ptr<Device> device, vk::CommandBufferUsageFlags _usage, bool _memoryBarrier) : ArrayBuffer<T, N>(device), StagingBuffer(device, _usage, _memoryBarrier) {}
 
 		template<class T, size_t N>
 		StagingArrayBuffer<T, N>* StagingArrayBuffer<T, N>::init(vk::DeviceSize size, boost::optional<vk::BufferUsageFlags> usageFlags) {
@@ -286,19 +174,19 @@ namespace ao {
 
 			// Init buffer in host's memory
 			this->hostBuffer = std::unique_ptr<ArrayBuffer<T, N>>(
-				(new BasicArrayBuffer<T, N>(this->device))
+				(new BasicArrayBuffer<T, N>(StagingBuffer::device))
 				->init(vk::BufferUsageFlagBits::eTransferSrc, vk::SharingMode::eExclusive,
 				vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent, size)
 			);
 
 			// Init buffer in device's memory
 			this->deviceBuffer = std::unique_ptr<ArrayBuffer<T, N>>(
-				(new BasicArrayBuffer<T, N>(this->device))
+				(new BasicArrayBuffer<T, N>(StagingBuffer::device))
 				->init(usageFlags ? vk::BufferUsageFlagBits::eTransferDst | usageFlags.get() : vk::BufferUsageFlagBits::eTransferDst,
 				vk::SharingMode::eExclusive, vk::MemoryPropertyFlagBits::eDeviceLocal, size)
 			);
 
-			if (auto _device = ao::core::shared(this->device)) {
+			if (auto _device = ao::core::shared(StagingBuffer::device)) {
 				// Create command buffer
 				this->commandBuffer = _device->logical.allocateCommandBuffers(vk::CommandBufferAllocateInfo(_device->transferCommandPool, vk::CommandBufferLevel::ePrimary, 1))[0];
 
@@ -315,7 +203,12 @@ namespace ao {
 			}
 
 			// Update host buffer & synchronize memories
-			this->hostBuffer->update(data);
+			if (auto host = static_cast<ArrayBuffer<T, N>*>(this->hostBuffer.get())) {
+				host->update(data...);
+			}
+			else {
+				throw core::Exception("Fail to update host buffer");
+			}
 			this->sync();
 
 			return this;
@@ -328,70 +221,40 @@ namespace ao {
 			}
 
 			// Update host buffer & synchronize memories
-			this->hostBuffer->updateFragment(index, data);
+			if (auto host = static_cast<ArrayBuffer<T, N>*>(this->hostBuffer.get())) {
+				host->updateFragment(index, data);
+			}
+			else {
+				throw core::Exception(fmt::format("Fail to update host buffer fragment: {0}", index));
+			}
 			this->sync();
 
 			return this;
 		}
 
 		template<class T, size_t N>
-		vk::DeviceSize StagingArrayBuffer<T, N>::offset(size_t index) {
-			return this->hostBuffer->offset(index);
+		bool StagingArrayBuffer<T, N>::hasBuffer() {
+			return StagingBuffer::hasBuffer();
 		}
 
 		template<class T, size_t N>
 		vk::Buffer & StagingArrayBuffer<T, N>::buffer() {
-			if (this->deviceBuffer.get() == nullptr) {
-				throw ao::core::Exception("Device buffer hasn't been initialized");
-			}
-			return this->deviceBuffer->buffer();
+			return StagingBuffer::buffer();
 		}
 
 		template<class T, size_t N>
 		vk::DeviceSize StagingArrayBuffer<T, N>::size() {
-			if (this->deviceBuffer.get() == nullptr) {
-				throw ao::core::Exception("Device buffer hasn't been initialized");
-			}
-			return this->deviceBuffer->size();
+			return StagingBuffer::size();
 		}
 
 		template<class T, size_t N>
-		ArrayBuffer<T, N>* StagingArrayBuffer<T, N>::map() {
-			return this->hostBuffer->map();
+		vk::DeviceSize StagingArrayBuffer<T, N>::offset(size_t index) {
+			return StagingBuffer::offset(index);
 		}
 
 		template<class T, size_t N>
-		void StagingArrayBuffer<T, N>::sync() {
-			auto _device = ao::core::shared(this->device);
-
-			// Create command to transfer data from host to device
-			this->commandBuffer.begin(vk::CommandBufferBeginInfo(this->usage));
-			{
-				// Memory barrier
-				if (this->memoryBarrier) {
-					vk::BufferMemoryBarrier barrier(
-						vk::AccessFlagBits::eTransferWrite,
-						vk::AccessFlags(), _device->queues[vk::QueueFlagBits::eTransfer].index,
-						_device->queues[vk::QueueFlagBits::eGraphics].index, this->deviceBuffer->buffer()
-					);
-					this->commandBuffer.pipelineBarrier(vk::PipelineStageFlagBits::eTopOfPipe, vk::PipelineStageFlagBits::eVertexInput, vk::DependencyFlags(), {}, barrier, {});
-				}
-
-				// Copy buffer
-				this->commandBuffer.copyBuffer(this->hostBuffer->buffer(), this->deviceBuffer->buffer(), vk::BufferCopy().setSize(this->deviceBuffer->size()));
-			}
-			this->commandBuffer.end();
-
-			// Submit command
-			_device->queues[vk::QueueFlagBits::eTransfer].queue.submit(vk::SubmitInfo().setCommandBufferCount(1)
-																	   .setPCommandBuffers(&this->commandBuffer),
-																	   this->fence);
-
-			// Wait fence
-			_device->logical.waitForFences(this->fence, VK_TRUE, (std::numeric_limits<u64>::max)());
-
-			// Reset fence
-			_device->logical.resetFences(this->fence);
+		Buffer * StagingArrayBuffer<T, N>::map() {
+			return StagingBuffer::map();
 		}
 	}
 }

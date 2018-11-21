@@ -1,11 +1,12 @@
 #pragma once
 
+#include "../staging_buffer.h"
 #include "basic_buffer.hpp"
 
 namespace ao {
 	namespace vulkan {
 		template<class... T>
-		class StagingTupleBuffer : public TupleBuffer<T...> {
+		class StagingTupleBuffer : public virtual TupleBuffer<T...>, public virtual StagingBuffer {
 		public:
 			/// <summary>
 			/// Constructor
@@ -18,12 +19,7 @@ namespace ao {
 			/// <summary>
 			/// Destructor
 			/// </summary>
-			virtual ~StagingTupleBuffer();
-
-			/// <summary>
-			/// Method to free buffer
-			/// </summary>
-			void free();
+			virtual ~StagingTupleBuffer() = default;
 
 			/// <summary>
 			/// Method to init buffer
@@ -37,52 +33,17 @@ namespace ao {
 
 			TupleBuffer<T...>* update(T*... data) override;
 			TupleBuffer<T...>* updateFragment(std::size_t index, void* data) override;
-			TupleBuffer<T...>* map() override;
+			bool hasBuffer() override;
 			vk::Buffer& buffer() override;
 			vk::DeviceSize size() override;
-			bool hasBuffer() override;
 			vk::DeviceSize offset(size_t index) override;
-
-		protected:
-			bool memoryBarrier;
-
-			std::unique_ptr<TupleBuffer<T...>> deviceBuffer;
-			std::unique_ptr<TupleBuffer<T...>> hostBuffer;
-			vk::CommandBufferUsageFlags usage;
-
-			vk::CommandBuffer commandBuffer;
-			vk::Fence fence;
-
-			/// <summary>
-			/// Method to synchronize host & device memories
-			/// </summary>
-			void sync();
+			Buffer* map() override;
 		};
 
 		/* IMPLEMENTATION */
 
 		template<class ...T>
-		StagingTupleBuffer<T...>::StagingTupleBuffer(std::weak_ptr<Device> device, vk::CommandBufferUsageFlags _usage, bool _memoryBarrier) : TupleBuffer<T...>(device), usage(_usage), memoryBarrier(_memoryBarrier) {}
-
-		template<class ...T>
-		StagingTupleBuffer<T...>::~StagingTupleBuffer() {
-			this->free();
-
-			if (auto _device = ao::core::shared(this->device)) {
-				_device->logical.freeCommandBuffers(_device->transferCommandPool, this->commandBuffer);
-				_device->logical.destroyFence(this->fence);
-			}
-		}
-
-		template<class ...T>
-		void StagingTupleBuffer<T...>::free() {
-			if (this->hostBuffer.get() != nullptr) {
-				this->hostBuffer.reset(nullptr);
-			}
-			if (this->deviceBuffer.get() != nullptr) {
-				this->deviceBuffer.reset(nullptr);
-			}
-		}
+		StagingTupleBuffer<T...>::StagingTupleBuffer(std::weak_ptr<Device> device, vk::CommandBufferUsageFlags _usage, bool _memoryBarrier) : TupleBuffer<T...>(device), StagingBuffer(device, _usage, _memoryBarrier) {}
 
 		template<class ...T>
 		StagingTupleBuffer<T...>* StagingTupleBuffer<T...>::init(std::vector<vk::DeviceSize> sizes, boost::optional<vk::BufferUsageFlags> usageFlags) {
@@ -92,19 +53,19 @@ namespace ao {
 
 			// Init buffer in host's memory
 			this->hostBuffer = std::unique_ptr<TupleBuffer<T...>>(
-				(new BasicTupleBuffer<T...>(this->device))
+				(new BasicTupleBuffer<T...>(StagingBuffer::device))
 				->init(vk::BufferUsageFlagBits::eTransferSrc, vk::SharingMode::eExclusive,
 				vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent, sizes)
-			);
+				);
 
-			// Init buffer in device's memory
+				// Init buffer in device's memory
 			this->deviceBuffer = std::unique_ptr<TupleBuffer<T...>>(
-				(new BasicTupleBuffer<T...>(this->device))
+				(new BasicTupleBuffer<T...>(StagingBuffer::device))
 				->init(usageFlags ? vk::BufferUsageFlagBits::eTransferDst | usageFlags.get() : vk::BufferUsageFlagBits::eTransferDst,
 				vk::SharingMode::eExclusive, vk::MemoryPropertyFlagBits::eDeviceLocal, sizes)
-			);
+				);
 
-			if (auto _device = ao::core::shared(this->device)) {
+			if (auto _device = ao::core::shared(StagingBuffer::device)) {
 				// Create command buffer
 				this->commandBuffer = _device->logical.allocateCommandBuffers(vk::CommandBufferAllocateInfo(_device->transferCommandPool, vk::CommandBufferLevel::ePrimary, 1))[0];
 
@@ -121,7 +82,12 @@ namespace ao {
 			}
 
 			// Update host buffer & synchronize memories
-			this->hostBuffer->update(data...);
+			if (auto host = static_cast<TupleBuffer<T...>*>(this->hostBuffer.get())) {
+				host->update(data...);
+			}
+			else {
+				throw core::Exception("Fail to update host buffer");
+			}
 			this->sync();
 
 			return this;
@@ -134,78 +100,40 @@ namespace ao {
 			}
 
 			// Update host buffer & synchronize memories
-			this->hostBuffer->updateFragment(index, data);
+			if (auto host = static_cast<TupleBuffer<T...>*>(this->hostBuffer.get())) {
+				host->updateFragment(index, data);
+			}
+			else {
+				throw core::Exception(fmt::format("Fail to update host buffer fragment: {0}", index));
+			}
 			this->sync();
 
 			return this;
 		}
 
 		template<class ...T>
-		TupleBuffer<T...>* StagingTupleBuffer<T...>::map() {
-			return this->hostBuffer->map();;
+		bool StagingTupleBuffer<T...>::hasBuffer() {
+			return StagingBuffer::hasBuffer();
 		}
 
 		template<class ...T>
 		vk::Buffer & StagingTupleBuffer<T...>::buffer() {
-			if (this->deviceBuffer.get() == nullptr) {
-				throw ao::core::Exception("Device buffer hasn't been initialized");
-			}
-			return this->deviceBuffer->buffer();
+			return StagingBuffer::buffer();
 		}
 
 		template<class ...T>
 		vk::DeviceSize StagingTupleBuffer<T...>::size() {
-			if (this->deviceBuffer.get() == nullptr) {
-				throw ao::core::Exception("Device buffer hasn't been initialized");
-			}
-			return this->deviceBuffer->size();
-		}
-
-		template<class ...T>
-		bool StagingTupleBuffer<T...>::hasBuffer() {
-			if (this->hostBuffer.get() == nullptr || this->deviceBuffer.get() == nullptr) {
-				return false;
-			}
-			return this->hostBuffer->hasBuffer() && this->deviceBuffer->hasBuffer();
+			return StagingBuffer::size();
 		}
 
 		template<class ...T>
 		vk::DeviceSize StagingTupleBuffer<T...>::offset(size_t index) {
-			return this->hostBuffer->offset(index);
+			return StagingBuffer::offset(index);
 		}
 
 		template<class ...T>
-		void StagingTupleBuffer<T...>::sync() {
-			auto _device = ao::core::shared(this->device);
-
-			// Create command to transfer data from host to device
-			this->commandBuffer.begin(vk::CommandBufferBeginInfo(this->usage));
-			{
-				// Memory barrier
-				if (this->memoryBarrier) {
-					vk::BufferMemoryBarrier barrier(
-						vk::AccessFlagBits::eTransferWrite,
-						vk::AccessFlags(), _device->queues[vk::QueueFlagBits::eTransfer].index,
-						_device->queues[vk::QueueFlagBits::eGraphics].index, this->deviceBuffer->buffer()
-					);
-					this->commandBuffer.pipelineBarrier(vk::PipelineStageFlagBits::eTopOfPipe, vk::PipelineStageFlagBits::eVertexInput, vk::DependencyFlags(), {}, barrier, {});
-				}
-
-				// Copy buffer
-				this->commandBuffer.copyBuffer(this->hostBuffer->buffer(), this->deviceBuffer->buffer(), vk::BufferCopy().setSize(this->deviceBuffer->size()));
-			}
-			this->commandBuffer.end();
-
-			// Submit command
-			_device->queues[vk::QueueFlagBits::eTransfer].queue.submit(vk::SubmitInfo().setCommandBufferCount(1)
-																	   .setPCommandBuffers(&this->commandBuffer),
-																	   this->fence);
-
-			// Wait fence
-			_device->logical.waitForFences(this->fence, VK_TRUE, (std::numeric_limits<u64>::max)());
-
-			// Reset fence
-			_device->logical.resetFences(this->fence);
+		Buffer * StagingTupleBuffer<T...>::map() {
+			return StagingBuffer::map();
 		}
 	}
 }

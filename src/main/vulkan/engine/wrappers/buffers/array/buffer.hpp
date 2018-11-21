@@ -36,21 +36,7 @@ namespace ao {
 			/// <returns>This</returns>
 			virtual DynamicArrayBuffer<T>* updateFragment(std::size_t index, T* data) = 0;
 
-			/// <summary>
-			/// Method to get offset of fragment at index
-			/// </summary>
-			/// <param name="index">Fragment index</param>
-			/// <returns>Offset</returns>
-			virtual vk::DeviceSize offset(size_t index) = 0;
-
-			/// <summary>
-			/// Method to map buffer
-			/// </summary>
-			/// <returns></returns>
-			virtual DynamicArrayBuffer<T>* map() = 0;
-
 			virtual bool hasBuffer() override;
-
 		protected:
 			size_t count;
 			bool mHasBuffer;

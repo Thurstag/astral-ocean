@@ -39,6 +39,19 @@ namespace ao {
 			/// <returns>Size</returns>
 			virtual vk::DeviceSize size() = 0;
 
+		    /// <summary>
+			/// Method to get offset of fragment at index
+			/// </summary>
+			/// <param name="index">Fragment index</param>
+			/// <returns>Offset</returns>
+			virtual vk::DeviceSize offset(size_t index) = 0;
+
+			/// <summary>
+			/// Method to map buffer
+			/// </summary>
+			/// <returns></returns>
+			virtual Buffer* map() = 0;
+
 			/// <summary>
 			/// Method to calculate ubo size with aligment
 			/// </summary>

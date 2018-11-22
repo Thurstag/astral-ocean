@@ -1,5 +1,6 @@
 #pragma once
 
+#include <ao/core/exception/index_out_of_range.h>
 #include <ao/core/utilities/pointers.h>
 
 #include "buffer.hpp"
@@ -82,10 +83,11 @@ namespace ao {
 				_device->logical.unmapMemory(this->memory);
 				this->hasMapper = false;
 			}
-			_device->logical.destroyBuffer(this->mBuffer);
-			_device->logical.freeMemory(this->memory);
-
-			this->mHasBuffer = false;
+			if (this->mHasBuffer) {
+				_device->logical.destroyBuffer(this->mBuffer);
+				_device->logical.freeMemory(this->memory);
+				this->mHasBuffer = false;
+			}
 		}
 
 		template<class ...T>
@@ -180,8 +182,8 @@ namespace ao {
 			}
 
 			// Check index
-			if (index < 0 || index >= sizeof...(T)) {
-				throw core::Exception("Index out of range");
+			if (index >= sizeof...(T)) {
+				throw core::IndexOutOfRangeException(std::make_pair(static_cast<u64>(0), static_cast<u64>(sizeof...(T))));
 			}
 
 			// Map memory
@@ -214,6 +216,9 @@ namespace ao {
 		vk::DeviceSize BasicTupleBuffer<T...>::offset(size_t index) {
 			if (!this->hasMapper) {
 				throw ao::core::Exception("Buffer is not mapped");
+			}
+			if (index >= sizeof...(T)) {
+				throw core::IndexOutOfRangeException(std::make_pair(static_cast<u64>(0), static_cast<u64>(sizeof...(T))));
 			}
 			return this->offsets[index];
 		}

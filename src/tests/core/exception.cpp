@@ -1,6 +1,7 @@
 #include <sstream>
 
 #include <ao/core/exception/expiration_exception.hpp>
+#include <ao/core/exception/index_out_of_range.h>
 #include <boost/algorithm/string/predicate.hpp>
 #include <ao/core/exception/exception.h>
 #include <gtest/gtest.h>
@@ -22,12 +23,17 @@ namespace ao {
 			std::stringstream _exception;
 			_exception << core::Exception(std::runtime_error("Message 2").what(), false);
 
-			ASSERT_STRNE(exception.str().c_str(), "Message") << "Exception should have a stack trace";
-			ASSERT_STREQ(_exception.str().c_str(), "Message 2") << "Exception shouldn't have a stack trace";
+			ASSERT_STRNE("Message", exception.str().c_str()) << "Exception should have a stack trace";
+			ASSERT_STREQ("Message 2", _exception.str().c_str()) << "Exception shouldn't have a stack trace";
 		}
 
 		TEST(ExpirationException, Constructor) {
 			ASSERT_TRUE(boost::algorithm::ends_with(core::ExpirationException<int>(std::make_shared<int>(3)).what(), "pointer is expired"));
+		}
+
+		TEST(IndexOutOfRangeException, Constructor) {
+			ASSERT_STREQ("Index out of range", core::IndexOutOfRangeException().what());
+			ASSERT_STREQ("Index out of range, range is: 0 -> 10", core::IndexOutOfRangeException(std::make_pair<u64, u64>(0, 10)).what());
 		}
 	}
 }

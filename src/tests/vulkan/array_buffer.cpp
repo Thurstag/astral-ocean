@@ -1,7 +1,7 @@
 #include <gtest/gtest.h>
 
 #include "../helpers/vk_instance.hpp"
-#include "../helpers/vk_buffers.hpp"
+#include "../helpers/vk_array_buffers.hpp"
 #include "../helpers/tests.h"
 
 namespace ao {
@@ -14,7 +14,7 @@ namespace ao {
 
 		/* BASIC */
 
-		TEST(BasicBuffer, NoInit) {
+		TEST(BasicBuffer, NotInit) {
 	        // 'Mute' logger
 			core::Logger::SetMinLevel(log4cpp::Priority::FATAL);
 
@@ -27,9 +27,6 @@ namespace ao {
 		}
 
 		TEST(BasicBuffer, Init) {
-			// 'Mute' logger
-			core::Logger::SetMinLevel(log4cpp::Priority::FATAL);
-
 			// Init instance
 			VkInstance instance;
 			SKIP_TEST(!instance.init(), FAIL_INIT_VULKAN);
@@ -61,7 +58,7 @@ namespace ao {
 			std::vector<Object> v = { Object(1), Object(2) };
 			b2.update(v);
 
-			// Out of range update
+			// Wrong size
 			ASSERT_EXCEPTION<core::Exception>([&]() {
 				std::vector<Object> v = { Object(1), Object(2), Object(1), Object(2) };
 				b2.update(v);
@@ -85,6 +82,7 @@ namespace ao {
 			TestBasicArrayBuffer<Object, 2> b = TestBasicArrayBuffer<Object, 2>(instance.device);
 			TestBasicDynamicArrayBuffer<Object> b2 = TestBasicDynamicArrayBuffer<Object>(2, instance.device);
 
+			// Not init
 			ASSERT_EXCEPTION<core::Exception>([&]() {
 				b.update({ Object(1), Object(2) });
 			});
@@ -143,10 +141,10 @@ namespace ao {
 			b2.updateFragment(1, o);
 
 		    // Out of range update
-			ASSERT_EXCEPTION<core::Exception>([&]() {
+			ASSERT_EXCEPTION<core::IndexOutOfRangeException>([&]() {
 				b.updateFragment(10, o);
 			});
-			ASSERT_EXCEPTION<core::Exception>([&]() {
+			ASSERT_EXCEPTION<core::IndexOutOfRangeException>([&]() {
 				b2.updateFragment(10, o);
 			});
 
@@ -183,10 +181,10 @@ namespace ao {
 			ASSERT_EQ(2, b2Mapper->i);
 
 			// Out of range
-			ASSERT_EXCEPTION<core::Exception>([&]() {
+			ASSERT_EXCEPTION<core::IndexOutOfRangeException>([&]() {
 				b.offset(10);
 			});
-			ASSERT_EXCEPTION<core::Exception>([&]() {
+			ASSERT_EXCEPTION<core::IndexOutOfRangeException>([&]() {
 				b2.offset(10);
 			});
 		}
@@ -216,10 +214,7 @@ namespace ao {
 
 		/* STAGING */
 
-		TEST(StagingBuffer, NoInit) {
-			// 'Mute' logger
-			core::Logger::SetMinLevel(log4cpp::Priority::FATAL);
-
+		TEST(StagingBuffer, NotInit) {
 			// Init instance
 			VkInstance instance;
 			SKIP_TEST(!instance.init(), FAIL_INIT_VULKAN);
@@ -229,9 +224,6 @@ namespace ao {
 		}
 
 		TEST(StagingBuffer, Init) {
-			// 'Mute' logger
-			core::Logger::SetMinLevel(log4cpp::Priority::FATAL);
-
 			// Init instance
 			VkInstance instance;
 			SKIP_TEST(!instance.init(), FAIL_INIT_VULKAN);
@@ -263,7 +255,7 @@ namespace ao {
 			std::vector<Object> v = { Object(1), Object(2) };
 			b2.update(v);
 
-			// Out of range update
+			// Wrong size
 			ASSERT_EXCEPTION<core::Exception>([&]() {
 				std::vector<Object> v = { Object(1), Object(2), Object(1), Object(2) };
 				b2.update(v);
@@ -345,10 +337,10 @@ namespace ao {
 			b2.updateFragment(1, o);
 
 			// Out of range update
-			ASSERT_EXCEPTION<core::Exception>([&]() {
+			ASSERT_EXCEPTION<core::IndexOutOfRangeException>([&]() {
 				b.updateFragment(10, o);
 			});
-			ASSERT_EXCEPTION<core::Exception>([&]() {
+			ASSERT_EXCEPTION<core::IndexOutOfRangeException>([&]() {
 				b2.updateFragment(10, o);
 			});
 
@@ -385,10 +377,10 @@ namespace ao {
 			ASSERT_EQ(2, b2Mapper->i);
 
 			// Out of range
-			ASSERT_EXCEPTION<core::Exception>([&]() {
+			ASSERT_EXCEPTION<core::IndexOutOfRangeException>([&]() {
 				b.offset(10);
 			});
-			ASSERT_EXCEPTION<core::Exception>([&]() {
+			ASSERT_EXCEPTION<core::IndexOutOfRangeException>([&]() {
 				b2.offset(10);
 			});
 		}

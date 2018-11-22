@@ -25,9 +25,9 @@ namespace ao {
 			virtual ~ExpirationException() = default;
 		};
 
+		/* IMPLEMENTATION */
+
 		template<class T>
 		ExpirationException<T>::ExpirationException(std::weak_ptr<T> pointer) : Exception(fmt::format("{0} pointer is expired", typeid(T).name())) {}
-
-		/* IMPLEMENTATION */
 	}
 }

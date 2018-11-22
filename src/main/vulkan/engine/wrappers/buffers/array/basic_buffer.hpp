@@ -1,5 +1,7 @@
 #pragma once
 
+#include <ao/core/exception/index_out_of_range.h>
+
 #include "buffer.hpp"
 
 namespace ao {
@@ -73,10 +75,11 @@ namespace ao {
 				_device->logical.unmapMemory(this->memory);
 				this->hasMapper = false;
 			}
-			_device->logical.destroyBuffer(this->mBuffer);
-			_device->logical.freeMemory(this->memory);
-
-			this->mHasBuffer = false;
+			if (this->mHasBuffer) {
+				_device->logical.destroyBuffer(this->mBuffer);
+				_device->logical.freeMemory(this->memory);
+				this->mHasBuffer = false;
+			}
 		}
 
 		template<class T>
@@ -145,7 +148,7 @@ namespace ao {
 
 			// Check index
 			if (index >= this->count) {
-				throw core::Exception("Index out of range");
+				throw core::IndexOutOfRangeException(std::make_pair(static_cast<u64>(0), static_cast<u64>(this->count)));
 			}
 
 			// Map memory
@@ -167,7 +170,7 @@ namespace ao {
 		template<class T>
 		vk::DeviceSize BasicDynamicArrayBuffer<T>::offset(size_t index) {
 			if (index >= this->count) {
-				throw core::Exception("Index out of range");
+				throw core::IndexOutOfRangeException(std::make_pair(static_cast<u64>(0), static_cast<u64>(this->count)));
 			}
 			return index * this->mSize / this->count;
 		}
@@ -263,10 +266,11 @@ namespace ao {
 				_device->logical.unmapMemory(this->memory);
 				this->hasMapper = false;
 			}
-			_device->logical.destroyBuffer(this->mBuffer);
-			_device->logical.freeMemory(this->memory);
-
-			this->mHasBuffer = false;
+			if (this->mHasBuffer) {
+				_device->logical.destroyBuffer(this->mBuffer);
+				_device->logical.freeMemory(this->memory);
+				this->mHasBuffer = false;
+			}
 		}
 
 		template<class T, size_t N>
@@ -330,7 +334,7 @@ namespace ao {
 
 			// Check index
 			if (index >= N) {
-				throw core::Exception("Index out of range");
+				throw core::IndexOutOfRangeException(std::make_pair(static_cast<u64>(0), static_cast<u64>(N)));
 			}
 
 			// Map memory
@@ -352,7 +356,7 @@ namespace ao {
 		template<class T, size_t N>
 		vk::DeviceSize BasicArrayBuffer<T, N>::offset(size_t index) {
 			if (index >= N) {
-				throw core::Exception("Index out of range");
+				throw core::IndexOutOfRangeException(std::make_pair(static_cast<u64>(0), static_cast<u64>(N)));
 			}
 			return index * this->mSize / N;
 		}

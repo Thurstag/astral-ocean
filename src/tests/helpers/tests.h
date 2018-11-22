@@ -23,15 +23,13 @@ namespace ao {
 		/// <param name="code">Code that will throw an exception</param>
 		/// <param name="assert">Function to assert exception catched</param>
 		template<class T>
-		inline void ASSERT_EXCEPTION(std::function<void()> code, boost::optional<std::function<void(T)>> assert = boost::none) {
+		inline void ASSERT_EXCEPTION(std::function<void()> code, std::function<void(T)> assert = [](T e) {}) {
 			try {
 				code();
 
 				FAIL() << "Should throw a " << typeid(T).name();
 			} catch (T e) {
-				if (assert) {
-					(*assert)(e);
-				}
+				(assert)(e);
 			} catch (...) {
 				FAIL() << "Should catch a " << typeid(T).name();
 			}

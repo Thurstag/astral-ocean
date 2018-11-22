@@ -31,11 +31,7 @@ namespace ao {
 			/// <returns>Offset</returns>
 			virtual vk::DeviceSize offset(size_t index);
 
-			/// <summary>
-			/// Method to map buffer
-			/// </summary>
-			/// <returns>This</returns>
-			virtual Buffer* map();
+			virtual Buffer* map() override;
 
 			vk::Buffer& buffer() override;
 			vk::DeviceSize size() override;

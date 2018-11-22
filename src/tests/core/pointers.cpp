@@ -1,6 +1,8 @@
 #include <ao/core/utilities/pointers.h>
 #include <gtest/gtest.h>
 
+#include "../helpers/tests.h"
+
 namespace ao {
 	namespace test {
 		struct Object {
@@ -12,13 +14,9 @@ namespace ao {
 		TEST(WeakPointer, Empty) {
 			std::weak_ptr<int> ptr(std::make_shared<int>());
 
-			try {
+			ASSERT_EXCEPTION<core::Exception>([&]() {
 				core::shared(ptr);
-				FAIL() << "Should throw a core::Exception";
-			} catch (core::Exception e) {
-			} catch (...) {
-				FAIL() << "Should catch a core::Exception";
-			}
+			});
 		}
 
 		TEST(WeakPointer, Fill) {

@@ -99,12 +99,6 @@ namespace ao {
 			/// <returns>Offset</returns>
 			virtual vk::DeviceSize offset(size_t index) = 0;
 
-			/// <summary>
-			/// Method to map buffer
-			/// </summary>
-			/// <returns></returns>
-			virtual ArrayBuffer<T, N>* map() = 0;
-
 			virtual bool hasBuffer() override;
 
 		protected:

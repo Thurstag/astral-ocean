@@ -11,10 +11,11 @@ namespace ao {
 			/// <summary>
 			/// Constructor
 			/// </summary>
+			/// <param name="_count">Count</param>
 			/// <param name="device">Device</param>
 			/// <param name="_usage">Usage</param>
 			/// <param name="_memoryBarrier">Bind memory barrier on transfer</param>
-			StagingDynamicArrayBuffer(std::weak_ptr<Device> device, vk::CommandBufferUsageFlags _usage = vk::CommandBufferUsageFlagBits::eSimultaneousUse, bool _memoryBarrier = false);
+			StagingDynamicArrayBuffer(size_t _count, std::weak_ptr<Device> device, vk::CommandBufferUsageFlags _usage = vk::CommandBufferUsageFlagBits::eSimultaneousUse, bool _memoryBarrier = false);
 
 			/// <summary>
 			/// Destructor
@@ -43,7 +44,8 @@ namespace ao {
 		/* IMPLEMENTATION */
 
 		template<class T>
-		StagingDynamicArrayBuffer<T>::StagingDynamicArrayBuffer(std::weak_ptr<Device> device, vk::CommandBufferUsageFlags _usage, bool _memoryBarrier) : DynamicArrayBuffer<T>(device), StagingBuffer(device, _usage, _memoryBarrier) {}
+		StagingDynamicArrayBuffer<T>::StagingDynamicArrayBuffer(size_t _count, std::weak_ptr<Device> device, vk::CommandBufferUsageFlags _usage, bool _memoryBarrier)
+			: DynamicArrayBuffer<T>(_count, device), StagingBuffer(device, _usage, _memoryBarrier) {}
 
 		template<class T>
 		StagingDynamicArrayBuffer<T>* StagingDynamicArrayBuffer<T>::init(vk::DeviceSize size, boost::optional<vk::BufferUsageFlags> usageFlags) {
@@ -82,7 +84,12 @@ namespace ao {
 			}
 
 			// Update host buffer & synchronize memories
-			this->hostBuffer->update(data);
+			if (auto host = static_cast<DynamicArrayBuffer<T>*>(this->hostBuffer.get())) {
+				host->update(data);
+			}
+			else {
+				throw core::Exception("Fail to update host buffer");
+			}
 			this->sync();
 
 			return this;
@@ -95,7 +102,12 @@ namespace ao {
 			}
 
 			// Update host buffer & synchronize memories
-			this->hostBuffer->updateFragment(index, data);
+			if (auto host = static_cast<DynamicArrayBuffer<T>*>(this->hostBuffer.get())) {
+				host->updateFragment(index, data);
+			}
+			else {
+				throw core::Exception("Fail to update host buffer");
+			}
 			this->sync();
 
 			return this;

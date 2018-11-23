@@ -2,7 +2,7 @@ file(GLOB_RECURSE AO_CORE_SRC "*.cpp")
 file(GLOB_RECURSE AO_CORE_HEADERS "*.h" "*.hpp")
 
 # Define library
-create_library("ao-core" ${CMAKE_CURRENT_SOURCE_DIR} "fmt;${Boost_LOG_LIBRARY}")
+create_library("ao-core" ${CMAKE_CURRENT_SOURCE_DIR} "fmt;${Boost_LOG_LIBRARY};${Boost_LOG_SETUP_LIBRARY};${Boost_THREAD_LIBRARY};${Boost_SYSTEM_LIBRARY}")
 
 # Copy headers in include directory
 set(AO_CORE_INCLUDE_OUTPUT "${AO_INCLUDE_DIR}/ao/core")

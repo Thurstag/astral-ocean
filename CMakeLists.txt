@@ -36,7 +36,7 @@ set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
 
 # Compilation options
 IF (WIN32)
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /O2") 
+	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /O2") 
 ELSE()
 	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O3")
 ENDIF()
@@ -61,7 +61,7 @@ IF (NOT CMAKE_VERSION VERSION_LESS 3.7.0)
 ENDIF()
 
 # Boost lib
-find_package(Boost 1.68 COMPONENTS log REQUIRED)
+find_package(Boost 1.68 COMPONENTS log log_setup thread system REQUIRED)
 include_directories(${Boost_INCLUDE_DIR})
 
 # Check all libs

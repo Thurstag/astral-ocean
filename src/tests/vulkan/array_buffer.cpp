@@ -15,7 +15,8 @@ namespace ao {
 		/* BASIC */
 
 		TEST(BasicBuffer, NotInit) {
-	        // 'Mute' logger
+			// 'Mute' logger
+			core::Logger::Init();
 			core::Logger::SetMinLevel(core::LogLevel::fatal);
 
 			// Init instance

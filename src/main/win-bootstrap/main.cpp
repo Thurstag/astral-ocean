@@ -2,6 +2,8 @@
 
 #include <vld.h>
 
+#define GLM_FORCE_RADIANS 1
+
 #include <ao/vulkan/engine/plugins/title_fps_plugin.h>
 #include <ao/core/exception/exception.h>
 #include <ao/core/logger/logger.h>

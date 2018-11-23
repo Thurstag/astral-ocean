@@ -1,4 +1,4 @@
-#/bin/bash
+#!/bin/bash
 
 # SCRIPT TO COPY HEADERS INTO INCLUDE FOLDER
 
@@ -8,7 +8,7 @@ INCLUDE_RELATIVE_PATH=include/
 INCLUDE_PATH_FROM_SRC=../../include
 
 # Check include folder
-if [[ -d $INCLUDE_RELATIVE_PATH ]]; then
+if [ -d $INCLUDE_RELATIVE_PATH ]; then
 	echo "[INFO] Flush include directory"
 	rm -dRf "$INCLUDE_RELATIVE_PATH/ao"
 fi

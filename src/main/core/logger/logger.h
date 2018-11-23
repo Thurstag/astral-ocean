@@ -9,7 +9,7 @@
 #include <boost/log/trivial.hpp>
 #include <boost/log/core.hpp>
 
-#include "proxy_logger.h"
+#include "proxy_logger.hpp"
 
 namespace ao {
 	namespace core {

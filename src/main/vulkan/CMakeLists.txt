@@ -2,7 +2,7 @@ file(GLOB_RECURSE AO_VK_SRC "*.cpp")
 file(GLOB_RECURSE AO_VK_HEADERS "*.h" "*.hpp")
 
 # Define library
-create_library("ao-vulkan" ${CMAKE_CURRENT_SOURCE_DIR} "${Vulkan_LIBRARY};glfw;${GLM_LIBRARY};ao-core;${CMAKE_THREAD_LIBS_INIT};fmt;log4cpp")
+create_library("ao-vulkan" ${CMAKE_CURRENT_SOURCE_DIR} "${Vulkan_LIBRARY};glfw;${GLM_LIBRARY};ao-core;${CMAKE_THREAD_LIBS_INIT};fmt;${Boost_LOG_LIBRARY}")
 
 # Copy headers in include directory
 set(AO_VK_FILES ${AO_VK_SRC} ${AO_VK_SRC})

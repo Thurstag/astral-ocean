@@ -13,10 +13,10 @@ ao::vulkan::StagingBuffer::~StagingBuffer() {
 
 void ao::vulkan::StagingBuffer::free() {
 	if (this->hostBuffer.get() != nullptr) {
-		this->hostBuffer.reset(nullptr);
+		this->hostBuffer.reset();
 	}
 	if (this->deviceBuffer.get() != nullptr) {
-		this->deviceBuffer.reset(nullptr);
+		this->deviceBuffer.reset();
 	}
 }
 

@@ -14,7 +14,7 @@ namespace ao {
 			/// </summary>
 			/// <param name="_count">Count</param>
 			/// <param name="device">Device</param>
-			DynamicArrayBuffer(size_t _count, std::weak_ptr<Device> device);
+			explicit DynamicArrayBuffer(size_t _count, std::weak_ptr<Device> device);
 
 			/// <summary>
 			/// Destructor

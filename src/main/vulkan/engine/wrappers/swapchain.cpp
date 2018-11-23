@@ -40,7 +40,7 @@ void ao::vulkan::SwapChain::init(u64 & width, u64 & height, bool vsync) {
 	}
 	else {
 		if (capabilities.currentExtent.width != width || capabilities.currentExtent.height != height) {
-			LOGGER << LogLevel::WARN << fmt::format("Surface size is defined, change reference size from {0}x{1} to {2}x{3}", width, height, capabilities.currentExtent.width, capabilities.currentExtent.height);
+			LOGGER << ao::core::LogLevel::warning << fmt::format("Surface size is defined, change reference size from {0}x{1} to {2}x{3}", width, height, capabilities.currentExtent.width, capabilities.currentExtent.height);
 		}
 
 		this->currentExtent = capabilities.currentExtent;
@@ -73,7 +73,7 @@ void ao::vulkan::SwapChain::init(u64 & width, u64 & height, bool vsync) {
 		}
 	}
 
-	LOGGER << LogLevel::INFO << "Use present mode: " << ao::vulkan::utilities::to_string(presentMode);
+	LOGGER << ao::core::LogLevel::info << fmt::format("Use present mode: {0}", ao::vulkan::utilities::to_string(presentMode));
 
 	// Determine surface image capacity
 	u32 countSurfaceImages = capabilities.minImageCount + 1;
@@ -147,7 +147,7 @@ void ao::vulkan::SwapChain::init(u64 & width, u64 & height, bool vsync) {
 		this->buffers[i].second = _device->logical.createImageView(colorCreateInfo);
 	}
 
-	LOGGER << LogLevel::DEBUG << fmt::format("Set-up a swap chain of {0} image{1}", buffers.size(), buffers.size() > 1 ? "s" : "");
+	LOGGER << ao::core::LogLevel::debug << fmt::format("Set-up a swap chain of {0} image{1}", buffers.size(), buffers.size() > 1 ? "s" : "");
 
 	// Update helpers
 	this->commandBufferHelpers.second = vk::Rect2D(vk::Offset2D(), this->currentExtent);
@@ -168,7 +168,7 @@ void ao::vulkan::SwapChain::initSurface() {
 		if (supportsPresent[pair.second.index] == VK_TRUE) {
 			flag = pair.first;
 
-			LOGGER << LogLevel::DEBUG << fmt::format("Use {0} queue to present images", to_string(pair.first));
+			LOGGER << ao::core::LogLevel::debug << fmt::format("Use {0} queue to present images", to_string(pair.first));
 			break;
 		}
 	}

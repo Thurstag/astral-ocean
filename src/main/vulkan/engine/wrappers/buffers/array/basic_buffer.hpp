@@ -196,7 +196,6 @@ namespace ao {
 
 			this->hasMapper = true;
 			return this;
-			return this;
 		}
 
 		template<class T, size_t N>

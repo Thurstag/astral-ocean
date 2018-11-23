@@ -23,7 +23,7 @@ namespace ao {
 			/// Constructor
 			/// </summary>
 			/// <param name="_device">Device</param>
-			ShaderModule(std::weak_ptr<Device> _device);
+			explicit ShaderModule(std::weak_ptr<Device> _device);
 
 			/// <summary>
 			/// Destructor

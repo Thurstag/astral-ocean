@@ -28,7 +28,7 @@ namespace ao {
 				code();
 
 				FAIL() << "Should throw a " << typeid(T).name();
-			} catch (T e) {
+			} catch (T& e) {
 				(assert)(e);
 			} catch (...) {
 				FAIL() << "Should catch a " << typeid(T).name();

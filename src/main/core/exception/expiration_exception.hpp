@@ -17,7 +17,7 @@ namespace ao {
 			/// <summary>
 			/// Constructor
 			/// </summary>
-			ExpirationException(std::weak_ptr<T> pointer);
+			explicit ExpirationException(std::weak_ptr<T> pointer);
 
 			/// <summary>
 			/// Destructor

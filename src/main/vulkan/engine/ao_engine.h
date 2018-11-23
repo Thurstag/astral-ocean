@@ -31,7 +31,7 @@ namespace ao {
 			/// Constructor
 			/// </summary>
 			/// <param name="settings">Settings</param>
-			AOEngine(EngineSettings settings);
+			explicit AOEngine(EngineSettings settings);
 			/// <summary>
 			/// Destructor
 			/// </summary>

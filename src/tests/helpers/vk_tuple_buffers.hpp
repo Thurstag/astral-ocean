@@ -13,7 +13,7 @@ namespace ao {
 			/// Constructor
 			/// </summary>
 			/// <param name="device">Device</param>
-			TestBasicTupleBuffer(std::weak_ptr<vulkan::Device> device);
+			explicit TestBasicTupleBuffer(std::weak_ptr<vulkan::Device> device);
 
 			/// <summary>
 			/// Method to get mapper
@@ -38,7 +38,7 @@ namespace ao {
 	        /// Constructor
 	        /// </summary>
 	        /// <param name="device">Device</param>
-			TestStagingTupleBuffer(std::weak_ptr<vulkan::Device> device);
+			explicit TestStagingTupleBuffer(std::weak_ptr<vulkan::Device> device);
 
 			/// <summary>
 			/// Method to get mapper

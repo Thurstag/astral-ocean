@@ -5,7 +5,7 @@ ao::vulkan::Device::Device(vk::PhysicalDevice& device) : physical(device) {
 
 	// Check count
 	if (this->extensions.empty()) {
-		LOGGER << LogLevel::WARN << "Extensions vector is empty";
+		LOGGER << ao::core::LogLevel::warning << "Extensions vector is empty";
 	}
 }
 

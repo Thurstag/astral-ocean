@@ -52,14 +52,14 @@ namespace ao {
 			}
 
 			// Init buffer in host's memory
-			this->hostBuffer = std::unique_ptr<TupleBuffer<T...>>(
+			this->hostBuffer = std::shared_ptr<TupleBuffer<T...>>(
 				(new BasicTupleBuffer<T...>(StagingBuffer::device))
 				->init(vk::BufferUsageFlagBits::eTransferSrc, vk::SharingMode::eExclusive,
 				vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent, sizes)
 				);
 
 				// Init buffer in device's memory
-			this->deviceBuffer = std::unique_ptr<TupleBuffer<T...>>(
+			this->deviceBuffer = std::shared_ptr<TupleBuffer<T...>>(
 				(new BasicTupleBuffer<T...>(StagingBuffer::device))
 				->init(usageFlags ? vk::BufferUsageFlagBits::eTransferDst | usageFlags.get() : vk::BufferUsageFlagBits::eTransferDst,
 				vk::SharingMode::eExclusive, vk::MemoryPropertyFlagBits::eDeviceLocal, sizes)

@@ -36,14 +36,16 @@ public:
 
 	std::vector<UniformBufferObject> _uniformBuffers;
 
-	RectangleDemo(ao::vulkan::EngineSettings settings) : ao::vulkan::GLFWEngine(settings), ao::vulkan::AOEngine(settings) {
-		this->vertices = {
+	explicit RectangleDemo(ao::vulkan::EngineSettings settings) : 
+		ao::vulkan::GLFWEngine(settings), 
+		ao::vulkan::AOEngine(settings),
+		vertices({
 			{{-0.5f, -0.5f}, {1.0f, 0.0f, 0.0f}},
 			{{0.5f, -0.5f}, {0.0f, 1.0f, 0.0f}},
 			{{0.5f, 0.5f}, {0.0f, 0.0f, 1.0f}},
 			{{-0.5f, 0.5f}, {1.0f, 1.0f, 1.0f}}
-		};
-		this->indices = { 0, 1, 2, 2, 3, 0 };
+		}),
+		indices({ 0, 1, 2, 2, 3, 0 }) {
 	};
 	virtual ~RectangleDemo();
 

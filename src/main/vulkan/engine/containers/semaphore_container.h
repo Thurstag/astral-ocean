@@ -38,7 +38,7 @@ namespace ao {
 			/// Constructor
 			/// </summary>
 			/// <param name="_device">Device</param>
-			SemaphoreContainer(std::weak_ptr<Device> _device) : device(_device) {}
+			explicit SemaphoreContainer(std::weak_ptr<Device> _device) : device(_device) {}
 
 			/// <summary>
 			/// Destructor

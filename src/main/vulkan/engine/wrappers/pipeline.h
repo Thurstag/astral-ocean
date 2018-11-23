@@ -29,7 +29,7 @@ namespace ao {
 			/// Constructor
 			/// </summary>
 			/// <param name="_device">Device</param>
-			Pipeline(std::weak_ptr<Device> _device);
+			explicit Pipeline(std::weak_ptr<Device> _device);
 
 			/// <summary>
 			/// Destructor

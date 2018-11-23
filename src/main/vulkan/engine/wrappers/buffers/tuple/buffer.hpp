@@ -11,7 +11,7 @@ namespace ao {
 			/// Constructor
 			/// </summary>
 			/// <param name="device">Device</param>
-			TupleBuffer(std::weak_ptr<Device> device);
+			explicit TupleBuffer(std::weak_ptr<Device> device);
 
 			/// <summary>
 			/// Destructor

@@ -16,7 +16,7 @@ namespace ao {
 
 		TEST(BasicBuffer, NotInit) {
 	        // 'Mute' logger
-			core::Logger::SetMinLevel(log4cpp::Priority::FATAL);
+			core::Logger::SetMinLevel(core::LogLevel::fatal);
 
 			// Init instance
 			VkInstance instance;

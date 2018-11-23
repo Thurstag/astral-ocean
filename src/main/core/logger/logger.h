@@ -1,25 +1,22 @@
 #pragma once
 
-#include <functional>
-#include <iostream>
-#include <typeinfo>
 #include <string>
-#include <vector>
-#include <map>
 
-#include <log4cpp/OstreamAppender.hh>
-#include <boost/algorithm/string.hpp>
-#include <log4cpp/PatternLayout.hh>
+#include <boost/log/utility/setup/common_attributes.hpp>
+#include <boost/log/utility/setup/formatter_parser.hpp>
+#include <boost/log/utility/setup.hpp>
 #include <boost/core/demangle.hpp>
-#include <log4cpp/Appender.hh>
-#include <log4cpp/Category.hh>
+#include <boost/log/trivial.hpp>
+#include <boost/log/core.hpp>
 
-using LogLevel = log4cpp::Priority;
+#include "proxy_logger.h"
 
 namespace ao {
 	namespace core {
+		using LogLevel = boost::log::trivial::severity_level;
+
 		/// <summary>
-		/// Wrapper for log4cpp::Category class
+		/// Wrapper for Boost::log
 		/// </summary>
 		class Logger {
 			friend std::function<void(Logger&)>;
@@ -33,7 +30,8 @@ namespace ao {
 			/// Constructor
 			/// </summary>
 			/// <param name="type">Type</param>
-			Logger(std::type_info const& type);
+			explicit Logger(std::type_info const& type);
+
 			/// <summary>
 			/// Destructor
 			/// </summary>
@@ -44,35 +42,28 @@ namespace ao {
 			/// </summary>
 			template<class T>
 			inline static Logger getInstance() {
-				if (Logger::instances.find(typeid(T).name()) == Logger::instances.end()) {
-					Logger::instances[typeid(T).name()] = Logger(typeid(T));
-				}
-				return Logger::instances[typeid(T).name()];
+				return Logger(typeid(T));
 			};
 
 			/// <summary>
-			/// Method to define << operator
+			/// Method to init logger
 			/// </summary>
-			/// <param name="priority">Priority</param>
-			/// <returns>CategoryStream</returns>
-			log4cpp::CategoryStream operator<<(log4cpp::Priority::Value priority);
+			static void Init();
 
 			/// <summary>
-			/// Method to set minimum log level
+			/// Operator <<
 			/// </summary>
 			/// <param name="level">Level</param>
-			static void SetMinLevel(log4cpp::Priority::Value level);
-		private:
-			static std::map<std::string, Logger> instances;
-			static log4cpp::Priority::Value level;
-
-			log4cpp::Category* category;
+			/// <returns>ProxyLogger</returns>
+			ProxyLogger operator<<(LogLevel level);
 
 			/// <summary>
-			/// Method to update loggers
+			/// Method to set minimum level
 			/// </summary>
-			/// <param name="function">Function</param>
-			static void Update(std::function<void(Logger&)> function);
+			/// <param name="level">Level</param>
+			static void SetMinLevel(LogLevel level);
+		protected:
+			std::string key;
 		};
 	}
 }

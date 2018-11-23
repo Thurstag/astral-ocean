@@ -14,7 +14,7 @@ namespace ao {
 			/// Constructor
 			/// </summary>
 			/// <param name="engine">Engine</param>
-			TitleFPSPlugin(AOEngine* engine);
+			explicit TitleFPSPlugin(AOEngine* engine);
 			virtual ~TitleFPSPlugin();
 
 			void onInit() override;

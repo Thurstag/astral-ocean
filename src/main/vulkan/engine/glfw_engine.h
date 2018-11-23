@@ -13,7 +13,7 @@ namespace ao {
 	namespace vulkan {
 		class GLFWEngine : public virtual AOEngine {
 		public:
-			GLFWEngine(EngineSettings settings) : AOEngine(settings) {};
+			explicit GLFWEngine(EngineSettings settings) : AOEngine(settings), window(nullptr) {};
 			virtual ~GLFWEngine();
 
 			void setWindowTitle(std::string title) override;

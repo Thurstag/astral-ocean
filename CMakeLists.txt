@@ -10,14 +10,13 @@ set(PROJECT_NAME "astral-ocean")
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake")
 set(SUBMODULES_DIR "${CMAKE_BINARY_DIR}/submodules")
 set(glfw_INCLUDE_DIR "${SUBMODULES_DIR}/glfw/include")
-set(log4cpp_INCLUDE_DIR "${SUBMODULES_DIR}/log4cpp/include")
 set(fmt_INCLUDE_DIR "${SUBMODULES_DIR}/fmt/include")
 set(googletest_INCLUDE_DIR "${SUBMODULES_DIR}/googletest/include" "${SUBMODULES_DIR}/googlemock/include")
 set(AO_INCLUDE_DIR "${CMAKE_SOURCE_DIR}/include")
 
 # Define dependencies
-set(DEPENDENCIES Vulkan Threads Boost GLM)
-set(SUBMODULES glfw log4cpp fmt)
+set(DEPENDENCIES Vulkan Threads GLM)
+set(SUBMODULES glfw fmt)
 
 IF(AO_BUILD_TESTS)
 	set(SUBMODULES ${SUBMODULES} googletest)
@@ -32,18 +31,12 @@ set(GLFW_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
 set(FMT_DOC OFF CACHE BOOL "" FORCE)
 set(FMT_TEST OFF CACHE BOOL "" FORCE)
 
-# Disable Log4cpp Docs
-set(DOXYGEN_EXECUTABLE false)
-
 # Prevent overriding the parent project's compiler/linker
 set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
 
 # Compilation options
 IF (WIN32)
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /EHsc /O2") 
-  
-  # '/EHsc' Fix issues with log4cpp compilation
-  # TODO: Search if there is an issue on other operating systems
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /O2") 
 ELSE()
 	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O3")
 ENDIF()
@@ -66,6 +59,10 @@ IF (NOT CMAKE_VERSION VERSION_LESS 3.7.0)
 		find_package(${DEPENDENCY} REQUIRED)
 	ENDFOREACH(DEPENDENCY)
 ENDIF()
+
+# Boost lib
+find_package(Boost 1.68 COMPONENTS log REQUIRED)
+include_directories(${Boost_INCLUDE_DIR})
 
 # Check all libs
 FOREACH(DEPENDENCY ${DEPENDENCIES})
@@ -102,7 +99,6 @@ IF(${AO_BUILD_TESTS})
 ENDIF()
 
 # Force folder creation
-set_target_properties(log4cpp PROPERTIES FOLDER "LOG4C++")
 set_target_properties(fmt PROPERTIES FOLDER "FMT")
 IF(AO_BUILD_BOOTSTRAPS AND WIN32)
 	set_target_properties("win-bootstrap" PROPERTIES FOLDER "AO-BOOTSTRAPS")

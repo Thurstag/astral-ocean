@@ -16,7 +16,7 @@ namespace ao {
 			/// Constructor
 			/// </summary>
 			/// <param name="range">Range</param>
-			IndexOutOfRangeException(boost::optional<std::pair<u64, u64>> range = boost::none);
+			explicit IndexOutOfRangeException(boost::optional<std::pair<u64, u64>> range = boost::none);
 
 			/// <summary>
 			/// Destructor

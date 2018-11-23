@@ -36,7 +36,7 @@ namespace ao {
 			/// Constructor
 			/// </summary>
 			/// <param name="device"></param>
-			Device(vk::PhysicalDevice& device);
+			explicit Device(vk::PhysicalDevice& device);
 
 			/// <summary>
 			/// Destructor

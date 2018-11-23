@@ -14,7 +14,7 @@ namespace ao {
 			/// Constructor
 			/// </summary>
 			/// <param name="engine">Engine</param>
-			FPSPlugin(AOEngine* engine);
+			explicit FPSPlugin(AOEngine* engine);
 			virtual ~FPSPlugin();
 
 			virtual void onInit() override;

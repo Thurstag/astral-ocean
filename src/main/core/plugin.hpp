@@ -14,12 +14,12 @@ namespace ao {
 			/// Constructor
 			/// </summary>
 			/// <param name="_subject">Subject</param>
-			Plugin(T* _subject);
+			explicit Plugin(T* _subject);
 
 			/// <summary>
 			/// Constructor
 			/// </summary>
-			virtual ~Plugin();
+			virtual ~Plugin() = default;
 
 			/// <summary>
 			/// Method called on subject init
@@ -41,9 +41,6 @@ namespace ao {
 
 		template<class T>
 		Plugin<T>::Plugin(T * _subject) : subject(_subject) {}
-
-		template<class T>
-		Plugin<T>::~Plugin() {}
 	}
 }
 

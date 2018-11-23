@@ -12,7 +12,7 @@ namespace ao {
 			/// Constructor
 			/// </summary>
 			/// <param name="device">Device</param>
-			TestBasicArrayBuffer(std::weak_ptr<vulkan::Device> device);
+			explicit TestBasicArrayBuffer(std::weak_ptr<vulkan::Device> device);
 
 			/// <summary>
 			/// Method to get mapper
@@ -92,7 +92,7 @@ namespace ao {
 			/// Constructor
 			/// </summary>
 			/// <param name="device">Device</param>
-			TestStagingArrayBuffer(std::weak_ptr<vulkan::Device> device);
+			explicit TestStagingArrayBuffer(std::weak_ptr<vulkan::Device> device);
 
 			/// <summary>
 			/// Method to get mapper

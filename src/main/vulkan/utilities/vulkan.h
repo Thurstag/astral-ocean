@@ -158,7 +158,7 @@ namespace ao {
 				// Adapt vector
 				devices.resize(count);
 
-                // Get vk::PhysicalDevices
+				// Get vk::PhysicalDevices
 				vkAssert(instance.enumeratePhysicalDevices(&count, devices.data()), error);
 				return devices;
 			}
@@ -191,9 +191,10 @@ namespace ao {
 			/// <returns>Index or -1</returns>
 			inline u32 findQueueFamilyIndex(std::vector<vk::QueueFamilyProperties> queueFamilyProperties, vk::QueueFlagBits flag) {
 				std::vector<VkQueueFlagBits> flags = { VK_QUEUE_COMPUTE_BIT, VK_QUEUE_TRANSFER_BIT, VK_QUEUE_GRAPHICS_BIT, VK_QUEUE_SPARSE_BINDING_BIT, VK_QUEUE_PROTECTED_BIT };
+				core::Logger LOGGER = core::Logger::getInstance<Utilities>();
 
 				// Calculate value of flags whitout flag parameter
-				VkQueueFlags other = std::accumulate(flags.begin(), flags.end(), 0, [flag](VkQueueFlags result, VkQueueFlagBits f) { 
+				VkQueueFlags other = std::accumulate(flags.begin(), flags.end(), 0, [flag](VkQueueFlags result, VkQueueFlagBits f) {
 					if (vk::QueueFlagBits(f) != flag) {
 						return result | f;
 					}
@@ -203,7 +204,7 @@ namespace ao {
 				// Try to find a queue familly designed only for flag parameter
 				for (u32 i = 0; i < queueFamilyProperties.size(); i++) {
 					if ((queueFamilyProperties[i].queueFlags & flag) && ((VkQueueFlags(queueFamilyProperties[i].queueFlags) & other) == 0)) {
-						core::Logger::getInstance<Utilities>() << LogLevel::DEBUG << "Found a queue that only supports: " << to_string(flag);
+						LOGGER << core::LogLevel::debug << fmt::format("Found a queue that only supports: {0}", to_string(flag));
 						return i;
 					}
 				}

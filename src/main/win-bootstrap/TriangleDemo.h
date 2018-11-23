@@ -27,13 +27,15 @@ public:
 	std::unique_ptr<ao::vulkan::TupleBuffer<Vertex>> vertexBuffer;
 	std::unique_ptr<ao::vulkan::TupleBuffer<u16>> indexBuffer;
 
-	TriangleDemo(ao::vulkan::EngineSettings settings) : ao::vulkan::GLFWEngine(settings), ao::vulkan::AOEngine(settings) {
-		this->vertices = {
+	explicit TriangleDemo(ao::vulkan::EngineSettings settings) : 
+		ao::vulkan::GLFWEngine(settings), 
+		ao::vulkan::AOEngine(settings), 
+		vertices({
 			{ { 0.0f, -0.5f }, { 1.0f, 0.0f, 0.0f } },
 			{ {0.5f, 0.5f}, {0.0f, 1.0f, 0.0f} },
 			{ {-0.5f, 0.5f}, {0.0f, 0.0f, 1.0f} }
-		};
-		this->indices = { 0, 1, 2, 0 };
+		}),
+		indices({ 0, 1, 2, 0 }) {
 	};
 	virtual ~TriangleDemo();
 

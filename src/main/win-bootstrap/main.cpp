@@ -1,8 +1,6 @@
 #include <iostream>
-#ifdef WIN32
-#include <stdlib.h>
-#include <crtdbg.h>
-#endif // WIN32
+
+#include <vld.h>
 
 #include <ao/vulkan/engine/plugins/title_fps_plugin.h>
 #include <ao/core/exception/exception.h>
@@ -11,18 +9,12 @@
 #include "RectangleDemo.h"
 #include "TriangleDemo.h"
 
-#define _CRTDBG_MAP_ALLOC 1
 struct Main{};
 
 ao::vulkan::AOEngine* choose(std::vector<std::string> choices, ao::vulkan::EngineSettings settings);
 
 int main(int argc, char* argv[]) {
-	std::string buffer;
-
-#ifdef WIN32
-	// Activate memory leaks detection
-	_CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF);
-#endif // WIN32
+	ao::core::Logger::Init();
 
 	// Get LOGGER
 	ao::core::Logger LOGGER = ao::core::Logger::getInstance<Main>();
@@ -43,11 +35,11 @@ int main(int argc, char* argv[]) {
 		// Run engine
 		engine->run();
 	} catch (ao::core::Exception & e) {
-		LOGGER << LogLevel::FATAL << e;
+		LOGGER << ao::core::LogLevel::fatal << e;
 	} catch (std::exception& e) {
-		LOGGER << LogLevel::FATAL << ao::core::Exception(e.what());
+		LOGGER << ao::core::LogLevel::fatal << ao::core::Exception(e.what(), false);
 	} catch (...) {
-		LOGGER << LogLevel::FATAL << "Unknown exception";
+		LOGGER << ao::core::LogLevel::fatal << "Unknown exception";
 	}
 
 	// Free engine

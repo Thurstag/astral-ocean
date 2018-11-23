@@ -3,7 +3,7 @@
 ao::vulkan::AOEngine::AOEngine(EngineSettings settings) : mSettings(settings) {
 	// Resize pool
 	this->commandBufferPool.resize(this->mSettings.core.threadPoolSize);
-	LOGGER << LogLevel::INFO << fmt::format("Init a thread pool for command buffer processing with {0} thread{1}", this->commandBufferPool.size(), this->commandBufferPool.size() > 1 ? "s": "");
+	LOGGER << ao::core::LogLevel::info << fmt::format("Init a thread pool for command buffer processing with {0} thread{1}", this->commandBufferPool.size(), this->commandBufferPool.size() > 1 ? "s": "");
 }
 
 ao::vulkan::AOEngine::~AOEngine() {
@@ -26,7 +26,7 @@ ao::vulkan::AOEngine::~AOEngine() {
 void ao::vulkan::AOEngine::run() {
 	// Init window
 	this->initWindow();
-	LOGGER << LogLevel::INFO << fmt::format("Init {0}x{1} window", this->mSettings.window.width, this->mSettings.window.height);
+	LOGGER << ao::core::LogLevel::info << fmt::format("Init {0}x{1} window", this->mSettings.window.width, this->mSettings.window.height);
 
 	// Init vulkan
 	this->initVulkan();
@@ -73,7 +73,7 @@ void ao::vulkan::AOEngine::initVulkan() {
 	// Select a vk::PhysicalDevice & wrap it
 	this->device = std::make_shared<ao::vulkan::Device>(devices[this->selectVkPhysicalDevice(devices)]);
 
-	LOGGER << LogLevel::INFO << "Select physical device: " << this->device->physical.getProperties().deviceName;
+	LOGGER << ao::core::LogLevel::info << fmt::format("Select physical device: {0}", this->device->physical.getProperties().deviceName);
 
 	// Init logical device
 	this->device->initLogicalDevice(this->deviceExtensions(), this->deviceFeatures(), this->queueFlags(), this->commandPoolFlags());
@@ -281,7 +281,7 @@ void ao::vulkan::AOEngine::createPipelines() {
 		}
 	}
 	if (this->pipeline->pipelines.empty()) {
-		LOGGER << LogLevel::WARN << "Pipeline vector is empty";
+		LOGGER << ao::core::LogLevel::warning << "Pipeline vector is empty";
 	}
 }
 
@@ -416,7 +416,7 @@ void ao::vulkan::AOEngine::prepareFrame() {
 
 	// Check result
 	if (result == vk::Result::eErrorOutOfDateKHR || result == vk::Result::eSuboptimalKHR) {
-		LOGGER << LogLevel::WARN << "Swap chain is no longer compatible, re-create it";
+		LOGGER << ao::core::LogLevel::warning << "Swap chain is no longer compatible, re-create it";
 
 		this->recreateSwapChain();
 		return;
@@ -429,7 +429,7 @@ void ao::vulkan::AOEngine::submitFrame() {
 
 	// Check result
 	if (result == vk::Result::eErrorOutOfDateKHR) {
-		LOGGER << LogLevel::WARN << "Swap chain is no longer compatible, re-create it";
+		LOGGER << ao::core::LogLevel::warning << "Swap chain is no longer compatible, re-create it";
 		
 		this->recreateSwapChain();
 		return;
@@ -531,20 +531,20 @@ VKAPI_ATTR VkBool32 VKAPI_CALL ao::vulkan::AOEngine::debugReportCallBack(VkDebug
 	// Log
 	switch (flag.get()) {
 		case vk::DebugReportFlagBitsEXT::eInformation:
-			LOGGER << LogLevel::INFO << fmt::format("[{0}] {1}", to_string(flag.get()), message);
+			LOGGER << ao::core::LogLevel::info << fmt::format("[{0}] {1}", to_string(flag.get()), message);
 			break;
 
 		case vk::DebugReportFlagBitsEXT::eWarning:
 		case vk::DebugReportFlagBitsEXT::ePerformanceWarning:
-			LOGGER << LogLevel::WARN << fmt::format("[{0}] {1}", to_string(flag.get()), message);
+			LOGGER << ao::core::LogLevel::warning << fmt::format("[{0}] {1}", to_string(flag.get()), message);
 			break;
 
 		case vk::DebugReportFlagBitsEXT::eError:
-			LOGGER << LogLevel::FATAL << fmt::format("[{0}] {1}", to_string(flag.get()), message);
+			LOGGER << ao::core::LogLevel::fatal << fmt::format("[{0}] {1}", to_string(flag.get()), message);
 			return VK_TRUE;
 
 		case vk::DebugReportFlagBitsEXT::eDebug:
-			LOGGER << LogLevel::DEBUG << fmt::format("[{0}] {1}", to_string(flag.get()), message);
+			LOGGER << ao::core::LogLevel::debug << fmt::format("[{0}] {1}", to_string(flag.get()), message);
 			break;
 
 		default:

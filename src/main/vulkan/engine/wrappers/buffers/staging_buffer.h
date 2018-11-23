@@ -41,8 +41,8 @@ namespace ao {
 			vk::CommandBufferUsageFlags usage;
 			bool memoryBarrier;
 
-			std::unique_ptr<Buffer> deviceBuffer;
-			std::unique_ptr<Buffer> hostBuffer;
+			std::shared_ptr<Buffer> deviceBuffer;
+			std::shared_ptr<Buffer> hostBuffer;
 
 			vk::CommandBuffer commandBuffer;
 			vk::Fence fence;

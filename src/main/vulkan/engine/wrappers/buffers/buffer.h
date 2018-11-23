@@ -14,7 +14,7 @@ namespace ao {
 			/// <summary>
 			/// Constructor
 			/// </summary>
-			Buffer(std::weak_ptr<Device> _device);
+			explicit Buffer(std::weak_ptr<Device> _device);
 
 			/// <summary>
 			/// Destructor

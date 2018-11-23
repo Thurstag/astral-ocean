@@ -1,37 +1,29 @@
 #include "logger.h"
 
-std::map<std::string, ao::core::Logger> ao::core::Logger::instances = std::map<std::string, ao::core::Logger>();
-log4cpp::Priority::Value ao::core::Logger::level = LogLevel::DEBUG;
-
 ao::core::Logger::Logger(std::type_info const& type) {
-	this->category = &log4cpp::Category::getInstance(boost::core::demangle(type.name()));
-
-	// TODO: Add support for file import & modifications
-
-	// Define layout
-	log4cpp::PatternLayout* layout = new log4cpp::PatternLayout();
-	layout->setConversionPattern("%d{%d/%m/%Y %H:%M:%S.%l} [Thread-%t] [%p] %c - %m\n");
-
-	// Define appender
-	log4cpp::Appender *appender = new log4cpp::OstreamAppender("console", &std::cout);
-	appender->setLayout(layout);
-
-	// Define priority & appenders
-	this->category->setPriority(ao::core::Logger::level);
-	this->category->addAppender(appender);
+	this->key = boost::core::demangle(type.name());
 }
 
-log4cpp::CategoryStream ao::core::Logger::operator<<(log4cpp::Priority::Value priority) {
-	return this->category->getStream(priority);
+void ao::core::Logger::Init() {
+	// TODO: Add modifications
+
+	// Add Severity in log
+	boost::log::register_simple_formatter_factory<boost::log::trivial::severity_level, char>("Severity");
+
+	// Console
+	boost::log::add_console_log(std::cout, boost::log::keywords::format = "[%TimeStamp%] [Thread-%ThreadID%] [%Severity%] %Message%", boost::log::keywords::auto_flush = true);
+
+	// Set minimum level
+	boost::log::core::get()->set_filter(boost::log::trivial::severity >= boost::log::trivial::debug);
+
+	// Add common attributes
+	boost::log::add_common_attributes();
 }
 
-void ao::core::Logger::SetMinLevel(log4cpp::Priority::Value level) {
-	ao::core::Logger::level = level;
-	ao::core::Logger::Update([level](ao::core::Logger& logger) { logger.category->setPriority(level); });
+ao::core::ProxyLogger ao::core::Logger::operator<<(LogLevel level) {
+	return ao::core::ProxyLogger(level, ao::core::LoggerData(this->key));
 }
 
-void ao::core::Logger::Update(std::function<void(Logger&)> function) {
-	for (auto& pair : ao::core::Logger::instances) {
-		function(pair.second);
-	}
+void ao::core::Logger::SetMinLevel(ao::core::LogLevel level) {
+	boost::log::core::get()->set_filter(boost::log::trivial::severity >= level);
 }

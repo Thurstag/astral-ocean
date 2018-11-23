@@ -54,14 +54,14 @@ namespace ao {
 			}
 
 			// Init buffer in host's memory
-			this->hostBuffer = std::unique_ptr<DynamicArrayBuffer<T>>(
+			this->hostBuffer = std::shared_ptr<DynamicArrayBuffer<T>>(
 				(new BasicDynamicArrayBuffer<T>(this->count, StagingBuffer::device))
 				->init(vk::BufferUsageFlagBits::eTransferSrc, vk::SharingMode::eExclusive,
 				vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent, size)
 			);
 
 			// Init buffer in device's memory
-			this->deviceBuffer = std::unique_ptr<DynamicArrayBuffer<T>>(
+			this->deviceBuffer = std::shared_ptr<DynamicArrayBuffer<T>>(
 				(new BasicDynamicArrayBuffer<T>(this->count, StagingBuffer::device))
 				->init(usageFlags ? vk::BufferUsageFlagBits::eTransferDst | usageFlags.get() : vk::BufferUsageFlagBits::eTransferDst,
 				vk::SharingMode::eExclusive, vk::MemoryPropertyFlagBits::eDeviceLocal, size)
@@ -185,14 +185,14 @@ namespace ao {
 			}
 
 			// Init buffer in host's memory
-			this->hostBuffer = std::unique_ptr<ArrayBuffer<T, N>>(
+			this->hostBuffer = std::shared_ptr<ArrayBuffer<T, N>>(
 				(new BasicArrayBuffer<T, N>(StagingBuffer::device))
 				->init(vk::BufferUsageFlagBits::eTransferSrc, vk::SharingMode::eExclusive,
 				vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent, size)
 			);
 
 			// Init buffer in device's memory
-			this->deviceBuffer = std::unique_ptr<ArrayBuffer<T, N>>(
+			this->deviceBuffer = std::shared_ptr<ArrayBuffer<T, N>>(
 				(new BasicArrayBuffer<T, N>(StagingBuffer::device))
 				->init(usageFlags ? vk::BufferUsageFlagBits::eTransferDst | usageFlags.get() : vk::BufferUsageFlagBits::eTransferDst,
 				vk::SharingMode::eExclusive, vk::MemoryPropertyFlagBits::eDeviceLocal, size)

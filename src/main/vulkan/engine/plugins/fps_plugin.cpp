@@ -1,3 +1,7 @@
+// Copyright 2018 Astral-Ocean Project
+// Licensed under GPLv3 or any later version
+// Refer to the LICENSE.md file included.
+
 #include "fps_plugin.h"
 
 ao::vulkan::FPSPlugin::FPSPlugin(AOEngine * engine) : ao::core::Plugin<AOEngine>(engine) {}

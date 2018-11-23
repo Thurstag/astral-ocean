@@ -1,3 +1,7 @@
+// Copyright 2018 Astral-Ocean Project
+// Licensed under GPLv3 or any later version
+// Refer to the LICENSE.md file included.
+
 #include "staging_buffer.h"
 
 ao::vulkan::StagingBuffer::StagingBuffer(std::weak_ptr<Device> device, vk::CommandBufferUsageFlags _usage, bool _memoryBarrier) : ao::vulkan::Buffer(device), usage(_usage), memoryBarrier(_memoryBarrier) {}

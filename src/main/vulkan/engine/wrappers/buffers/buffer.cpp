@@ -1,3 +1,7 @@
+// Copyright 2018 Astral-Ocean Project
+// Licensed under GPLv3 or any later version
+// Refer to the LICENSE.md file included.
+
 #include "buffer.h"
 
 ao::vulkan::Buffer::Buffer(std::weak_ptr<Device> _device) : device(_device) {}

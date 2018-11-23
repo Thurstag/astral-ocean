@@ -1,3 +1,7 @@
+// Copyright 2018 Astral-Ocean Project
+// Licensed under GPLv3 or any later version
+// Refer to the LICENSE.md file included.
+
 #include "pipeline.h"
 
 ao::vulkan::Pipeline::Pipeline(std::weak_ptr<ao::vulkan::Device> _device) : device(_device) {}

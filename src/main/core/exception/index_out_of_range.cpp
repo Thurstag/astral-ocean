@@ -1,3 +1,7 @@
+// Copyright 2018 Astral-Ocean Project
+// Licensed under GPLv3 or any later version
+// Refer to the LICENSE.md file included.
+
 #include "index_out_of_range.h"
 
 ao::core::IndexOutOfRangeException::IndexOutOfRangeException(boost::optional<std::pair<u64, u64>> range) : 

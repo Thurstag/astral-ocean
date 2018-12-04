@@ -297,11 +297,11 @@ void ao::vulkan::AOEngine::createSemaphores() {
 	vk::Semaphore presentSem = this->device->logical.createSemaphore(vk::SemaphoreCreateInfo());
 
 	// Create container
-	this->semaphores[std::string("graphics")].waits.push_back(presentSem);
-	this->semaphores[std::string("graphics")].signals.push_back(renderSem);
+	this->semaphores["graphics"].waits.push_back(presentSem);
+	this->semaphores["graphics"].signals.push_back(renderSem);
 
-	this->semaphores[std::string("present")].waits.push_back(renderSem);
-	this->semaphores[std::string("present")].signals.push_back(presentSem);
+	this->semaphores["present"].waits.push_back(renderSem);
+	this->semaphores["present"].signals.push_back(presentSem);
 }
 
 void ao::vulkan::AOEngine::prepareVulkan() {
@@ -394,12 +394,12 @@ void ao::vulkan::AOEngine::render() {
 
 	// Create submit info
 	vk::SubmitInfo submitInfo(
-		static_cast<u32>(this->semaphores[std::string("graphics")].waits.size()),
-		this->semaphores[std::string("graphics")].waits.empty() ? nullptr : this->semaphores[std::string("graphics")].waits.data(),
+		static_cast<u32>(this->semaphores["graphics"].waits.size()),
+		this->semaphores["graphics"].waits.empty() ? nullptr : this->semaphores["graphics"].waits.data(),
 		&this->pipeline->submitPipelineStages,
-		1, &this->swapchain->primaryCommandBuffers[this->frameBufferIndex],
-		static_cast<u32>(this->semaphores[std::string("graphics")].signals.size()),
-		this->semaphores[std::string("graphics")].signals.empty() ? nullptr : this->semaphores[std::string("graphics")].signals.data()
+		1, &this->swapchain->commandBuffers["primary"].buffers[this->frameBufferIndex],
+		static_cast<u32>(this->semaphores["graphics"].signals.size()),
+		this->semaphores["graphics"].signals.empty() ? nullptr : this->semaphores["graphics"].signals.data()
 	);
 
 	// Reset fence
@@ -416,7 +416,7 @@ void ao::vulkan::AOEngine::render() {
 }
 
 void ao::vulkan::AOEngine::prepareFrame() {
-	vk::Result result = this->swapchain->nextImage(this->semaphores[std::string("present")].signals.front(), this->frameBufferIndex);
+	vk::Result result = this->swapchain->nextImage(this->semaphores["present"].signals.front(), this->frameBufferIndex);
 
 	// Check result
 	if (result == vk::Result::eErrorOutOfDateKHR || result == vk::Result::eSuboptimalKHR) {
@@ -429,7 +429,7 @@ void ao::vulkan::AOEngine::prepareFrame() {
 }
 
 void ao::vulkan::AOEngine::submitFrame() {
-	vk::Result result = this->swapchain->enqueueImage(this->frameBufferIndex, this->semaphores[std::string("present")].waits);
+	vk::Result result = this->swapchain->enqueueImage(this->frameBufferIndex, this->semaphores["present"].waits);
 
 	// Check result
 	if (result == vk::Result::eErrorOutOfDateKHR) {
@@ -443,7 +443,7 @@ void ao::vulkan::AOEngine::submitFrame() {
 
 void ao::vulkan::AOEngine::updateCommandBuffers() {
 	// Get current command buffer/frame
-	vk::CommandBuffer& currentCommand = this->swapchain->primaryCommandBuffers[this->frameBufferIndex];
+	vk::CommandBuffer& currentCommand = this->swapchain->commandBuffers["primary"].buffers[this->frameBufferIndex];
 	vk::Framebuffer& currentFrame = this->frameBuffers[this->frameBufferIndex];
 
 	// Create info

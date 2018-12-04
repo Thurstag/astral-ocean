@@ -19,7 +19,7 @@ void ao::vulkan::GLFWEngine::initWindow() {
 	glfwWindowHint(GLFW_RESIZABLE, this->mSettings.window.rezisable ? GLFW_TRUE : GLFW_FALSE);
 
 	// Create window
-	this->window = glfwCreateWindow((int)this->mSettings.window.width, (int)this->mSettings.window.height, this->mSettings.window.name.c_str(), nullptr, nullptr);
+	this->window = glfwCreateWindow(static_cast<int>(this->mSettings.window.width), static_cast<int>(this->mSettings.window.height), this->mSettings.window.name.c_str(), nullptr, nullptr);
 }
 
 void ao::vulkan::GLFWEngine::initSurface(vk::SurfaceKHR& surface) {

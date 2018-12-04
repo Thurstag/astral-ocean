@@ -29,7 +29,7 @@ namespace ao {
 			explicit QueueData(vk::Queue _queue, u32 _index, vk::QueueFamilyProperties _properties) : queue(_queue), index(_index), properties(_properties) {}
 		};
 
-		class QueueContainer : public core::MapContainer < vk::QueueFlagBits, QueueData, std::map<vk::QueueFlagBits, QueueData>::iterator> {
+		class QueueContainer : public core::MapContainer<vk::QueueFlagBits, QueueData> {
 		public:
 			/// <summary>
 			/// Constructor

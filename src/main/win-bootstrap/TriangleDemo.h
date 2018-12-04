@@ -11,13 +11,13 @@
 
 #include <ao/vulkan/engine/wrappers/buffers/tuple/staging_buffer.hpp>
 #include <ao/vulkan/engine/wrappers/shadermodule.h>
-#include <ao/vulkan/engine/glfw_engine.h>
 #include <ao/vulkan/engine/settings.h>
 #include <glm/gtx/rotate_vector.hpp>
 #include <glm/gtx/string_cast.hpp>
 #include <vulkan/vulkan.hpp>
 #include <glm/glm.hpp>
 
+#include "glfw_engine.h"
 #include "vertex.hpp"
 
 class TriangleDemo : public virtual ao::vulkan::GLFWEngine {

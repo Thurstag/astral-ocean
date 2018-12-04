@@ -9,14 +9,13 @@ option(AO_BUILD_BOOTSTRAPS "Build bootstraps" ON)
 set(PROJECT_NAME "astral-ocean")
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake")
 set(SUBMODULES_DIR "${CMAKE_BINARY_DIR}/submodules")
-set(glfw_INCLUDE_DIR "${SUBMODULES_DIR}/glfw/include")
 set(fmt_INCLUDE_DIR "${SUBMODULES_DIR}/fmt/include")
 set(googletest_INCLUDE_DIR "${SUBMODULES_DIR}/googletest/include" "${SUBMODULES_DIR}/googlemock/include")
 set(AO_INCLUDE_DIR "${CMAKE_SOURCE_DIR}/include")
 
 # Define dependencies
-set(DEPENDENCIES Vulkan Threads GLM)
-set(SUBMODULES glfw fmt)
+set(DEPENDENCIES Vulkan Threads)
+set(SUBMODULES fmt)
 
 IF(AO_BUILD_TESTS)
 	set(SUBMODULES ${SUBMODULES} googletest)

@@ -4,7 +4,9 @@
 
 #include <iostream>
 
+#ifdef DEBUG
 #include <vld.h>
+#endif
 
 #define GLM_FORCE_RADIANS 1
 
@@ -14,6 +16,7 @@
 
 #include "RectangleDemo.h"
 #include "TriangleDemo.h"
+#include "TextureDemo.h"
 
 struct Main{};
 
@@ -33,7 +36,7 @@ int main(int argc, char* argv[]) {
 	ao::vulkan::AOEngine* engine;
 
 	try {
-		engine = choose({ "Triangle", "Rectangle" }, settings);
+		engine = choose({ "Triangle", "Rectangle", "Texture" }, settings);
 		
 		// Add plug-ins
 		engine->add(new ao::vulkan::TitleFPSPlugin(engine));
@@ -78,6 +81,9 @@ ao::vulkan::AOEngine * choose(std::vector<std::string> choices, ao::vulkan::Engi
 
 		case 1:
 			return new RectangleDemo(settings);
+
+		case 2:
+			return new TextureDemo(settings);
 
 		default:
 			throw ao::core::Exception("Invalid choice");

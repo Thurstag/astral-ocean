@@ -6,7 +6,7 @@
 
 #include "swapchain.h"
 
-ao::vulkan::SwapChain::SwapChain(std::weak_ptr<vk::Instance> _instance, std::weak_ptr<Device> _device) : instance(_instance), device(_device) {
+ao::vulkan::SwapChain::SwapChain(std::weak_ptr<vk::Instance> _instance, std::weak_ptr<Device> _device) : instance(_instance), device(_device), commandBuffers(_device) {
 	// Init helpers
 	this->commandBufferHelpers.first[0].setColor(vk::ClearColorValue());
 	this->commandBufferHelpers.first[1].setDepthStencil(vk::ClearDepthStencilValue(1));
@@ -223,14 +223,17 @@ void ao::vulkan::SwapChain::initCommandPool() {
 }
 
 void ao::vulkan::SwapChain::createCommandBuffers() {
-	this->primaryCommandBuffers = ao::core::shared(this->device)->logical.allocateCommandBuffers(vk::CommandBufferAllocateInfo(this->commandPool, vk::CommandBufferLevel::ePrimary, static_cast<u32>(this->buffers.size())));
+	// Allocate buffers
+	std::vector<vk::CommandBuffer> buffers = ao::core::shared(this->device)->logical.allocateCommandBuffers(
+		vk::CommandBufferAllocateInfo(this->commandPool, vk::CommandBufferLevel::ePrimary, static_cast<u32>(this->buffers.size()))
+	);
+
+	// Add to container
+	this->commandBuffers["primary"] = ao::vulkan::CommandBufferData(buffers, this->commandPool);
 }
 
 void ao::vulkan::SwapChain::freeCommandBuffers() {
-	if (auto _device = ao::core::shared(this->device)) {
-		_device->logical.freeCommandBuffers(this->commandPool, this->primaryCommandBuffers);
-		_device->logical.freeCommandBuffers(this->commandPool, this->secondaryCommandBuffers);
-	}
+	this->commandBuffers.clear();
 }
 
 vk::Result ao::vulkan::SwapChain::nextImage(vk::Semaphore& present, u32& imageIndex) {

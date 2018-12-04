@@ -7,11 +7,10 @@
 #include <string>
 #include <vector>
 
+#include <ao/vulkan/engine/ao_engine.h>
+#include <ao/vulkan/utilities/glfw.h>
 #define GLFW_INCLUDE_VULKAN
 #include <GLFW/glfw3.h>
-
-#include "../utilities/glfw.h"
-#include "ao_engine.h"
 
 namespace ao {
 	namespace vulkan {

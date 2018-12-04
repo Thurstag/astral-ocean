@@ -21,7 +21,9 @@
 #include "vertex.hpp"
 #include "ubo.hpp"
 
-class RectangleDemo : public virtual ao::vulkan::GLFWEngine {
+using pixel_t = unsigned char;
+
+class TextureDemo : public virtual ao::vulkan::GLFWEngine {
 public:
 	std::chrono::time_point<std::chrono::system_clock> clock;
 	bool clockInit = false;
@@ -31,10 +33,11 @@ public:
 
 	std::unique_ptr<ao::vulkan::TupleBuffer<Vertex, u16>> rectangleBuffer;
 	std::unique_ptr<ao::vulkan::DynamicArrayBuffer<UniformBufferObject>> uniformBuffer;
+	std::unique_ptr<ao::vulkan::StagingTupleBuffer<pixel_t>> textureBuffer;
 
 	std::vector<UniformBufferObject> _uniformBuffers;
 
-	explicit RectangleDemo(ao::vulkan::EngineSettings settings) : 
+	explicit TextureDemo(ao::vulkan::EngineSettings settings) :
 		ao::vulkan::GLFWEngine(settings), 
 		ao::vulkan::AOEngine(settings),
 		vertices({
@@ -45,7 +48,7 @@ public:
 		}),
 		indices({ 0, 1, 2, 2, 3, 0 }) {
 	};
-	virtual ~RectangleDemo();
+	virtual ~TextureDemo();
 
 	void setUpRenderPass() override;
 	void createPipelineLayouts() override;

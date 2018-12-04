@@ -212,11 +212,15 @@ void TriangleDemo::setUpVulkanBuffers() {
 }
 
 void TriangleDemo::createSecondaryCommandBuffers() {
-	this->swapchain->secondaryCommandBuffers = this->device->logical.allocateCommandBuffers(vk::CommandBufferAllocateInfo(this->swapchain->commandPool, vk::CommandBufferLevel::eSecondary, 1));
+	// Allocate buffers
+	std::vector<vk::CommandBuffer> buffers = this->device->logical.allocateCommandBuffers(vk::CommandBufferAllocateInfo(this->swapchain->commandPool, vk::CommandBufferLevel::eSecondary, 1));
+
+	// Add to container
+	this->swapchain->commandBuffers["secondary"] = ao::vulkan::CommandBufferData(buffers, this->swapchain->commandPool);
 }
 
 std::vector<ao::vulkan::DrawInCommandBuffer> TriangleDemo::updateSecondaryCommandBuffers() {
-	vk::CommandBuffer& commandBuffer = this->swapchain->secondaryCommandBuffers[0];
+	vk::CommandBuffer& commandBuffer = this->swapchain->commandBuffers["secondary"].buffers[0];
 	u32 graphicQueue = this->device->queues[vk::QueueFlagBits::eGraphics].index;
 	u32 transferQueue = this->device->queues[vk::QueueFlagBits::eTransfer].index;
 	std::vector<ao::vulkan::DrawInCommandBuffer> commands;

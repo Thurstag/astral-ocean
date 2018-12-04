@@ -10,8 +10,8 @@
 
 namespace ao {
 	namespace core {
-		template<class T, class U, class V>
-		class MapContainer : public IterableContainer<T, U, V> {
+		template<class T, class U>
+		class MapContainer : public IterableContainer<T, U, typename std::map<T, U>::iterator> {
 		public:
 			/// <summary>
 			/// Constructor
@@ -28,8 +28,8 @@ namespace ao {
 			virtual bool exists(T index) override;
 			virtual void clear() override;
 			virtual size_t size() override;
-			V begin() override;
-			V end() override;
+			typename std::map<T, U>::iterator begin() override;
+			typename std::map<T, U>::iterator end() override;
 
 		protected:
 			std::map<T, U> map;
@@ -37,13 +37,13 @@ namespace ao {
 
 		/* IMPLEMENTATION */
 
-		template<class T, class U, class V>
-		U& MapContainer<T, U, V>::operator[](T index) {
+		template<class T, class U>
+		U& MapContainer<T, U>::operator[](T index) {
 			return this->map[index];
 		}
 
-		template<class T, class U, class V>
-		bool MapContainer<T, U, V>::remove(T index) {
+		template<class T, class U>
+		bool MapContainer<T, U>::remove(T index) {
 			if (!this->exists(index)) {
 				return false;
 			}
@@ -51,28 +51,28 @@ namespace ao {
 			return true;
 		}
 
-		template<class T, class U, class V>
-		bool MapContainer<T, U, V>::exists(T index) {
+		template<class T, class U>
+		bool MapContainer<T, U>::exists(T index) {
 			return this->map.find(index) != this->map.end();
 		}
 
-		template<class T, class U, class V>
-		void MapContainer<T, U, V>::clear() {
+		template<class T, class U>
+		void MapContainer<T, U>::clear() {
 			this->map.clear();
 		}
 
-		template<class T, class U, class V>
-		size_t MapContainer<T, U, V>::size() {
+		template<class T, class U>
+		size_t MapContainer<T, U>::size() {
 			return this->map.size();
 		}
 
-		template<class T, class U, class V>
-		V MapContainer<T, U, V>::begin() {
+		template<class T, class U>
+		typename std::map<T, U>::iterator MapContainer<T, U>::begin() {
 			return this->map.begin();
 		}
 
-		template<class T, class U, class V>
-		V MapContainer<T, U, V>::end() {
+		template<class T, class U>
+		typename std::map<T, U>::iterator MapContainer<T, U>::end() {
 			return this->map.end();
 		}
 	}

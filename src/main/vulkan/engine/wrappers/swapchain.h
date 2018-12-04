@@ -11,6 +11,7 @@
 
 #include <vulkan/vulkan.hpp>
 
+#include "../containers/commandbuffer_container.h"
 #include "device.h"
 
 namespace ao {
@@ -25,8 +26,7 @@ namespace ao {
 			vk::SwapchainKHR swapChain;
 
 			std::pair<std::array<vk::ClearValue, 2>, vk::Rect2D> commandBufferHelpers;
-			std::vector<vk::CommandBuffer> secondaryCommandBuffers;
-			std::vector<vk::CommandBuffer> primaryCommandBuffers;
+			CommandBufferContainer commandBuffers;
 			vk::CommandPool commandPool;
 
 			vk::ColorSpaceKHR colorSpace;

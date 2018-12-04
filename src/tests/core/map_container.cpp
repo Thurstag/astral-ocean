@@ -7,7 +7,7 @@
 
 namespace ao {
 	namespace test {
-		using Map = core::MapContainer<int, int, std::map<int, int>::iterator>;
+		using Map = core::MapContainer<int, int>;
 
 		TEST(MapContainer, AccessAndAssignOperator) {
 			Map m;

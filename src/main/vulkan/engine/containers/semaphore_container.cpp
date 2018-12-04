@@ -32,6 +32,6 @@ void ao::vulkan::SemaphoreContainer::clear() {
 	}
 						   
 	// Clear map
-	core::MapContainer<std::string, SemaphorePair, std::map<std::string, SemaphorePair>::iterator>::clear();
+	core::MapContainer<std::string, SemaphorePair>::clear();
 	cleared.clear();
 }

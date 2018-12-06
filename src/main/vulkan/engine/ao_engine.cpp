@@ -4,7 +4,7 @@
 
 #include "ao_engine.h"
 
-ao::vulkan::AOEngine::AOEngine(EngineSettings settings) : mSettings(settings) {
+ao::vulkan::AOEngine::AOEngine(EngineSettings const& settings) : mSettings(settings) {
 	// Resize pool
 	this->commandBufferPool.resize(this->mSettings.core.threadPoolSize);
 	LOGGER << ao::core::LogLevel::info << fmt::format("Init a thread pool for command buffer processing with {0} thread{1}", this->commandBufferPool.size(), this->commandBufferPool.size() > 1 ? "s": "");
@@ -348,11 +348,11 @@ void ao::vulkan::AOEngine::prepareVulkan() {
 	this->setUpFrameBuffers();
 }
 
-void ao::vulkan::AOEngine::setWindowTitle(std::string title) {
+void ao::vulkan::AOEngine::setWindowTitle(std::string const& title) {
 	this->mSettings.window.name = title;
 }
 
-ao::vulkan::EngineSettings ao::vulkan::AOEngine::settings() {
+ao::vulkan::EngineSettings const& ao::vulkan::AOEngine::settings() const {
 	return this->mSettings;
 }
 
@@ -489,23 +489,23 @@ void ao::vulkan::AOEngine::updateCommandBuffers() {
 	currentCommand.end();
 }
 
-std::vector<char const*> ao::vulkan::AOEngine::deviceExtensions() {
+std::vector<char const*> ao::vulkan::AOEngine::deviceExtensions() const {
 	return std::vector<char const*>();
 }
 
-std::vector<vk::PhysicalDeviceFeatures> ao::vulkan::AOEngine::deviceFeatures() {
+std::vector<vk::PhysicalDeviceFeatures> ao::vulkan::AOEngine::deviceFeatures() const {
 	return std::vector<vk::PhysicalDeviceFeatures>();
 }
 
-vk::QueueFlags ao::vulkan::AOEngine::queueFlags() {
+vk::QueueFlags ao::vulkan::AOEngine::queueFlags() const {
 	return vk::QueueFlagBits::eGraphics | vk::QueueFlagBits::eCompute;
 }
 
-vk::CommandPoolCreateFlags ao::vulkan::AOEngine::commandPoolFlags() {
+vk::CommandPoolCreateFlags ao::vulkan::AOEngine::commandPoolFlags() const {
 	return vk::CommandPoolCreateFlagBits::eResetCommandBuffer;
 }
 
-vk::DebugReportFlagsEXT ao::vulkan::AOEngine::debugReportFlags() {
+vk::DebugReportFlagsEXT ao::vulkan::AOEngine::debugReportFlags() const {
 	return vk::DebugReportFlagBitsEXT::eError | vk::DebugReportFlagBitsEXT::eWarning | 
 		vk::DebugReportFlagBitsEXT::eDebug | vk::DebugReportFlagBitsEXT::ePerformanceWarning;
 }
@@ -520,9 +520,9 @@ VKAPI_ATTR VkBool32 VKAPI_CALL ao::vulkan::AOEngine::debugReportCallBack(VkDebug
 
 	// Find best flag
 	vk::DebugReportFlagsEXT _flags(flags);
-	boost::optional<vk::DebugReportFlagBitsEXT> flag;
+	std::optional<vk::DebugReportFlagBitsEXT> flag;
 	for (auto& _flag : Allflags) {
-		if ((_flags & _flag) && (!flag || flag.get() < _flag)) {
+		if ((_flags & _flag) && (!flag || flag.value() < _flag)) {
 			flag = _flag;
 		}
 	}
@@ -533,22 +533,22 @@ VKAPI_ATTR VkBool32 VKAPI_CALL ao::vulkan::AOEngine::debugReportCallBack(VkDebug
 	}
 
 	// Log
-	switch (flag.get()) {
+	switch (flag.value()) {
 		case vk::DebugReportFlagBitsEXT::eInformation:
-			LOGGER << ao::core::LogLevel::info << fmt::format("[{0}] {1}", to_string(flag.get()), message);
+			LOGGER << ao::core::LogLevel::info << fmt::format("[{0}] {1}", to_string(flag.value()), message);
 			break;
 
 		case vk::DebugReportFlagBitsEXT::eWarning:
 		case vk::DebugReportFlagBitsEXT::ePerformanceWarning:
-			LOGGER << ao::core::LogLevel::warning << fmt::format("[{0}] {1}", to_string(flag.get()), message);
+			LOGGER << ao::core::LogLevel::warning << fmt::format("[{0}] {1}", to_string(flag.value()), message);
 			break;
 
 		case vk::DebugReportFlagBitsEXT::eError:
-			LOGGER << ao::core::LogLevel::fatal << fmt::format("[{0}] {1}", to_string(flag.get()), message);
+			LOGGER << ao::core::LogLevel::fatal << fmt::format("[{0}] {1}", to_string(flag.value()), message);
 			return VK_TRUE;
 
 		case vk::DebugReportFlagBitsEXT::eDebug:
-			LOGGER << ao::core::LogLevel::debug << fmt::format("[{0}] {1}", to_string(flag.get()), message);
+			LOGGER << ao::core::LogLevel::debug << fmt::format("[{0}] {1}", to_string(flag.value()), message);
 			break;
 
 		default:
@@ -558,7 +558,7 @@ VKAPI_ATTR VkBool32 VKAPI_CALL ao::vulkan::AOEngine::debugReportCallBack(VkDebug
 	return VK_FALSE; // Avoid to abort
 }
 
-size_t ao::vulkan::AOEngine::selectVkPhysicalDevice(std::vector<vk::PhysicalDevice>& devices) {
+size_t ao::vulkan::AOEngine::selectVkPhysicalDevice(std::vector<vk::PhysicalDevice> const& devices) const {
 	return 0;    // First device
 }
 

@@ -4,7 +4,7 @@
 
 #include "staging_buffer.h"
 
-ao::vulkan::StagingBuffer::StagingBuffer(std::weak_ptr<Device> device, vk::CommandBufferUsageFlags _usage, bool _memoryBarrier) : ao::vulkan::Buffer(device), usage(_usage), memoryBarrier(_memoryBarrier) {}
+ao::vulkan::StagingBuffer::StagingBuffer(std::weak_ptr<Device> device, vk::CommandBufferUsageFlags const _usage, bool const _memoryBarrier) : ao::vulkan::Buffer(device), usage(_usage), memoryBarrier(_memoryBarrier) {}
 
 ao::vulkan::StagingBuffer::~StagingBuffer() {
 	this->free();
@@ -24,7 +24,7 @@ void ao::vulkan::StagingBuffer::free() {
 	}
 }
 
-vk::DeviceSize ao::vulkan::StagingBuffer::offset(size_t index) {
+vk::DeviceSize ao::vulkan::StagingBuffer::offset(size_t const index) const {
 	return this->hostBuffer->offset(index);
 }
 
@@ -32,21 +32,21 @@ ao::vulkan::Buffer* ao::vulkan::StagingBuffer::map() {
 	return this->hostBuffer->map();
 }
 
-vk::Buffer & ao::vulkan::StagingBuffer::buffer() {
+vk::Buffer const& ao::vulkan::StagingBuffer::buffer() const {
 	if (this->deviceBuffer.get() == nullptr) {
 		throw ao::core::Exception("Device buffer hasn't been initialized");
 	}
 	return this->deviceBuffer->buffer();
 }
 
-vk::DeviceSize ao::vulkan::StagingBuffer::size() {
+vk::DeviceSize ao::vulkan::StagingBuffer::size() const {
 	if (this->deviceBuffer.get() == nullptr) {
 		throw ao::core::Exception("Device buffer hasn't been initialized");
 	}
 	return this->deviceBuffer->size();
 }
 
-bool ao::vulkan::StagingBuffer::hasBuffer() {
+bool ao::vulkan::StagingBuffer::hasBuffer() const {
 	if (this->hostBuffer.get() == nullptr || this->deviceBuffer.get() == nullptr) {
 		return false;
 	}

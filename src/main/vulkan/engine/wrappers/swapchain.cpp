@@ -167,7 +167,7 @@ void ao::vulkan::SwapChain::initSurface() {
 	}
 	
 	// Try to find a queue that supports present
-	boost::optional<vk::QueueFlagBits> flag;
+	std::optional<vk::QueueFlagBits> flag;
 	for (auto& pair : _device->queues) {
 		if (supportsPresent[pair.second.index] == VK_TRUE) {
 			flag = pair.first;

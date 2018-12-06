@@ -5,12 +5,11 @@
 #pragma once
 
 #include <functional>
+#include <optional>
 
-#include <boost/optional.hpp>
 #include <gtest/gtest.h>
 
-namespace ao {
-	namespace test {
+namespace ao::test {
 /// <summary>
 /// Macro to skip a test if condition is true
 /// </summary>
@@ -26,17 +25,16 @@ namespace ao {
 		/// </summary>				   
 		/// <param name="code">Code that will throw an exception</param>
 		/// <param name="assert">Function to assert exception catched</param>
-		template<class T>
-		inline void ASSERT_EXCEPTION(std::function<void()> code, std::function<void(T)> assert = [](T e) {}) {
-			try {
-				code();
+	template<class T>
+	inline void ASSERT_EXCEPTION(std::function<void()> code, std::function<void(T)> assert = [](T e) {}) {
+		try {
+			code();
 
-				FAIL() << "Should throw a " << typeid(T).name();
-			} catch (T& e) {
-				(assert)(e);
-			} catch (...) {
-				FAIL() << "Should catch a " << typeid(T).name();
-			}
+			FAIL() << "Should throw a " << typeid(T).name();
+		} catch (T& e) {
+			(assert)(e);
+		} catch (...) {
+			FAIL() << "Should catch a " << typeid(T).name();
 		}
 	}
 }

@@ -2,6 +2,8 @@ SET(MAIN_CPP main.cpp)
 
 # Include *.cpp & vk *.h
 file(GLOB_RECURSE SOURCE *.cpp *.h *.hpp)
+file(GLOB_RECURSE AO_BOOT_SRC "*.cpp")
+file(GLOB_RECURSE AO_BOOT_HEADERS "*.h" "*.hpp")
 
 set(PATH_TO_SUBMODULES "${CMAKE_CURRENT_SOURCE_DIR}/../../../submodules")
 
@@ -22,3 +24,7 @@ set_target_properties("win-bootstrap" PROPERTIES  RUNTIME_OUTPUT_DIRECTORY "${CM
 
 # Import libraries
 target_link_libraries("win-bootstrap" "ao-vulkan;glfw;${GLM_LIBRARY}")
+
+# Re-create sub-directories in Visual Studio
+create_sub_directories(AO_BOOT_HEADERS ${CMAKE_CURRENT_SOURCE_DIR} "Header Files")
+create_sub_directories(AO_BOOT_SRC ${CMAKE_CURRENT_SOURCE_DIR} "Source Files")

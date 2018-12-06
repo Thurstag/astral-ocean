@@ -2,14 +2,17 @@
 // Licensed under GPLv3 or any later version
 // Refer to the LICENSE.md file included.
 
-#include "RectangleDemo.h"
+#include "TextureDemo.h"
 
-RectangleDemo::~RectangleDemo() {
+#define STB_IMAGE_IMPLEMENTATION
+#include <stb_image.h>
+
+TextureDemo::~TextureDemo() {
 	this->rectangleBuffer.reset();
 	this->uniformBuffer.reset();
 }
 
-void RectangleDemo::setUpRenderPass() {
+void TextureDemo::setUpRenderPass() {
 	std::array<vk::AttachmentDescription, 2> attachments;
 
 	// Color attachment
@@ -58,7 +61,7 @@ void RectangleDemo::setUpRenderPass() {
 	));
 }
 
-void RectangleDemo::createPipelineLayouts() {
+void TextureDemo::createPipelineLayouts() {
 	this->pipeline->layouts.resize(1);
 
 	this->pipeline->layouts.front() = this->device->logical.createPipelineLayout(
@@ -66,7 +69,7 @@ void RectangleDemo::createPipelineLayouts() {
 	);
 }
 
-void RectangleDemo::setUpPipelines() {
+void TextureDemo::setUpPipelines() {
 	// Create shadermodules
 	ao::vulkan::ShaderModule module(this->device);
 
@@ -165,7 +168,7 @@ void RectangleDemo::setUpPipelines() {
 	this->pipeline->pipelines = this->device->logical.createGraphicsPipelines(this->pipeline->cache, pipelineCreateInfo);
 }
 
-void RectangleDemo::setUpVulkanBuffers() {
+void TextureDemo::setUpVulkanBuffers() {
 	// Create vertices & indices
 	this->rectangleBuffer = std::unique_ptr<ao::vulkan::TupleBuffer<Vertex, u16>>(
 		(new ao::vulkan::StagingTupleBuffer<Vertex, u16>(this->device))
@@ -184,31 +187,61 @@ void RectangleDemo::setUpVulkanBuffers() {
 
 	// Resize uniform buffers vector
 	this->_uniformBuffers.resize(this->swapchain->buffers.size());
+
+	// Load texture
+	char* textureFile = "face.jpg";
+	int texWidth, texHeight, texChannels;
+	pixel_t* pixels = stbi_load(textureFile, &texWidth, &texHeight, &texChannels, STBI_rgb_alpha);
+
+	// Check image
+	if (!pixels) {
+		throw ao::core::Exception(fmt::format("Fail to load image: {0}", textureFile));
+	}
+
+	// Create buffer
+	this->textureBuffer = std::unique_ptr<ao::vulkan::StagingTupleBuffer<pixel_t>>(
+		(new ao::vulkan::StagingTupleBuffer<pixel_t>(this->device, vk::CommandBufferUsageFlagBits::eOneTimeSubmit, true))
+		->init({ texWidth * texHeight * sizeof(pixel_t) })
+	);
+	this->textureBuffer->update(pixels);
+
+	// Free image
+	stbi_image_free(pixels);
+
+	/* TODO: REFACTOR */
+
+	vk::Image image;
+	vk::DeviceMemory imageMemory;
+
+	vk::ImageCreateInfo createInfo(
+		vk::ImageCreateFlags(), vk::ImageType::e2D, vk::Format::eR8G8B8A8Unorm,
+		vk::Extent3D(static_cast<u32>(texWidth), static_cast<u32>(texHeight), 1),
+		1, 1, vk::SampleCountFlagBits::e1, vk::ImageTiling::eOptimal,
+		vk::ImageUsageFlagBits::eTransferDst | vk::ImageUsageFlagBits::eSampled, 
+		vk::SharingMode::eExclusive
+	);
+
+	// Create image
+	image = this->device->logical.createImage(createInfo);
 }
 
-void RectangleDemo::createSecondaryCommandBuffers() {
-	// Allocate buffers
+void TextureDemo::createSecondaryCommandBuffers() {
 	std::vector<vk::CommandBuffer> buffers = this->device->logical.allocateCommandBuffers(vk::CommandBufferAllocateInfo(this->swapchain->commandPool, vk::CommandBufferLevel::eSecondary, 1));
 
 	// Add to container
 	this->swapchain->commandBuffers["secondary"] = ao::vulkan::CommandBufferData(buffers, this->swapchain->commandPool);
 }
 
-std::vector<ao::vulkan::DrawInCommandBuffer> RectangleDemo::updateSecondaryCommandBuffers() {
+std::vector<ao::vulkan::DrawInCommandBuffer> TextureDemo::updateSecondaryCommandBuffers() {
 	std::vector<ao::vulkan::DrawInCommandBuffer> commands;
 
-	vk::CommandBuffer& commandBuffer = this->swapchain->commandBuffers["secondary"].buffers[0];
-	std::vector<vk::DescriptorSet>& sets = this->descriptorSets;
-	vk::Pipeline& pipeline = this->pipeline->pipelines[0];
-	vk::PipelineLayout& pipelineLayout = this->pipeline->layouts[0];
-	ao::vulkan::TupleBuffer<Vertex, u16>* rectangle = this->rectangleBuffer.get();
-	std::vector<Vertex>& vertices = this->vertices;
-	std::vector<u16>& indices = this->indices;
-
-	commands.push_back([commandBuffer, pipeline, rectangle, vertices, indices, pipelineLayout, sets]
-	(int frameIndex, vk::CommandBufferInheritanceInfo& inheritance, std::pair<std::array<vk::ClearValue, 2>, vk::Rect2D>& helpers) {
-		vk::Viewport viewPort(0, 0, static_cast<float>(helpers.second.extent.width), static_cast<float>(helpers.second.extent.height), 0, 1);
+	commands.push_back([this]
+	(int frameIndex, vk::CommandBufferInheritanceInfo const& inheritance, std::pair<std::array<vk::ClearValue, 2>, vk::Rect2D> const& helpers) {
 		vk::CommandBufferBeginInfo beginInfo = vk::CommandBufferBeginInfo(vk::CommandBufferUsageFlagBits::eRenderPassContinue).setPInheritanceInfo(&inheritance);
+		vk::Viewport viewPort(0, 0, static_cast<float>(helpers.second.extent.width), static_cast<float>(helpers.second.extent.height), 0, 1);
+
+		vk::CommandBuffer& commandBuffer = this->swapchain->commandBuffers["secondary"].buffers[0];
+		ao::vulkan::TupleBuffer<Vertex, u16>* rectangle = this->rectangleBuffer.get();
 
 		// Draw in command
 		commandBuffer.begin(beginInfo);
@@ -218,14 +251,14 @@ std::vector<ao::vulkan::DrawInCommandBuffer> RectangleDemo::updateSecondaryComma
 			commandBuffer.setScissor(0, helpers.second);
 
 			// Bind pipeline
-			commandBuffer.bindPipeline(vk::PipelineBindPoint::eGraphics, pipeline);
+			commandBuffer.bindPipeline(vk::PipelineBindPoint::eGraphics, this->pipeline->pipelines[0]);
 
 			// Draw rectangle
 			commandBuffer.bindVertexBuffers(0, rectangle->buffer(), { 0 });
 			commandBuffer.bindIndexBuffer(rectangle->buffer(), rectangle->offset(1), vk::IndexType::eUint16);
-			commandBuffer.bindDescriptorSets(vk::PipelineBindPoint::eGraphics, pipelineLayout, 0, sets[frameIndex], {});
+			commandBuffer.bindDescriptorSets(vk::PipelineBindPoint::eGraphics, this->pipeline->layouts[0], 0, this->descriptorSets[frameIndex], {});
 
-			commandBuffer.drawIndexed(static_cast<u32>(indices.size()), 1, 0, 0, 0);
+			commandBuffer.drawIndexed(static_cast<u32>(this->indices.size()), 1, 0, 0, 0);
 		}
 		commandBuffer.end();
 
@@ -235,7 +268,7 @@ std::vector<ao::vulkan::DrawInCommandBuffer> RectangleDemo::updateSecondaryComma
 	return commands;
 }
 
-void RectangleDemo::updateUniformBuffers() {
+void TextureDemo::updateUniformBuffers() {
 	if (!this->clockInit) {
 		this->clock = std::chrono::system_clock::now();
 		this->clockInit = true;
@@ -256,12 +289,11 @@ void RectangleDemo::updateUniformBuffers() {
 	this->uniformBuffer->updateFragment(this->frameBufferIndex, &this->_uniformBuffers[this->frameBufferIndex]);
 }
 
-vk::QueueFlags RectangleDemo::queueFlags() {
-	// Enable transfer flag
-	return ao::vulkan::GLFWEngine::queueFlags() | vk::QueueFlagBits::eTransfer;
+vk::QueueFlags TextureDemo::queueFlags() const {
+	return ao::vulkan::GLFWEngine::queueFlags() | vk::QueueFlagBits::eTransfer;	 // Enable transfer
 }
 
-void RectangleDemo::createDescriptorSetLayouts() {
+void TextureDemo::createDescriptorSetLayouts() {
 	// Create binding
 	vk::DescriptorSetLayoutBinding binding(0, vk::DescriptorType::eUniformBuffer, 1, vk::ShaderStageFlagBits::eVertex);
 
@@ -274,7 +306,7 @@ void RectangleDemo::createDescriptorSetLayouts() {
 	}
 }
 
-void RectangleDemo::createDescriptorPools() {
+void TextureDemo::createDescriptorPools() {
 	vk::DescriptorPoolSize poolSize(vk::DescriptorType::eUniformBuffer, static_cast<u32>(this->swapchain->buffers.size()));
 
 	// Create pool
@@ -284,7 +316,7 @@ void RectangleDemo::createDescriptorPools() {
 	));
 }
 
-void RectangleDemo::createDescriptorSets() {
+void TextureDemo::createDescriptorSets() {
 	vk::DescriptorSetAllocateInfo allocateInfo(this->descriptorPools[0], static_cast<u32>(this->swapchain->buffers.size()), this->descriptorSetLayouts.data());
 
 	// Create sets

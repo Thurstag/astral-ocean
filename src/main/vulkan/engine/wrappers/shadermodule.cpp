@@ -16,7 +16,7 @@ ao::vulkan::ShaderModule::~ShaderModule() {
 	}
 }
 
-std::vector<char> ao::vulkan::ShaderModule::read(std::string filename) {
+std::vector<char> ao::vulkan::ShaderModule::read(std::string const& filename) {
 	// Open file and go to the end
 	std::ifstream file(filename, std::ios::ate | std::ios::binary);
 	std::vector<char> vector;
@@ -51,7 +51,7 @@ vk::ShaderModule ao::vulkan::ShaderModule::createModule(const std::vector<char>&
 	return ao::core::shared(this->device)->logical.createShaderModule(vk::ShaderModuleCreateInfo(vk::ShaderModuleCreateFlags(), code.size(), reinterpret_cast<const u32*>(code.data())));
 }
 
-ao::vulkan::ShaderModule & ao::vulkan::ShaderModule::loadShader(std::string filename, vk::ShaderStageFlagBits flag) {
+ao::vulkan::ShaderModule & ao::vulkan::ShaderModule::loadShader(std::string const& filename, vk::ShaderStageFlagBits flag) {
 	auto _device = ao::core::shared(this->device);
 
 	// Create module
@@ -73,7 +73,7 @@ ao::vulkan::ShaderModule & ao::vulkan::ShaderModule::loadShader(std::string file
 	return *this;
 }
 
-std::vector <vk::PipelineShaderStageCreateInfo> ao::vulkan::ShaderModule::shaderStages() {
+std::vector <vk::PipelineShaderStageCreateInfo> ao::vulkan::ShaderModule::shaderStages() const {
 	std::vector<vk::PipelineShaderStageCreateInfo> vector(this->shaders.size());
 
 	// Copy into vector

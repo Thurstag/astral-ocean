@@ -8,367 +8,365 @@
 #include "../helpers/vk_instance.hpp"
 #include "../helpers/tests.h"
 
-namespace ao {
-	namespace test {
-		struct Object {
-			u64 i;
+namespace ao::test {
+	struct Object {
+		u64 i;
 
-			explicit Object(u64 _i) : i(_i) {}
-		};
+		explicit Object(u64 _i) : i(_i) {}
+	};
 
-		struct SecondObject {
-			bool b;
+	struct SecondObject {
+		bool b;
 
-			explicit SecondObject(bool _b) : b(_b) {}
-		};
+		explicit SecondObject(bool _b) : b(_b) {}
+	};
 
-		/* BASIC */
+	/* BASIC */
 
-		TEST(BasicBuffer, NotInit) {
-			// 'Mute' logger
-			core::Logger::Init();
-			core::Logger::SetMinLevel(core::LogLevel::fatal);
+	TEST(BasicBuffer, NotInit) {
+		// 'Mute' logger
+		core::Logger::Init();
+		core::Logger::SetMinLevel(core::LogLevel::fatal);
 
-			// Init instance
-			VkInstance instance;
-			SKIP_TEST(!instance.init(), FAIL_INIT_VULKAN);
+		// Init instance
+		VkInstance instance;
+		SKIP_TEST(!instance.init(), FAIL_INIT_VULKAN);
 
-			vulkan::BasicTupleBuffer<Object, SecondObject> b(instance.device);
-		}
+		vulkan::BasicTupleBuffer<Object, SecondObject> b(instance.device);
+	}
 
-		TEST(BasicBuffer, Init) {
+	TEST(BasicBuffer, Init) {
 
-			// Init instance
-			VkInstance instance;
-			SKIP_TEST(!instance.init(), FAIL_INIT_VULKAN);
+		// Init instance
+		VkInstance instance;
+		SKIP_TEST(!instance.init(), FAIL_INIT_VULKAN);
 
-			TestBasicTupleBuffer<Object, SecondObject> b(instance.device);
+		TestBasicTupleBuffer<Object, SecondObject> b(instance.device);
 
-			// Init
-			b.init(vk::BufferUsageFlagBits::eUniformBuffer, vk::SharingMode::eExclusive, vk::MemoryPropertyFlagBits::eHostVisible, { sizeof(Object), sizeof(SecondObject) });
+		// Init
+		b.init(vk::BufferUsageFlagBits::eUniformBuffer, vk::SharingMode::eExclusive, vk::MemoryPropertyFlagBits::eHostVisible, { sizeof(Object), sizeof(SecondObject) });
 
-			// Free old buffers and init others
-			b.init(vk::BufferUsageFlagBits::eUniformBuffer, vk::SharingMode::eExclusive, vk::MemoryPropertyFlagBits::eHostVisible, { sizeof(Object), sizeof(SecondObject) });
+		// Free old buffers and init others
+		b.init(vk::BufferUsageFlagBits::eUniformBuffer, vk::SharingMode::eExclusive, vk::MemoryPropertyFlagBits::eHostVisible, { sizeof(Object), sizeof(SecondObject) });
 
-			// Wrong size
-			ASSERT_EXCEPTION<core::Exception>([&]() {
-				b.init(vk::BufferUsageFlagBits::eUniformBuffer, vk::SharingMode::eExclusive, vk::MemoryPropertyFlagBits::eHostVisible, { sizeof(Object) });
-			});
-		}
+		// Wrong size
+		ASSERT_EXCEPTION<core::Exception>([&]() {
+			b.init(vk::BufferUsageFlagBits::eUniformBuffer, vk::SharingMode::eExclusive, vk::MemoryPropertyFlagBits::eHostVisible, { sizeof(Object) });
+		});
+	}
 
-		TEST(BasicBuffer, Update) {
-			// Init instance
-			VkInstance instance;
-			SKIP_TEST(!instance.init(), FAIL_INIT_VULKAN);
+	TEST(BasicBuffer, Update) {
+		// Init instance
+		VkInstance instance;
+		SKIP_TEST(!instance.init(), FAIL_INIT_VULKAN);
 
-			TestBasicTupleBuffer<Object, SecondObject> b(instance.device);
-			b.init(vk::BufferUsageFlagBits::eUniformBuffer, vk::SharingMode::eExclusive, vk::MemoryPropertyFlagBits::eHostVisible, { sizeof(Object), sizeof(SecondObject) });
+		TestBasicTupleBuffer<Object, SecondObject> b(instance.device);
+		b.init(vk::BufferUsageFlagBits::eUniformBuffer, vk::SharingMode::eExclusive, vk::MemoryPropertyFlagBits::eHostVisible, { sizeof(Object), sizeof(SecondObject) });
 
-			Object* o = new Object(1);
-			SecondObject* sO = new SecondObject(true);
+		Object* o = new Object(1);
+		SecondObject* sO = new SecondObject(true);
 
-			// Normal update
+		// Normal update
+		b.update(o, sO);
+
+		// Check content
+		Object* oMapper = static_cast<Object*>(b.mapper(0));
+		SecondObject* sMapper = static_cast<SecondObject*>(b.mapper(1));
+
+		ASSERT_EQ(1, oMapper->i);
+		ASSERT_EQ(true, sMapper->b);
+
+		delete o;
+		delete sO;
+	}
+
+	TEST(BasicBuffer, UpdateButNotInit) {
+		// Init instance
+		VkInstance instance;
+		SKIP_TEST(!instance.init(), FAIL_INIT_VULKAN);
+
+		TestBasicTupleBuffer<Object, SecondObject> b(instance.device);
+
+		Object* o = new Object(1);
+		SecondObject* sO = new SecondObject(true);
+
+		ASSERT_EXCEPTION<core::Exception>([&]() {
 			b.update(o, sO);
+		});
 
-			// Check content
-			Object* oMapper = static_cast<Object*>(b.mapper(0));
-			SecondObject* sMapper = static_cast<SecondObject*>(b.mapper(1));
+		delete o;
+		delete sO;
+	}
 
-			ASSERT_EQ(1, oMapper->i);
-			ASSERT_EQ(true, sMapper->b);
+	TEST(BasicBuffer, UpdateFragmentButNotInit) {
+		// Init instance
+		VkInstance instance;
+		SKIP_TEST(!instance.init(), FAIL_INIT_VULKAN);
 
-			delete o;
-			delete sO;
-		}
+		TestBasicTupleBuffer<Object, SecondObject> b(instance.device);
+		Object* o = new Object(4);
 
-		TEST(BasicBuffer, UpdateButNotInit) {
-	        // Init instance
-			VkInstance instance;
-			SKIP_TEST(!instance.init(), FAIL_INIT_VULKAN);
+		// Not init
+		ASSERT_EXCEPTION<core::Exception>([&]() {
+			b.updateFragment(1, o);
+		});
+		delete o;
+	}
 
-			TestBasicTupleBuffer<Object, SecondObject> b(instance.device);
+	TEST(BasicBuffer, UpdateFragment) {
+		// Init instance
+		VkInstance instance;
+		SKIP_TEST(!instance.init(), FAIL_INIT_VULKAN);
 
-			Object* o = new Object(1);
-			SecondObject* sO = new SecondObject(true);
+		TestBasicTupleBuffer<Object, SecondObject> b(instance.device);
+		b.init(vk::BufferUsageFlagBits::eUniformBuffer, vk::SharingMode::eExclusive, vk::MemoryPropertyFlagBits::eHostVisible, { sizeof(Object), sizeof(SecondObject) });
 
-			ASSERT_EXCEPTION<core::Exception>([&]() {
-				b.update(o, sO);
-			});
+		Object* o = new Object(1);
+		SecondObject* sO = new SecondObject(true);
 
-			delete o;
-			delete sO;
-		}
+		// Normal update
+		b.update(o, sO);
 
-		TEST(BasicBuffer, UpdateFragmentButNotInit) {
-			// Init instance
-			VkInstance instance;
-			SKIP_TEST(!instance.init(), FAIL_INIT_VULKAN);
+		// Check content
+		Object* oMapper = static_cast<Object*>(b.mapper(0));
+		SecondObject* sMapper = static_cast<SecondObject*>(b.mapper(1));
 
-			TestBasicTupleBuffer<Object, SecondObject> b(instance.device);
-			Object* o = new Object(4);
+		ASSERT_EQ(1, oMapper->i);
+		ASSERT_EQ(true, sMapper->b);
 
-			// Not init
-			ASSERT_EXCEPTION<core::Exception>([&]() {
-				b.updateFragment(1, o);
-			});
-			delete o;
-		}
+		// Fragment update
+		Object* o2 = new Object(4);
+		b.updateFragment(0, o2);
 
-		TEST(BasicBuffer, UpdateFragment) {
-			// Init instance
-			VkInstance instance;
-			SKIP_TEST(!instance.init(), FAIL_INIT_VULKAN);
+		// Out of range update
+		ASSERT_EXCEPTION<core::IndexOutOfRangeException>([&]() {
+			b.updateFragment(10, o2);
+		});
 
-			TestBasicTupleBuffer<Object, SecondObject> b(instance.device);
-			b.init(vk::BufferUsageFlagBits::eUniformBuffer, vk::SharingMode::eExclusive, vk::MemoryPropertyFlagBits::eHostVisible, { sizeof(Object), sizeof(SecondObject) });
+		// Check content
+		ASSERT_EQ(4, oMapper->i);
+		ASSERT_EQ(true, sMapper->b);
 
-			Object* o = new Object(1);
-			SecondObject* sO = new SecondObject(true);
+		delete o;
+		delete o2;
+		delete sO;
+	}
 
-			// Normal update
-			b.update(o, sO);
+	TEST(BasicBuffer, Offset) {
+		// Init instance
+		VkInstance instance;
+		SKIP_TEST(!instance.init(), FAIL_INIT_VULKAN);
 
-			// Check content
-			Object* oMapper = static_cast<Object*>(b.mapper(0));
-			SecondObject* sMapper = static_cast<SecondObject*>(b.mapper(1));
+		TestBasicTupleBuffer<Object, SecondObject> b(instance.device);
+		b.init(vk::BufferUsageFlagBits::eUniformBuffer, vk::SharingMode::eExclusive, vk::MemoryPropertyFlagBits::eHostVisible, { sizeof(Object), sizeof(SecondObject) });
 
-			ASSERT_EQ(1, oMapper->i);
-			ASSERT_EQ(true, sMapper->b);
+		Object* o = new Object(1);
+		SecondObject* sO = new SecondObject(true);
 
-			// Fragment update
-			Object* o2 = new Object(4);
-			b.updateFragment(0, o2);
+		// Normal update
+		b.update(o, sO);
 
-		    // Out of range update
-			ASSERT_EXCEPTION<core::IndexOutOfRangeException>([&]() {
-				b.updateFragment(10, o2);
-			});
+		// Get offsets
+		Object* oMapper = (Object*)((u64)b.mapper(0) + b.offset(0));
+		SecondObject* sMapper = (SecondObject*)((u64)b.mapper(0) + b.offset(1));
 
-			// Check content
-			ASSERT_EQ(4, oMapper->i);
-			ASSERT_EQ(true, sMapper->b);
+		// Check content
+		ASSERT_EQ(1, oMapper->i);
+		ASSERT_EQ(true, sMapper->b);
 
-			delete o;
-			delete o2;
-			delete sO;
-		}
+		// Out of range
+		ASSERT_EXCEPTION<core::IndexOutOfRangeException>([&]() {
+			b.offset(10);
+		});
 
-		TEST(BasicBuffer, Offset) {
-			// Init instance
-			VkInstance instance;
-			SKIP_TEST(!instance.init(), FAIL_INIT_VULKAN);
+		delete o;
+		delete sO;
+	}
 
-			TestBasicTupleBuffer<Object, SecondObject> b(instance.device);
-			b.init(vk::BufferUsageFlagBits::eUniformBuffer, vk::SharingMode::eExclusive, vk::MemoryPropertyFlagBits::eHostVisible, { sizeof(Object), sizeof(SecondObject) });
+	TEST(BasicBuffer, Map) {
+		// Init instance
+		VkInstance instance;
+		SKIP_TEST(!instance.init(), FAIL_INIT_VULKAN);
 
-			Object* o = new Object(1);
-			SecondObject* sO = new SecondObject(true);
+		TestBasicTupleBuffer<Object, SecondObject> b(instance.device);
+		b.init(vk::BufferUsageFlagBits::eUniformBuffer, vk::SharingMode::eExclusive, vk::MemoryPropertyFlagBits::eHostVisible, { sizeof(Object), sizeof(SecondObject) });
 
-			// Normal update
-			b.update(o, sO);
+		// Map
+		b.map();
 
-			// Get offsets
-			Object* oMapper = (Object*)((u64)b.mapper(0) + b.offset(0));
-			SecondObject* sMapper = (SecondObject*)((u64)b.mapper(0) + b.offset(1));
-
-			// Check content
-			ASSERT_EQ(1, oMapper->i);
-			ASSERT_EQ(true, sMapper->b);
-
-			// Out of range
-			ASSERT_EXCEPTION<core::IndexOutOfRangeException>([&]() {
-				b.offset(10);
-			});
-
-			delete o;
-			delete sO;
-		}
-
-		TEST(BasicBuffer, Map) {
-			// Init instance
-			VkInstance instance;
-			SKIP_TEST(!instance.init(), FAIL_INIT_VULKAN);
-
-			TestBasicTupleBuffer<Object, SecondObject> b(instance.device);
-			b.init(vk::BufferUsageFlagBits::eUniformBuffer, vk::SharingMode::eExclusive, vk::MemoryPropertyFlagBits::eHostVisible, { sizeof(Object), sizeof(SecondObject) });
-
-			// Map
+		// Already map
+		ASSERT_EXCEPTION<core::Exception>([&]() {
 			b.map();
+		});
+	}
 
-			// Already map
-			ASSERT_EXCEPTION<core::Exception>([&]() {
-				b.map();
-			});
-		}
+	/* STAGING */
 
-		/* STAGING */
+	TEST(StagingBuffer, NotInit) {
+		// Init instance
+		VkInstance instance;
+		SKIP_TEST(!instance.init(), FAIL_INIT_VULKAN);
 
-		TEST(StagingBuffer, NotInit) {
-			// Init instance
-			VkInstance instance;
-			SKIP_TEST(!instance.init(), FAIL_INIT_VULKAN);
+		vulkan::StagingTupleBuffer<Object, SecondObject> b(instance.device);
+	}
 
-			vulkan::StagingTupleBuffer<Object, SecondObject> b(instance.device);
-		}
+	TEST(StagingBuffer, Init) {
+		// Init instance
+		VkInstance instance;
+		SKIP_TEST(!instance.init(), FAIL_INIT_VULKAN);
 
-		TEST(StagingBuffer, Init) {
-			// Init instance
-			VkInstance instance;
-			SKIP_TEST(!instance.init(), FAIL_INIT_VULKAN);
+		vulkan::StagingTupleBuffer<Object, SecondObject> b(instance.device);
 
-			vulkan::StagingTupleBuffer<Object, SecondObject> b(instance.device);
+		// Init
+		b.init({ sizeof(Object), sizeof(SecondObject) });
 
-			// Init
-			b.init({ sizeof(Object), sizeof(SecondObject) });
+		// Free old buffers and init others
+		b.init({ sizeof(Object), sizeof(SecondObject) });
+	}
 
-			// Free old buffers and init others
-			b.init({ sizeof(Object), sizeof(SecondObject) });
-		}
+	TEST(StagingBuffer, Update) {
+		// Init instance
+		VkInstance instance;
+		SKIP_TEST(!instance.init(), FAIL_INIT_VULKAN);
 
-		TEST(StagingBuffer, Update) {
-			// Init instance
-			VkInstance instance;
-			SKIP_TEST(!instance.init(), FAIL_INIT_VULKAN);
+		TestStagingTupleBuffer<Object, SecondObject> b(instance.device);
+		b.init({ sizeof(Object), sizeof(SecondObject) });
 
-			TestStagingTupleBuffer<Object, SecondObject> b(instance.device);
-			b.init({ sizeof(Object), sizeof(SecondObject) });
+		Object* o = new Object(1);
+		SecondObject* sO = new SecondObject(true);
 
-			Object* o = new Object(1);
-			SecondObject* sO = new SecondObject(true);
+		// Normal update
+		b.update(o, sO);
 
-			// Normal update
+		// Check content
+		Object* oMapper = static_cast<Object*>(b.mapper(0));
+		SecondObject* sMapper = static_cast<SecondObject*>(b.mapper(1));
+
+		ASSERT_EQ(1, oMapper->i);
+		ASSERT_EQ(true, sMapper->b);
+
+		delete o;
+		delete sO;
+	}
+
+	TEST(StagingBuffer, UpdateButNotInit) {
+		// Init instance
+		VkInstance instance;
+		SKIP_TEST(!instance.init(), FAIL_INIT_VULKAN);
+
+		TestStagingTupleBuffer<Object, SecondObject> b(instance.device);
+		Object* o = new Object(1);
+		SecondObject* sO = new SecondObject(true);
+
+		// Not init
+		ASSERT_EXCEPTION<core::Exception>([&]() {
 			b.update(o, sO);
+		});
 
-			// Check content
-			Object* oMapper = static_cast<Object*>(b.mapper(0));
-			SecondObject* sMapper = static_cast<SecondObject*>(b.mapper(1));
+		delete o;
+		delete sO;
+	}
 
-			ASSERT_EQ(1, oMapper->i);
-			ASSERT_EQ(true, sMapper->b);
+	TEST(StagingBuffer, UpdateFragmentButNotInit) {
+		// Init instance
+		VkInstance instance;
+		SKIP_TEST(!instance.init(), FAIL_INIT_VULKAN);
 
-			delete o;
-			delete sO;
-		}
+		TestStagingTupleBuffer<Object, SecondObject> b(instance.device);
+		Object* o = new Object(4);
 
-		TEST(StagingBuffer, UpdateButNotInit) {
-			// Init instance
-			VkInstance instance;
-			SKIP_TEST(!instance.init(), FAIL_INIT_VULKAN);
+		// Not init
+		ASSERT_EXCEPTION<core::Exception>([&]() {
+			b.updateFragment(0, o);
+		});
 
-			TestStagingTupleBuffer<Object, SecondObject> b(instance.device);
-			Object* o = new Object(1);
-			SecondObject* sO = new SecondObject(true);
+		delete o;
+	}
 
-			// Not init
-			ASSERT_EXCEPTION<core::Exception>([&]() {
-				b.update(o, sO);
-			});
+	TEST(StagingBuffer, UpdateFragment) {
+		// Init instance
+		VkInstance instance;
+		SKIP_TEST(!instance.init(), FAIL_INIT_VULKAN);
 
-			delete o;
-			delete sO;
-		}
+		TestStagingTupleBuffer<Object, SecondObject> b(instance.device);
+		b.init({ sizeof(Object), sizeof(SecondObject) });
 
-		TEST(StagingBuffer, UpdateFragmentButNotInit) {
-			// Init instance
-			VkInstance instance;
-			SKIP_TEST(!instance.init(), FAIL_INIT_VULKAN);
+		Object* o = new Object(1);
+		SecondObject* sO = new SecondObject(true);
 
-			TestStagingTupleBuffer<Object, SecondObject> b(instance.device);
-			Object* o = new Object(4);
+		// Normal update
+		b.update(o, sO);
 
-			// Not init
-			ASSERT_EXCEPTION<core::Exception>([&]() {
-				b.updateFragment(0, o);
-			});
+		// Check content
+		Object* oMapper = static_cast<Object*>(b.mapper(0));
+		SecondObject* sMapper = static_cast<SecondObject*>(b.mapper(1));
 
-			delete o;
-		}
+		ASSERT_EQ(1, oMapper->i);
+		ASSERT_EQ(true, sMapper->b);
 
-		TEST(StagingBuffer, UpdateFragment) {
-			// Init instance
-			VkInstance instance;
-			SKIP_TEST(!instance.init(), FAIL_INIT_VULKAN);
+		// Fragment update
+		Object* o2 = new Object(4);
+		b.updateFragment(0, o2);
 
-			TestStagingTupleBuffer<Object, SecondObject> b(instance.device);
-			b.init({ sizeof(Object), sizeof(SecondObject) });
+		// Out of range update
+		ASSERT_EXCEPTION<core::IndexOutOfRangeException>([&]() {
+			b.updateFragment(10, o2);
+		});
 
-			Object* o = new Object(1);
-			SecondObject* sO = new SecondObject(true);
+		// Check content
+		ASSERT_EQ(4, oMapper->i);
+		ASSERT_EQ(true, sMapper->b);
 
-			// Normal update
-			b.update(o, sO);
+		delete o;
+		delete o2;
+		delete sO;
+	}
 
-			// Check content
-			Object* oMapper = static_cast<Object*>(b.mapper(0));
-			SecondObject* sMapper = static_cast<SecondObject*>(b.mapper(1));
+	TEST(StagingBuffer, Offset) {
+		// Init instance
+		VkInstance instance;
+		SKIP_TEST(!instance.init(), FAIL_INIT_VULKAN);
 
-			ASSERT_EQ(1, oMapper->i);
-			ASSERT_EQ(true, sMapper->b);
+		TestStagingTupleBuffer<Object, SecondObject> b(instance.device);
+		b.init({ sizeof(Object), sizeof(SecondObject) });
 
-			// Fragment update
-			Object* o2 = new Object(4);
-			b.updateFragment(0, o2);
+		Object* o = new Object(1);
+		SecondObject* sO = new SecondObject(true);
 
-			// Out of range update
-			ASSERT_EXCEPTION<core::IndexOutOfRangeException>([&]() {
-				b.updateFragment(10, o2);
-			});
+		// Normal update
+		b.update(o, sO);
 
-			// Check content
-			ASSERT_EQ(4, oMapper->i);
-			ASSERT_EQ(true, sMapper->b);
+		// Get offsets
+		Object* oMapper = (Object*)((u64)b.mapper(0) + b.offset(0));
+		SecondObject* sMapper = (SecondObject*)((u64)b.mapper(0) + b.offset(1));
 
-			delete o;
-			delete o2;
-			delete sO;
-		}
+		// Check content
+		ASSERT_EQ(1, oMapper->i);
+		ASSERT_EQ(true, sMapper->b);
 
-		TEST(StagingBuffer, Offset) {
-			// Init instance
-			VkInstance instance;
-			SKIP_TEST(!instance.init(), FAIL_INIT_VULKAN);
+		// Out of range
+		ASSERT_EXCEPTION<core::IndexOutOfRangeException>([&]() {
+			b.offset(10);
+		});
 
-			TestStagingTupleBuffer<Object, SecondObject> b(instance.device);
-			b.init({ sizeof(Object), sizeof(SecondObject) });
+		delete o;
+		delete sO;
+	}
 
-			Object* o = new Object(1);
-			SecondObject* sO = new SecondObject(true);
+	TEST(StagingBuffer, Map) {
+		// Init instance
+		VkInstance instance;
+		SKIP_TEST(!instance.init(), FAIL_INIT_VULKAN);
 
-			// Normal update
-			b.update(o, sO);
+		TestStagingTupleBuffer<Object, SecondObject> b(instance.device);
+		b.init({ sizeof(Object), sizeof(SecondObject) });
 
-			// Get offsets
-			Object* oMapper = (Object*)((u64)b.mapper(0) + b.offset(0));
-			SecondObject* sMapper = (SecondObject*)((u64)b.mapper(0) + b.offset(1));
+		// Map
+		b.map();
 
-			// Check content
-			ASSERT_EQ(1, oMapper->i);
-			ASSERT_EQ(true, sMapper->b);
-
-			// Out of range
-			ASSERT_EXCEPTION<core::IndexOutOfRangeException>([&]() {
-				b.offset(10);
-			});
-
-			delete o;
-			delete sO;
-		}
-
-		TEST(StagingBuffer, Map) {
-			// Init instance
-			VkInstance instance;
-			SKIP_TEST(!instance.init(), FAIL_INIT_VULKAN);
-
-			TestStagingTupleBuffer<Object, SecondObject> b(instance.device);
-			b.init({ sizeof(Object), sizeof(SecondObject) });
-
-			// Map
+		// Already map
+		ASSERT_EXCEPTION<core::Exception>([&]() {
 			b.map();
-
-			// Already map
-			ASSERT_EXCEPTION<core::Exception>([&]() {
-				b.map();
-			});
-		}
+		});
 	}
 }

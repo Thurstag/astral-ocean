@@ -24,7 +24,7 @@ void ao::core::Logger::Init() {
 	boost::log::add_common_attributes();
 }
 
-ao::core::ProxyLogger ao::core::Logger::operator<<(LogLevel level) {
+ao::core::ProxyLogger ao::core::Logger::operator<<(LogLevel level) const {
 	return ao::core::ProxyLogger(level, ao::core::LoggerData(this->key));
 }
 

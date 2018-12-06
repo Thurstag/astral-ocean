@@ -2,49 +2,14 @@
 // Licensed under GPLv3 or any later version
 // Refer to the LICENSE.md file included.
 
-#include "TriangleDemo.h"
+#include "RectangleDemo.h"
 
-TriangleDemo::~TriangleDemo() {
-	this->vertexBuffer.reset();
-	this->indexBuffer.reset();
+RectangleDemo::~RectangleDemo() {
+	this->rectangleBuffer.reset();
+	this->uniformBuffer.reset();
 }
 
-void TriangleDemo::afterFrameSubmitted() {
-	ao::vulkan::GLFWEngine::afterFrameSubmitted();
-
-	if (!this->clockInit) {
-		this->clock = std::chrono::system_clock::now();
-		this->clockInit = true;
-
-		return;
-	}
-
-	// Define rotate axis
-	glm::vec3 zAxis(0.0f, 0.0f, 1.0f);
-
-	// Delta time
-	float deltaTime = std::chrono::duration<float, std::chrono::seconds::period>(std::chrono::system_clock::now() - this->clock).count();
-	float angles = glm::half_pi<float>(); // Rotation in 1 second
-
-	for (Vertex& vertice : this->vertices) {
-		// To vec4
-		glm::vec4 point(vertice.pos.x, vertice.pos.y, 0, 0);
-
-		// Rotate point
-		point = glm::rotate(angles * deltaTime, zAxis) * point;
-
-		// Update vertice
-		vertice.pos = glm::vec2(point.x, point.y);
-	}
-
-	// Update vertex buffer
-	this->vertexBuffer->update(this->vertices.data());
-
-	// Update clock
-	this->clock = std::chrono::system_clock::now();
-}
-
-void TriangleDemo::setUpRenderPass() {
+void RectangleDemo::setUpRenderPass() {
 	std::array<vk::AttachmentDescription, 2> attachments;
 
 	// Color attachment
@@ -93,19 +58,22 @@ void TriangleDemo::setUpRenderPass() {
 	));
 }
 
-void TriangleDemo::createPipelineLayouts() {
+void RectangleDemo::createPipelineLayouts() {
 	this->pipeline->layouts.resize(1);
-	this->pipeline->layouts[0] = this->device->logical.createPipelineLayout(vk::PipelineLayoutCreateInfo());
+
+	this->pipeline->layouts.front() = this->device->logical.createPipelineLayout(
+		vk::PipelineLayoutCreateInfo(vk::PipelineLayoutCreateFlags(), static_cast<u32>(this->descriptorSetLayouts.size()), this->descriptorSetLayouts.data())
+	);
 }
 
-void TriangleDemo::setUpPipelines() {
+void RectangleDemo::setUpPipelines() {
 	// Create shadermodules
 	ao::vulkan::ShaderModule module(this->device);
 
 	// Load shaders & get shaderStages
 	std::vector<vk::PipelineShaderStageCreateInfo> shaderStages = module
-		.loadShader("tri-vert.spv", vk::ShaderStageFlagBits::eVertex)
-		.loadShader("tri-frag.spv", vk::ShaderStageFlagBits::eFragment).shaderStages();
+		.loadShader("rec-vert.spv", vk::ShaderStageFlagBits::eVertex)
+		.loadShader("rec-frag.spv", vk::ShaderStageFlagBits::eFragment).shaderStages();
 
 	vk::GraphicsPipelineCreateInfo pipelineCreateInfo = vk::GraphicsPipelineCreateInfo()
 		.setLayout(this->pipeline->layouts[0])
@@ -123,7 +91,7 @@ void TriangleDemo::setUpPipelines() {
 	// Rasterization state
 	vk::PipelineRasterizationStateCreateInfo rasterizationState = vk::PipelineRasterizationStateCreateInfo()
 		.setPolygonMode(vk::PolygonMode::eFill)
-		.setCullMode(vk::CullModeFlagBits::eNone)
+		.setCullMode(vk::CullModeFlagBits::eBack)
 		.setFrontFace(vk::FrontFace::eCounterClockwise)
 		.setLineWidth(1.0f);
 
@@ -197,21 +165,28 @@ void TriangleDemo::setUpPipelines() {
 	this->pipeline->pipelines = this->device->logical.createGraphicsPipelines(this->pipeline->cache, pipelineCreateInfo);
 }
 
-void TriangleDemo::setUpVulkanBuffers() {
-	this->vertexBuffer = std::unique_ptr<ao::vulkan::TupleBuffer<Vertex>>(
-		(new ao::vulkan::StagingTupleBuffer<Vertex>(this->device, vk::CommandBufferUsageFlagBits::eSimultaneousUse, true))
-		->init({ sizeof(Vertex) * this->vertices.size() }, vk::BufferUsageFlags(vk::BufferUsageFlagBits::eVertexBuffer))
-		->update(this->vertices.data())
+void RectangleDemo::setUpVulkanBuffers() {
+	// Create vertices & indices
+	this->rectangleBuffer = std::unique_ptr<ao::vulkan::TupleBuffer<Vertex, u16>>(
+		(new ao::vulkan::StagingTupleBuffer<Vertex, u16>(this->device))
+		->init({ sizeof(Vertex) * this->vertices.size(), sizeof(u16) * this->indices.size() })
+		->update(this->vertices.data(), this->indices.data())
 	);
 
-	this->indexBuffer = std::unique_ptr<ao::vulkan::TupleBuffer<u16>>(
-		(new ao::vulkan::StagingTupleBuffer<u16>(this->device, vk::CommandBufferUsageFlagBits::eOneTimeSubmit))
-		->init({ sizeof(u16) * this->indices.size() }, vk::BufferUsageFlags(vk::BufferUsageFlagBits::eIndexBuffer))
-		->update(this->indices.data())
+	this->uniformBuffer = std::unique_ptr<ao::vulkan::DynamicArrayBuffer<UniformBufferObject>>(
+		(new ao::vulkan::BasicDynamicArrayBuffer<UniformBufferObject>(this->swapchain->buffers.size(), this->device))
+		->init(vk::BufferUsageFlagBits::eUniformBuffer, vk::SharingMode::eExclusive, vk::MemoryPropertyFlagBits::eHostVisible,
+		ao::vulkan::Buffer::CalculateUBOAligmentSize(this->device->physical, sizeof(UniformBufferObject)))
 	);
+
+	// Map buffer
+	this->uniformBuffer->map();
+
+	// Resize uniform buffers vector
+	this->_uniformBuffers.resize(this->swapchain->buffers.size());
 }
 
-void TriangleDemo::createSecondaryCommandBuffers() {
+void RectangleDemo::createSecondaryCommandBuffers() {
 	// Allocate buffers
 	std::vector<vk::CommandBuffer> buffers = this->device->logical.allocateCommandBuffers(vk::CommandBufferAllocateInfo(this->swapchain->commandPool, vk::CommandBufferLevel::eSecondary, 1));
 
@@ -219,44 +194,33 @@ void TriangleDemo::createSecondaryCommandBuffers() {
 	this->swapchain->commandBuffers["secondary"] = ao::vulkan::CommandBufferData(buffers, this->swapchain->commandPool);
 }
 
-std::vector<ao::vulkan::DrawInCommandBuffer> TriangleDemo::updateSecondaryCommandBuffers() {
-	vk::CommandBuffer& commandBuffer = this->swapchain->commandBuffers["secondary"].buffers[0];
-	u32 graphicQueue = this->device->queues[vk::QueueFlagBits::eGraphics].index;
-	u32 transferQueue = this->device->queues[vk::QueueFlagBits::eTransfer].index;
+std::vector<ao::vulkan::DrawInCommandBuffer> RectangleDemo::updateSecondaryCommandBuffers() {
 	std::vector<ao::vulkan::DrawInCommandBuffer> commands;
-	vk::Pipeline& pipeline = this->pipeline->pipelines[0];
-	vk::Buffer vertexBuffer = this->vertexBuffer->buffer();
-	vk::Buffer indexBuffer = this->indexBuffer->buffer();
-	std::vector<Vertex>& vertices = this->vertices;
-	std::vector<u16>& indices = this->indices;
 
-	commands.push_back([commandBuffer, pipeline, vertexBuffer, indexBuffer, vertices, indices, graphicQueue, transferQueue]
-	(int frameIndex, vk::CommandBufferInheritanceInfo& inheritance, std::pair<std::array<vk::ClearValue, 2>, vk::Rect2D>& helpers) {
-		vk::Viewport viewPort(0, 0, static_cast<float>(helpers.second.extent.width), static_cast<float>(helpers.second.extent.height), 0, 1);
+	commands.push_back([this]
+	(int frameIndex, vk::CommandBufferInheritanceInfo const& inheritance, std::pair<std::array<vk::ClearValue, 2>, vk::Rect2D> const& helpers) {
 		vk::CommandBufferBeginInfo beginInfo = vk::CommandBufferBeginInfo(vk::CommandBufferUsageFlagBits::eRenderPassContinue).setPInheritanceInfo(&inheritance);
+		vk::Viewport viewPort(0, 0, static_cast<float>(helpers.second.extent.width), static_cast<float>(helpers.second.extent.height), 0, 1);
+
+		vk::CommandBuffer& commandBuffer = this->swapchain->commandBuffers["secondary"].buffers[0];
+		ao::vulkan::TupleBuffer<Vertex, u16>* rectangle = this->rectangleBuffer.get();
 
 		// Draw in command
 		commandBuffer.begin(beginInfo);
 		{
-		    // Set viewport & scissor
+			// Set viewport & scissor
 			commandBuffer.setViewport(0, viewPort);
 			commandBuffer.setScissor(0, helpers.second);
 
 			// Bind pipeline
-			commandBuffer.bindPipeline(vk::PipelineBindPoint::eGraphics, pipeline);
+			commandBuffer.bindPipeline(vk::PipelineBindPoint::eGraphics, this->pipeline->pipelines[0]);
 
-			// Memory barrier
-			vk::BufferMemoryBarrier barrier(
-				vk::AccessFlags(), vk::AccessFlagBits::eVertexAttributeRead,
-				transferQueue, graphicQueue, vertexBuffer
-			);
-			commandBuffer.pipelineBarrier(vk::PipelineStageFlagBits::eTopOfPipe, vk::PipelineStageFlagBits::eVertexInput, vk::DependencyFlags(), {}, barrier, {});
+			// Draw rectangle
+			commandBuffer.bindVertexBuffers(0, rectangle->buffer(), { 0 });
+			commandBuffer.bindIndexBuffer(rectangle->buffer(), rectangle->offset(1), vk::IndexType::eUint16);
+			commandBuffer.bindDescriptorSets(vk::PipelineBindPoint::eGraphics, this->pipeline->layouts[0], 0, this->descriptorSets[frameIndex], {});
 
-			// Draw triangle
-			commandBuffer.bindVertexBuffers(0, { vertexBuffer }, { 0 });
-			commandBuffer.bindIndexBuffer(indexBuffer, 0, vk::IndexType::eUint16);
-
-			commandBuffer.drawIndexed(static_cast<u32>(indices.size()), 1, 0, 0, 0);
+			commandBuffer.drawIndexed(static_cast<u32>(this->indices.size()), 1, 0, 0, 0);
 		}
 		commandBuffer.end();
 
@@ -266,15 +230,63 @@ std::vector<ao::vulkan::DrawInCommandBuffer> TriangleDemo::updateSecondaryComman
 	return commands;
 }
 
-void TriangleDemo::updateUniformBuffers() {}
+void RectangleDemo::updateUniformBuffers() {
+	if (!this->clockInit) {
+		this->clock = std::chrono::system_clock::now();
+		this->clockInit = true;
 
-vk::QueueFlags TriangleDemo::queueFlags() {
-	// Enable transfer flag
-	return ao::vulkan::GLFWEngine::queueFlags() | vk::QueueFlagBits::eTransfer;
+		return;
+	}
+
+	// Delta time
+	float deltaTime = std::chrono::duration<float, std::chrono::seconds::period>(std::chrono::system_clock::now() - this->clock).count();
+
+	// Update uniform buffer
+	this->_uniformBuffers[this->frameBufferIndex].model = glm::rotate(glm::mat4(1.0f), deltaTime * glm::radians(90.0f), glm::vec3(0.0f, 0.0f, 1.0f));
+	this->_uniformBuffers[this->frameBufferIndex].view = glm::lookAt(glm::vec3(2.0f, 2.0f, 2.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f));
+	this->_uniformBuffers[this->frameBufferIndex].proj = glm::perspective(glm::radians(45.0f), this->swapchain->currentExtent.width / (float)this->swapchain->currentExtent.height, 0.1f, 10.0f);
+	this->_uniformBuffers[this->frameBufferIndex].proj[1][1] *= -1; // Adapt for vulkan
+
+	// Update buffer
+	this->uniformBuffer->updateFragment(this->frameBufferIndex, &this->_uniformBuffers[this->frameBufferIndex]);
 }
 
-void TriangleDemo::createDescriptorSetLayouts() {}
+vk::QueueFlags RectangleDemo::queueFlags() const {
+	return ao::vulkan::GLFWEngine::queueFlags() | vk::QueueFlagBits::eTransfer; // Enable transfer
+}
 
-void TriangleDemo::createDescriptorPools() {}
+void RectangleDemo::createDescriptorSetLayouts() {
+	// Create binding
+	vk::DescriptorSetLayoutBinding binding(0, vk::DescriptorType::eUniformBuffer, 1, vk::ShaderStageFlagBits::eVertex);
 
-void TriangleDemo::createDescriptorSets() {}
+	// Create info
+	vk::DescriptorSetLayoutCreateInfo createInfo(vk::DescriptorSetLayoutCreateFlags(), 1, &binding);
+
+	// Create layouts
+	for (size_t i = 0; i < this->swapchain->buffers.size(); i++) {
+		this->descriptorSetLayouts.push_back(this->device->logical.createDescriptorSetLayout(createInfo));
+	}
+}
+
+void RectangleDemo::createDescriptorPools() {
+	vk::DescriptorPoolSize poolSize(vk::DescriptorType::eUniformBuffer, static_cast<u32>(this->swapchain->buffers.size()));
+
+	// Create pool
+	this->descriptorPools.push_back(this->device->logical.createDescriptorPool(
+		vk::DescriptorPoolCreateInfo(vk::DescriptorPoolCreateFlags(),
+		static_cast<u32>(this->swapchain->buffers.size()), 1, &poolSize)
+	));
+}
+
+void RectangleDemo::createDescriptorSets() {
+	vk::DescriptorSetAllocateInfo allocateInfo(this->descriptorPools[0], static_cast<u32>(this->swapchain->buffers.size()), this->descriptorSetLayouts.data());
+
+	// Create sets
+	this->descriptorSets = this->device->logical.allocateDescriptorSets(allocateInfo);
+
+	// Configure
+	for (size_t i = 0; i < this->swapchain->buffers.size(); i++) {
+		vk::DescriptorBufferInfo bufferInfo(this->uniformBuffer->buffer(), this->uniformBuffer->offset(i), sizeof(UniformBufferObject));
+		this->device->logical.updateDescriptorSets(vk::WriteDescriptorSet(this->descriptorSets[i], 0, 0, 1, vk::DescriptorType::eUniformBuffer, nullptr, &bufferInfo), {});
+	}
+}

@@ -6,45 +6,43 @@
 
 #include "logger/logger.h"
 
-namespace ao {
-	namespace core {
+namespace ao::core {
+	/// <summary>
+	/// Plugin
+	/// </summary>
+	template<class T>
+	class Plugin {
+	public:
 		/// <summary>
-		/// Plugin
+		/// Constructor
 		/// </summary>
-		template<class T>
-		class Plugin {
-		public:
-			/// <summary>
-			/// Constructor
-			/// </summary>
-			/// <param name="_subject">Subject</param>
-			explicit Plugin(T* _subject);
+		/// <param name="_subject">Subject</param>
+		explicit Plugin(T* const _subject);
 
-			/// <summary>
-			/// Constructor
-			/// </summary>
-			virtual ~Plugin() = default;
+		/// <summary>
+		/// Constructor
+		/// </summary>
+		virtual ~Plugin() = default;
 
-			/// <summary>
-			/// Method called on subject init
-			/// </summary>
-			virtual void onInit() = 0;
-			/// <summary>
-			/// Method called on subject update
-			/// </summary>
-			virtual void onUpdate() = 0;
-			/// <summary>
-			/// Method called before subject destroy
-			/// </summary>
-			virtual void beforeDestroy() = 0;
+		/// <summary>
+		/// Method called on subject init
+		/// </summary>
+		virtual void onInit() = 0;
+		/// <summary>
+		/// Method called on subject update
+		/// </summary>
+		virtual void onUpdate() = 0;
+		/// <summary>
+		/// Method called before subject destroy
+		/// </summary>
+		virtual void beforeDestroy() = 0;
 
-		protected:
-			Logger LOGGER = Logger::getInstance<Plugin<T>>();
-			T* const subject = nullptr;
-		};
+	protected:
+		Logger LOGGER = Logger::getInstance<Plugin<T>>();
+		T* const subject = nullptr;
+	};
 
-		template<class T>
-		Plugin<T>::Plugin(T * _subject) : subject(_subject) {}
-	}
+	template<class T>
+	Plugin<T>::Plugin(T* const _subject) : subject(_subject) {}
 }
 

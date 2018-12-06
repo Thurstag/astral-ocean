@@ -34,16 +34,16 @@ void ao::vulkan::GLFWEngine::freeWindow() {
 	glfwTerminate();
 }
 
-bool ao::vulkan::GLFWEngine::isIconified() {
+bool ao::vulkan::GLFWEngine::isIconified() const {
 	return glfwGetWindowAttrib(this->window, GLFW_ICONIFIED);
 }
 
-void ao::vulkan::GLFWEngine::setWindowTitle(std::string title) {
+void ao::vulkan::GLFWEngine::setWindowTitle(std::string const& title) {
 	ao::vulkan::AOEngine::setWindowTitle(title);
 	glfwSetWindowTitle(this->window, title.c_str());
 }
 
-bool ao::vulkan::GLFWEngine::loopingCondition() {
+bool ao::vulkan::GLFWEngine::loopingCondition() const {
 	return !glfwWindowShouldClose(this->window);
 }
 
@@ -57,6 +57,6 @@ void ao::vulkan::GLFWEngine::waitMaximized() {
 	glfwWaitEvents();
 }
 
-std::vector<char const*> ao::vulkan::GLFWEngine::instanceExtensions() {
+std::vector<char const*> ao::vulkan::GLFWEngine::instanceExtensions() const {
 	return ao::vulkan::utilities::extensions();
 }

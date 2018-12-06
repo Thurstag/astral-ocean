@@ -46,7 +46,7 @@ set(CMAKE_LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib")
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin")
 
 # Force c++ version
-set(CMAKE_CXX_STANDARD 14)
+set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 # Define project name
@@ -62,6 +62,9 @@ ENDIF()
 # Boost lib
 find_package(Boost 1.68 COMPONENTS log log_setup thread system REQUIRED)
 include_directories(${Boost_INCLUDE_DIR})
+IF(WIN32)
+	link_directories("${BOOST_ROOT}/stage/lib/") # Add lib directory
+ENDIF()
 
 # Check all libs
 FOREACH(DEPENDENCY ${DEPENDENCIES})

@@ -6,11 +6,11 @@
 
 ao::vulkan::Buffer::Buffer(std::weak_ptr<Device> _device) : device(_device) {}
 
-size_t ao::vulkan::Buffer::calculateUBOAligmentSize(size_t objectSize) {
+size_t ao::vulkan::Buffer::calculateUBOAligmentSize(size_t const objectSize) const {
 	return ao::vulkan::Buffer::CalculateUBOAligmentSize(ao::core::shared(this->device)->physical, objectSize);
 }
 
-size_t ao::vulkan::Buffer::CalculateUBOAligmentSize(vk::PhysicalDevice device, size_t objectSize) {
+size_t ao::vulkan::Buffer::CalculateUBOAligmentSize(vk::PhysicalDevice const& device, size_t const objectSize) {
 	size_t minUboAlignment = device.getProperties().limits.minUniformBufferOffsetAlignment;
 	
 	if (minUboAlignment > 0) {

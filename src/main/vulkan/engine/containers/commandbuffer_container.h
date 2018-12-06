@@ -10,42 +10,40 @@
 
 #include "../wrappers/device.h"
 
-namespace ao {
-	namespace vulkan {
-		struct CommandBufferData {
-			std::vector<vk::CommandBuffer> buffers;
-			vk::CommandPool pool;
+namespace ao::vulkan {
+	struct CommandBufferData {
+		std::vector<vk::CommandBuffer> buffers;
+		vk::CommandPool pool;
 
-			/// <summary>
-			/// Constructor
-			/// </summary>
-			CommandBufferData() = default;
+		/// <summary>
+		/// Constructor
+		/// </summary>
+		CommandBufferData() = default;
 
-			/// <summary>
-			/// Constructor
-			/// </summary>
-			/// <param name="_buffers">Buffers</param>
-			/// <param name="_pool">Pool</param>
-			explicit CommandBufferData(std::vector<vk::CommandBuffer> _buffers, vk::CommandPool _pool) : buffers(_buffers), pool(_pool) {}
-		};
+		/// <summary>
+		/// Constructor
+		/// </summary>
+		/// <param name="_buffers">Buffers</param>
+		/// <param name="_pool">Pool</param>
+		explicit CommandBufferData(std::vector<vk::CommandBuffer> const& _buffers, vk::CommandPool const& _pool) : buffers(_buffers), pool(_pool) {}
+	};
 
-		class CommandBufferContainer : public core::MapContainer<std::string, CommandBufferData> {
-		public:
-			/// <summary>
-			/// Constructor
-			/// </summary>
-			/// <param name="_device">Device</param>
-			CommandBufferContainer(std::weak_ptr<Device> _device);
+	class CommandBufferContainer : public core::MapContainer<std::string, CommandBufferData> {
+	public:
+		/// <summary>
+		/// Constructor
+		/// </summary>
+		/// <param name="_device">Device</param>
+		explicit CommandBufferContainer(std::weak_ptr<Device> _device);
 
-			/// <summary>
-			/// Destructor
-			/// </summary>
-			~CommandBufferContainer();
+		/// <summary>
+		/// Destructor
+		/// </summary>
+		~CommandBufferContainer();
 
-			virtual void clear() override;
+		virtual void clear() override;
 
-		protected:
-			std::weak_ptr<Device> device;
-		};
-	}
+	protected:
+		std::weak_ptr<Device> device;
+	};
 }

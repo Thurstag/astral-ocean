@@ -14,7 +14,7 @@ TODO
 ### Requirements
 
 * CMake (>= 2.8.0)
-* C++ (>= standard 14)
+* C++ (>= standard 17)
 
 ### Linux
 

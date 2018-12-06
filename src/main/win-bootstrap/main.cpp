@@ -14,9 +14,9 @@
 #include <ao/core/exception/exception.h>
 #include <ao/core/logger/logger.h>
 
-#include "RectangleDemo.h"
-#include "TriangleDemo.h"
-#include "TextureDemo.h"
+#include "demo/RectangleDemo.h"
+#include "demo/TriangleDemo.h"
+#include "demo/TextureDemo.h"
 
 struct Main{};
 

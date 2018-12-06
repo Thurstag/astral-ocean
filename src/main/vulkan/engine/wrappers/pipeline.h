@@ -12,35 +12,34 @@
 #include "swapchain.h"
 #include "device.h"
 
-namespace ao {
-	namespace vulkan {
+namespace ao::vulkan {
+	/// <summary>
+	/// Wrapper for vulkan pipelines
+	/// </summary>
+	struct Pipeline {
+	public:
+		vk::PipelineStageFlags submitPipelineStages = vk::PipelineStageFlagBits::eColorAttachmentOutput;
+
+		std::vector<vk::PipelineLayout> layouts;
+		std::vector<vk::Pipeline> pipelines;
+		vk::PipelineCache cache;
+
 		/// <summary>
-		/// Wrapper for vulkan pipelines
+		/// Constructor
 		/// </summary>
-		struct Pipeline {
-		public:			
-			vk::PipelineStageFlags submitPipelineStages = vk::PipelineStageFlagBits::eColorAttachmentOutput;
+		Pipeline() = default;
 
-			std::vector<vk::PipelineLayout> layouts;
-			std::vector<vk::Pipeline> pipelines;
-			vk::PipelineCache cache;
+		/// <summary>
+		/// Constructor
+		/// </summary>
+		/// <param name="_device">Device</param>
+		explicit Pipeline(std::weak_ptr<Device> _device);
 
-			/// <summary>
-			/// Constructor
-			/// </summary>
-			Pipeline() = default;
-			/// <summary>
-			/// Constructor
-			/// </summary>
-			/// <param name="_device">Device</param>
-			explicit Pipeline(std::weak_ptr<Device> _device);
-
-			/// <summary>
-			/// Destructor
-			/// </summary>
-			virtual ~Pipeline();
-		protected:
-			std::weak_ptr<Device> device;
-		};
-	}
+		/// <summary>
+		/// Destructor
+		/// </summary>
+		virtual ~Pipeline();
+	protected:
+		std::weak_ptr<Device> device;
+	};
 }

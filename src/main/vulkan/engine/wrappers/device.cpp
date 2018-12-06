@@ -4,7 +4,7 @@
 
 #include "device.h"
 
-ao::vulkan::Device::Device(vk::PhysicalDevice& device) : physical(device) {
+ao::vulkan::Device::Device(vk::PhysicalDevice const& device) : physical(device) {
 	this->extensions = ao::vulkan::utilities::vkExtensionProperties(this->physical);
 
 	// Check count
@@ -15,11 +15,14 @@ ao::vulkan::Device::Device(vk::PhysicalDevice& device) : physical(device) {
 
 ao::vulkan::Device::~Device() {
 	this->logical.destroyCommandPool(this->transferCommandPool);
-
 	this->logical.destroy();
 }
 
-void ao::vulkan::Device::initLogicalDevice(std::vector<char const*> deviceExtensions, std::vector<vk::PhysicalDeviceFeatures> deviceFeatures, vk::QueueFlags qflags, vk::CommandPoolCreateFlags cflags, vk::QueueFlagBits defaultQueue, bool swapChain) {
+void ao::vulkan::Device::initLogicalDevice(
+	std::vector<char const*> deviceExtensions, std::vector<vk::PhysicalDeviceFeatures> const& deviceFeatures, 
+	vk::QueueFlags const qflags, vk::CommandPoolCreateFlags const cflags, vk::QueueFlagBits const defaultQueue, 
+	bool const swapChain) {
+
 	std::vector<vk::QueueFamilyProperties> queueFamilyProperties = this->physical.getQueueFamilyProperties();
 	std::vector<vk::DeviceQueueCreateInfo> queueCreateInfos;
 	float const DEFAULT_QUEUE_PRIORITY = 0.0f;
@@ -36,7 +39,7 @@ void ao::vulkan::Device::initLogicalDevice(std::vector<char const*> deviceExtens
 
 	// Find queues
 	std::map<u32, vk::QueueFlagBits> indexes;
-	boost::optional<u32> defaultQueueIndex;
+	std::optional<u32> defaultQueueIndex;
 	for (auto& flag : allFlags) {
 		if (qflags & flag) {
 			u32 index = ao::vulkan::utilities::findQueueFamilyIndex(queueFamilyProperties, flag);
@@ -102,7 +105,7 @@ void ao::vulkan::Device::initLogicalDevice(std::vector<char const*> deviceExtens
 	this->transferCommandPool = this->logical.createCommandPool(vk::CommandPoolCreateInfo(vk::CommandPoolCreateFlagBits::eResetCommandBuffer, this->queues[vk::QueueFlagBits::eTransfer].index));
 }
 
-u32 ao::vulkan::Device::memoryType(u32 typeBits, vk::MemoryPropertyFlags properties) {
+u32 ao::vulkan::Device::memoryType(u32 typeBits, vk::MemoryPropertyFlags const properties) const {
 	vk::PhysicalDeviceMemoryProperties memoryProperties = this->physical.getMemoryProperties();
 
 	for (u32 i = 0; i < memoryProperties.memoryTypeCount; i++) {

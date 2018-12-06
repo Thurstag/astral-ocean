@@ -10,32 +10,30 @@
 
 #include "../ao_engine.h"
 
-namespace ao {
-	namespace vulkan {
-		class FPSPlugin : public core::Plugin<AOEngine> {
-		public:
-			/// <summary>
-			/// Constructor
-			/// </summary>
-			/// <param name="engine">Engine</param>
-			explicit FPSPlugin(AOEngine* engine);
-			virtual ~FPSPlugin();
+namespace ao::vulkan {
+	class FPSPlugin : public core::Plugin<AOEngine> {
+	public:
+		/// <summary>
+		/// Constructor
+		/// </summary>
+		/// <param name="engine">Engine</param>
+		explicit FPSPlugin(AOEngine* engine);
+		virtual ~FPSPlugin();
 
-			virtual void onInit() override;
-			virtual void onUpdate() override;
-			virtual void beforeDestroy() override;
+		virtual void onInit() override;
+		virtual void onUpdate() override;
+		virtual void beforeDestroy() override;
 
-			/// <summary>
-			/// Method to display frame rate
-			/// </summary>
-			/// <param name="frameRate">Frame rate</param>
-			virtual void displayFrameRate(u64 frameRate) = 0;
+		/// <summary>
+		/// Method to display frame rate
+		/// </summary>
+		/// <param name="frameRate">Frame rate</param>
+		virtual void displayFrameRate(u64 frameRate) const = 0;
 
-		private:
-			std::chrono::time_point<std::chrono::system_clock> clock;
-			u64 frameRate;
-			bool init = false;
-		};
-	}
+	private:
+		std::chrono::time_point<std::chrono::system_clock> clock;
+		u64 frameRate;
+		bool init = false;
+	};
 }
 

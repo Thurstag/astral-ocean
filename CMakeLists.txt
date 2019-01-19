@@ -8,7 +8,7 @@ option(AO_BUILD_BOOTSTRAPS "Build bootstraps" ON)
 # Define variables
 set(PROJECT_NAME "astral-ocean")
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake")
-set(SUBMODULES_DIR "${CMAKE_BINARY_DIR}/submodules")
+set(SUBMODULES_DIR "${CMAKE_CURRENT_SOURCE_DIR}/submodules")
 set(fmt_INCLUDE_DIR "${SUBMODULES_DIR}/fmt/include")
 set(googletest_INCLUDE_DIR "${SUBMODULES_DIR}/googletest/include" "${SUBMODULES_DIR}/googlemock/include")
 set(AO_INCLUDE_DIR "${CMAKE_SOURCE_DIR}/include")
@@ -42,9 +42,9 @@ ENDIF()
 set(CMAKE_VERBOSE_MAKEFILE ON)
 
 # Define output folders
-set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib")
-set(CMAKE_LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib")
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin")
+set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}")
+set(CMAKE_LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}")
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}")
 
 # Force c++ version
 set(CMAKE_CXX_STANDARD 17)
@@ -64,7 +64,7 @@ ENDIF()
 find_package(Boost 1.68 COMPONENTS log log_setup thread system REQUIRED)
 include_directories(${Boost_INCLUDE_DIR})
 IF(WIN32)
-	link_directories("${BOOST_ROOT}/stage/lib/") # Add lib directory
+	link_directories(${Boost_LIBRARY_DIR}) # Add lib directory
 ENDIF()
 
 # Check all libs

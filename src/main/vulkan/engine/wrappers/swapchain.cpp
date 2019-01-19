@@ -236,9 +236,9 @@ void ao::vulkan::SwapChain::freeCommandBuffers() {
 	this->commandBuffers.clear();
 }
 
-vk::Result ao::vulkan::SwapChain::nextImage(vk::Semaphore& present, u32& imageIndex) {
+vk::Result ao::vulkan::SwapChain::nextImage(vk::Semaphore& acquire, u32& imageIndex) {
 	if (auto _device = ao::core::shared(this->device)) {
-		return _device->logical.acquireNextImageKHR(this->swapChain, (std::numeric_limits<u64>::max)(), present, nullptr, &imageIndex);
+		return _device->logical.acquireNextImageKHR(this->swapChain, (std::numeric_limits<u64>::max)(), acquire, nullptr, &imageIndex);
 	}
 	return vk::Result::eErrorDeviceLost;
 }

@@ -73,7 +73,9 @@ namespace ao::vulkan {
 		/// <summary>
 		/// Method to get next image
 		/// </summary>
-		vk::Result nextImage(vk::Semaphore& present, u32& imageIndex);
+		/// <param name="acquire">Acquire semaphore (Signal semaphore)</param>
+		/// <param name="imageIndex">Image index</param>
+		vk::Result nextImage(vk::Semaphore& acquire, u32& imageIndex);
 		/// <summary>
 		/// Method to enqueue an image
 		/// </summary>

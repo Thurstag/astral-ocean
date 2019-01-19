@@ -125,7 +125,7 @@ namespace ao::vulkan {
 			std::vector<char const*> validationLayer{ "VK_LAYER_LUNARG_standard_validation" };
 
 			// Create app info (TODO: Optimize this part (retrieve info in settings) !!!)
-			vk::ApplicationInfo appInfo("Hello Triangle", VK_MAKE_VERSION(1, 0, 0), "No Engine", VK_MAKE_VERSION(1, 0, 0), VK_API_VERSION_1_0);
+			vk::ApplicationInfo appInfo("Hello Triangle", VK_MAKE_VERSION(1, 0, 0), "No Engine", VK_MAKE_VERSION(1, 0, 0), VK_API_VERSION_1_1);
 
 			// Add validation extension
 			if (settings.core.validationLayers) {

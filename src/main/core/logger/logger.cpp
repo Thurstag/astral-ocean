@@ -18,7 +18,7 @@ void ao::core::Logger::Init() {
 	boost::log::add_console_log(std::cout, boost::log::keywords::format = "[%TimeStamp%] [Thread-%ThreadID%] [%Severity%] %Message%", boost::log::keywords::auto_flush = true);
 
 	// Set minimum level
-	boost::log::core::get()->set_filter(boost::log::trivial::severity >= boost::log::trivial::debug);
+	boost::log::core::get()->set_filter(boost::log::trivial::severity >= boost::log::trivial::trace);
 
 	// Add common attributes
 	boost::log::add_common_attributes();

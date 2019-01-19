@@ -7,7 +7,7 @@
 ao::vulkan::AOEngine::AOEngine(EngineSettings const& settings) : mSettings(settings) {
 	// Resize pool
 	this->commandBufferPool.resize(this->mSettings.core.threadPoolSize);
-	LOGGER << ao::core::LogLevel::info << fmt::format("Init a thread pool for command buffer processing with {0} thread{1}", this->commandBufferPool.size(), this->commandBufferPool.size() > 1 ? "s": "");
+	LOGGER << ao::core::LogLevel::info << fmt::format("Init a thread pool for command buffer processing with {0} thread{1}", this->commandBufferPool.size(), this->commandBufferPool.size() > 1 ? "s" : "");
 }
 
 ao::vulkan::AOEngine::~AOEngine() {
@@ -102,14 +102,14 @@ void ao::vulkan::AOEngine::freeVulkan() {
 		this->device->logical.destroyDescriptorSetLayout(layout);
 	}
 	this->descriptorSetLayouts.clear();
-	
+
 	this->device->logical.destroyRenderPass(this->renderPass);
 
 	for (auto& frameBuffer : this->frameBuffers) {
 		this->device->logical.destroyFramebuffer(frameBuffer);
 	}
 	this->frameBuffers.clear();
-	
+
 	this->device->logical.destroyImageView(std::get<2>(this->stencilBuffer));
 	this->device->logical.destroyImage(std::get<0>(this->stencilBuffer));
 	this->device->logical.freeMemory(std::get<1>(this->stencilBuffer));
@@ -133,6 +133,13 @@ void ao::vulkan::AOEngine::freeVulkan() {
 
 void ao::vulkan::AOEngine::setUpDebugging() {
 	PFN_vkCreateDebugReportCallbackEXT CreateDebugReportCallback = reinterpret_cast<PFN_vkCreateDebugReportCallbackEXT>(this->instance->getProcAddr("vkCreateDebugReportCallbackEXT"));
+
+	// Check function
+	if (CreateDebugReportCallback == nullptr) {
+		this->LOGGER << ao::core::LogLevel::warning << "Fail to retrieve function: vkCreateDebugReportCallbackEXT, cancel debug callback set-up";
+		return;
+	}
+
 	VkDebugReportCallbackCreateInfoEXT createInfo = vk::DebugReportCallbackCreateInfoEXT(this->debugReportFlags(), debugReportCallBack);
 	VkDebugReportCallbackEXT callback;
 
@@ -146,7 +153,7 @@ void ao::vulkan::AOEngine::setUpDebugging() {
 void ao::vulkan::AOEngine::createWaitingFences() {
 	// Resize vector
 	this->waitingFences.resize(this->swapchain->buffers.size());
-	
+
 	// Create fences
 	for (auto& fence : this->waitingFences) {
 		fence = this->device->logical.createFence(vk::FenceCreateInfo(vk::FenceCreateFlagBits::eSignaled));
@@ -293,15 +300,16 @@ void ao::vulkan::AOEngine::createSemaphores() {
 	this->semaphores = SemaphoreContainer(this->device);
 
 	// Create semaphores
+	vk::Semaphore acquireSem = this->device->logical.createSemaphore(vk::SemaphoreCreateInfo());
 	vk::Semaphore renderSem = this->device->logical.createSemaphore(vk::SemaphoreCreateInfo());
-	vk::Semaphore presentSem = this->device->logical.createSemaphore(vk::SemaphoreCreateInfo());
 
-	// Create container
-	this->semaphores["graphics"].waits.push_back(presentSem);
-	this->semaphores["graphics"].signals.push_back(renderSem);
+	// Fill container
+	this->semaphores["acquireNextImage"].signals.push_back(acquireSem);
 
-	this->semaphores["present"].waits.push_back(renderSem);
-	this->semaphores["present"].signals.push_back(presentSem);
+	this->semaphores["graphicQueue"].waits.push_back(acquireSem);
+	this->semaphores["graphicQueue"].signals.push_back(renderSem);
+
+	this->semaphores["presentQueue"].waits.push_back(renderSem);
 }
 
 void ao::vulkan::AOEngine::prepareVulkan() {
@@ -334,7 +342,7 @@ void ao::vulkan::AOEngine::prepareVulkan() {
 	// Create descriptor set layouts
 	this->createDescriptorSetLayouts();
 
-    // Create pipelines
+	// Create pipelines
 	this->createPipelines();
 
 	// Set-up vulkan buffers
@@ -394,12 +402,12 @@ void ao::vulkan::AOEngine::render() {
 
 	// Create submit info
 	vk::SubmitInfo submitInfo(
-		static_cast<u32>(this->semaphores["graphics"].waits.size()),
-		this->semaphores["graphics"].waits.empty() ? nullptr : this->semaphores["graphics"].waits.data(),
+		static_cast<u32>(this->semaphores["graphicQueue"].waits.size()),
+		this->semaphores["graphicQueue"].waits.empty() ? nullptr : this->semaphores["graphicQueue"].waits.data(),
 		&this->pipeline->submitPipelineStages,
 		1, &this->swapchain->commandBuffers["primary"].buffers[this->frameBufferIndex],
-		static_cast<u32>(this->semaphores["graphics"].signals.size()),
-		this->semaphores["graphics"].signals.empty() ? nullptr : this->semaphores["graphics"].signals.data()
+		static_cast<u32>(this->semaphores["graphicQueue"].signals.size()),
+		this->semaphores["graphicQueue"].signals.empty() ? nullptr : this->semaphores["graphicQueue"].signals.data()
 	);
 
 	// Reset fence
@@ -416,7 +424,7 @@ void ao::vulkan::AOEngine::render() {
 }
 
 void ao::vulkan::AOEngine::prepareFrame() {
-	vk::Result result = this->swapchain->nextImage(this->semaphores["present"].signals.front(), this->frameBufferIndex);
+	vk::Result result = this->swapchain->nextImage(this->semaphores["acquireNextImage"].signals.front(), this->frameBufferIndex);
 
 	// Check result
 	if (result == vk::Result::eErrorOutOfDateKHR || result == vk::Result::eSuboptimalKHR) {
@@ -429,12 +437,12 @@ void ao::vulkan::AOEngine::prepareFrame() {
 }
 
 void ao::vulkan::AOEngine::submitFrame() {
-	vk::Result result = this->swapchain->enqueueImage(this->frameBufferIndex, this->semaphores["present"].waits);
+	vk::Result result = this->swapchain->enqueueImage(this->frameBufferIndex, this->semaphores["presentQueue"].waits);
 
 	// Check result
 	if (result == vk::Result::eErrorOutOfDateKHR) {
 		LOGGER << ao::core::LogLevel::warning << "Swap chain is no longer compatible, re-create it";
-		
+
 		this->recreateSwapChain();
 		return;
 	}
@@ -459,7 +467,7 @@ void ao::vulkan::AOEngine::updateCommandBuffers() {
 	{
 		currentCommand.beginRenderPass(renderPassInfo, vk::SubpassContents::eSecondaryCommandBuffers);
 
-	    // Create inheritance info for the secondary command buffers
+		// Create inheritance info for the secondary command buffers
 		vk::CommandBufferInheritanceInfo inheritanceInfo(this->renderPass, 0, currentFrame);
 
 		std::vector<vk::CommandBuffer> secondaryCommands;
@@ -506,7 +514,7 @@ vk::CommandPoolCreateFlags ao::vulkan::AOEngine::commandPoolFlags() const {
 }
 
 vk::DebugReportFlagsEXT ao::vulkan::AOEngine::debugReportFlags() const {
-	return vk::DebugReportFlagBitsEXT::eError | vk::DebugReportFlagBitsEXT::eWarning | 
+	return vk::DebugReportFlagBitsEXT::eError | vk::DebugReportFlagBitsEXT::eWarning | vk::DebugReportFlagBitsEXT::eInformation |
 		vk::DebugReportFlagBitsEXT::eDebug | vk::DebugReportFlagBitsEXT::ePerformanceWarning;
 }
 
@@ -515,7 +523,7 @@ VKAPI_ATTR VkBool32 VKAPI_CALL ao::vulkan::AOEngine::debugReportCallBack(VkDebug
 	std::array<vk::DebugReportFlagBitsEXT, 5> Allflags = {
 		vk::DebugReportFlagBitsEXT::eError, vk::DebugReportFlagBitsEXT::eWarning,
 		vk::DebugReportFlagBitsEXT::eDebug, vk::DebugReportFlagBitsEXT::eInformation,
-		vk::DebugReportFlagBitsEXT::ePerformanceWarning 
+		vk::DebugReportFlagBitsEXT::ePerformanceWarning
 	};
 
 	// Find best flag
@@ -533,22 +541,23 @@ VKAPI_ATTR VkBool32 VKAPI_CALL ao::vulkan::AOEngine::debugReportCallBack(VkDebug
 	}
 
 	// Log
+	vk::DebugReportObjectTypeEXT _type = vk::DebugReportObjectTypeEXT(type);
 	switch (flag.value()) {
 		case vk::DebugReportFlagBitsEXT::eInformation:
-			LOGGER << ao::core::LogLevel::info << fmt::format("[{0}] {1}", to_string(flag.value()), message);
+			LOGGER << ao::core::LogLevel::trace << fmt::format("[{0}] [{1}] {2}", to_string(flag.value()), to_string(_type), message);
 			break;
 
 		case vk::DebugReportFlagBitsEXT::eWarning:
 		case vk::DebugReportFlagBitsEXT::ePerformanceWarning:
-			LOGGER << ao::core::LogLevel::warning << fmt::format("[{0}] {1}", to_string(flag.value()), message);
+			LOGGER << ao::core::LogLevel::warning << fmt::format("[{0}] [{1}] {2}", to_string(flag.value()), to_string(_type), message);
 			break;
 
 		case vk::DebugReportFlagBitsEXT::eError:
-			LOGGER << ao::core::LogLevel::fatal << fmt::format("[{0}] {1}", to_string(flag.value()), message);
+			LOGGER << ao::core::LogLevel::fatal << fmt::format("[{0}] [{1}] {2}", to_string(flag.value()), to_string(_type), message);
 			return VK_TRUE;
 
 		case vk::DebugReportFlagBitsEXT::eDebug:
-			LOGGER << ao::core::LogLevel::debug << fmt::format("[{0}] {1}", to_string(flag.value()), message);
+			LOGGER << ao::core::LogLevel::debug << fmt::format("[{0}] [{1}] {2}", to_string(flag.value()), to_string(_type), message);
 			break;
 
 		default:

@@ -30,8 +30,6 @@ TODO
 
 ## Dependencies
 
-### Core
-
 | Project          |      Version      |
 | ---------------- | :---------------: |
 | Vulkan           |   **1.1.85.0**    |
@@ -39,15 +37,6 @@ TODO
 | Google Test      | **1.8.1**@88c15b5 |
 | CTPL             | **0.0.2**@437e135 |
 | FMT              | **5.2.1**@6c95fb3 |
-
-### Bootstrap
-
-| Project                |      Version      |
-| ---------------------- | :---------------: |
-| GLM                    |    **0.9.9.3**    |
-| VLD (Only for Windows) |     **2.5.1**     |
-| GLFW                   | **3.2.1**@245461e |
-| STB (Image)            | **2.19**@e6afb9c  |
 
 ## Credits
 

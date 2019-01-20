@@ -125,6 +125,12 @@ void ao::vulkan::AOEngine::freeVulkan() {
 
 	if (this->mSettings.core.validationLayers) {
 		PFN_vkDestroyDebugReportCallbackEXT DestroyDebugReportCallback = reinterpret_cast<PFN_vkDestroyDebugReportCallbackEXT>(vkGetInstanceProcAddr(*this->instance, "vkDestroyDebugReportCallbackEXT"));
+
+		// Check function
+		if (DestroyDebugReportCallback == nullptr) {
+			throw ao::core::Exception("vkDestroyDebugReportCallbackEXT is null, fail to destroy callback");
+		}
+
 		DestroyDebugReportCallback(*this->instance, this->debugCallBack, nullptr);
 	}
 

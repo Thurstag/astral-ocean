@@ -237,7 +237,7 @@ namespace ao::vulkan {
 		/// </summary>
 		/// <param name="devices">vk::PhysicalDevice</param>
 		/// <returns>Index</returns>
-		virtual size_t selectVkPhysicalDevice(std::vector<vk::PhysicalDevice> const& devices) const;  // TODO: Optimize this
+		virtual size_t selectVkPhysicalDevice(std::vector<vk::PhysicalDevice> const& devices) const;  // TODO: Optimize this, return reference
 
 		/// <summary>
 		/// Method to create pipeline layouts

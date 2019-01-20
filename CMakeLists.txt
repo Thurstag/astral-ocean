@@ -3,19 +3,22 @@ cmake_policy(SET CMP0048 NEW)
 
 # Define build variables
 option(AO_BUILD_TESTS "Build tests" ON)
-option(AO_BUILD_BOOTSTRAPS "Build bootstraps" ON)
+option(AO_BUILD_STATIC_LIB "Build static" ON)
 
 # Define variables
-set(PROJECT_NAME "astral-ocean")
+set(AO_LIB_PROJECT_NAME "astral-ocean")
+set(AO_LIB_PROJECT_VERSION "0.0.0")
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake")
-set(SUBMODULES_DIR "${CMAKE_CURRENT_SOURCE_DIR}/submodules")
-set(fmt_INCLUDE_DIR "${SUBMODULES_DIR}/fmt/include")
-set(googletest_INCLUDE_DIR "${SUBMODULES_DIR}/googletest/include" "${SUBMODULES_DIR}/googlemock/include")
-set(AO_INCLUDE_DIR "${CMAKE_SOURCE_DIR}/include")
+set(AO_LIB_SUBMODULES_DIR "${CMAKE_CURRENT_SOURCE_DIR}/submodules")
+set(googletest_INCLUDE_DIR "${AO_LIB_SUBMODULES_DIR}/googletest/include" "${AO_LIB_SUBMODULES_DIR}/googlemock/include")
 
 # Define dependencies
 set(DEPENDENCIES Vulkan Threads)
 set(SUBMODULES fmt)
+
+# Define includes
+set(fmt_INCLUDE_DIR "${AO_LIB_SUBMODULES_DIR}/fmt/include")
+set(AO_INCLUDE_DIR "${CMAKE_SOURCE_DIR}/include")
 
 IF(AO_BUILD_TESTS)
 	set(SUBMODULES ${SUBMODULES} googletest)
@@ -33,25 +36,21 @@ set(FMT_TEST OFF CACHE BOOL "" FORCE)
 # Prevent overriding the parent project's compiler/linker
 set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
 
-# Compilation options
-IF (WIN32)
-	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /O2") 
-ELSE()
-	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O3")
-ENDIF()
+# Cmake settings
+set_property(GLOBAL PROPERTY USE_FOLDERS TRUE)
 set(CMAKE_VERBOSE_MAKEFILE ON)
 
 # Define output folders
-set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}")
-set(CMAKE_LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}")
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}")
+set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib")
+set(CMAKE_LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib")
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin")
 
 # Force c++ version
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 # Define project name
-project("${PROJECT_NAME}" VERSION 0.0.0)
+project(${AO_LIB_PROJECT_NAME} VERSION ${AO_LIB_PROJECT_VERSION})
 
 # Try to find libraries
 IF (NOT CMAKE_VERSION VERSION_LESS 3.7.0)
@@ -63,9 +62,7 @@ ENDIF()
 # Boost lib
 find_package(Boost 1.68 COMPONENTS log log_setup thread system REQUIRED)
 include_directories(${Boost_INCLUDE_DIR})
-IF(WIN32)
-	link_directories(${Boost_LIBRARY_DIR}) # Add lib directory
-ENDIF()
+link_directories(${Boost_LIBRARY_DIR})
 
 # Check all libs
 FOREACH(DEPENDENCY ${DEPENDENCIES})
@@ -86,12 +83,12 @@ ENDFOREACH(DEPENDENCY)
 FOREACH(SUBMODULE ${SUBMODULES})
 	message("Include ${SUBMODULE} submodule")
 	
-	add_subdirectory("${SUBMODULES_DIR}/${SUBMODULE}")
+	add_subdirectory("${AO_LIB_SUBMODULES_DIR}/${SUBMODULE}")
 	include_directories(${${SUBMODULE}_INCLUDE_DIR})
 ENDFOREACH(SUBMODULE)
-include_directories("${SUBMODULES_DIR}/CTPL/")
+include_directories("${AO_LIB_SUBMODULES_DIR}/CTPL/")
 
-# Include headers
+# Include lib headers
 include_directories(${AO_INCLUDE_DIR})
 
 # Include sub-projects
@@ -103,9 +100,6 @@ ENDIF()
 
 # Force folder creation
 set_target_properties(fmt PROPERTIES FOLDER "FMT")
-IF(AO_BUILD_BOOTSTRAPS AND WIN32)
-	set_target_properties("win-bootstrap" PROPERTIES FOLDER "AO-BOOTSTRAPS")
-ENDIF()
 IF(AO_BUILD_TESTS)
 	set_target_properties(gmock gmock_main gtest gtest_main PROPERTIES FOLDER "GOOGLE-TEST")
 ENDIF()

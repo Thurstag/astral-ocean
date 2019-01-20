@@ -17,21 +17,22 @@ endfunction()
 function(create_library LIB_NAME LIB_DIRECTORY LIB_DEPENDENCIES)
 	file(GLOB_RECURSE LIB_SOURCES ${LIB_DIRECTORY} "*.cpp" "*.h" "*.hpp")
 
-	# Static lib
-	add_library("${LIB_NAME}" ${LIB_SOURCES} ${LIB_HEADERS})
+	# Lib
+	IF(${AO_BUILD_STATIC_LIB})
+		add_library("${LIB_NAME}" STATIC ${LIB_SOURCES} ${LIB_HEADERS})
+	ELSE()
+		add_library("${LIB_NAME}" SHARED ${LIB_SOURCES} ${LIB_HEADERS})
+	ENDIF()
 	target_link_libraries("${LIB_NAME}" ${LIB_DEPENDENCIES} ${CMAKE_DL_LIBS})
 
-	# Define group
-	set_target_properties("${LIB_NAME}" PROPERTIES FOLDER "AO-LIBRARIES")
+	# Define properties
+	set_target_properties("${LIB_NAME}" PROPERTIES 
+		FOLDER "AO-LIB" 
+		LIBRARY_OUTPUT_DIRECTORY ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}
+		VERSION ${AO_LIB_PROJECT_VERSION}
+	)
 endfunction()
 
 # Include libraries
 add_subdirectory("core")
 add_subdirectory("vulkan")
-
-# Include bootstraps
-IF(AO_BUILD_BOOTSTRAPS)
-	IF(WIN32)
-		add_subdirectory("win-bootstrap")
-	ENDIF()
-ENDIF()

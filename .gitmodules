@@ -1,7 +1,3 @@
-[submodule "submodules/glfw"]
-	path = submodules/glfw
-	url = https://github.com/glfw/glfw.git
-	ignore = dirty
 [submodule "submodules/googletest"]
 	path = submodules/googletest
 	url = https://github.com/google/googletest.git
@@ -13,8 +9,4 @@
 [submodule "submodules/fmt"]
 	path = submodules/fmt
 	url = https://github.com/fmtlib/fmt.git
-	ignore = dirty
-[submodule "submodules/stb"]
-	path = submodules/stb
-	url = https://github.com/nothings/stb.git
 	ignore = dirty

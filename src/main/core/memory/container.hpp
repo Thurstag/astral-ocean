@@ -5,6 +5,9 @@
 #pragma once
 
 namespace ao::core {
+	/// <summary>
+	/// Container class
+	/// </summary>
 	template<class T, class U>
 	class Container {
 	public:
@@ -37,7 +40,7 @@ namespace ao::core {
 		/// </summary>
 		/// <param name="index">Index</param>
 		/// <returns>True or False</returns>
-		virtual bool exists(T const& index) const  = 0;
+		virtual bool exists(T const& index) const = 0;
 
 		/// <summary>
 		/// Method to clear container

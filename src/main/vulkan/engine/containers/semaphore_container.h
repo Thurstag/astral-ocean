@@ -7,7 +7,6 @@
 #include <string>
 
 #include <ao/core/memory/map_container.hpp>
-#include <ao/core/utilities/pointers.h>
 #include <vulkan/vulkan.hpp>
 
 #include "../wrappers/device.h"
@@ -30,6 +29,9 @@ namespace ao::vulkan {
 		explicit SemaphorePair(std::vector<vk::Semaphore> _waits, std::vector<vk::Semaphore> _signals) : waits(_waits), signals(_signals) {}
 	};
 
+	/// <summary>
+	/// SemaphoreContainer class
+	/// </summary>
 	class SemaphoreContainer : public core::MapContainer<std::string, SemaphorePair> {
 	public:
 		/// <summary>
@@ -49,7 +51,6 @@ namespace ao::vulkan {
 		virtual ~SemaphoreContainer();
 
 		virtual void clear() override;
-
 	protected:
 		std::weak_ptr<Device> device;
 	};

@@ -4,6 +4,8 @@
 
 #include "semaphore_container.h"
 
+#include <ao/core/utilities/pointers.h>
+
 ao::vulkan::SemaphoreContainer::~SemaphoreContainer() {
 	if (!this->map.empty()) {
 		ao::vulkan::SemaphoreContainer::clear();

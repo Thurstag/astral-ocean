@@ -5,7 +5,6 @@
 #pragma once
 
 #include <ao/core/memory/map_container.hpp>
-#include <ao/core/utilities/pointers.h>
 #include <vulkan/vulkan.hpp>
 
 #include "../wrappers/device.h"
@@ -28,6 +27,9 @@ namespace ao::vulkan {
 		explicit CommandBufferData(std::vector<vk::CommandBuffer> const& _buffers, vk::CommandPool const& _pool) : buffers(_buffers), pool(_pool) {}
 	};
 
+	/// <summary>
+	/// CommandBufferContainer class
+	/// </summary>
 	class CommandBufferContainer : public core::MapContainer<std::string, CommandBufferData> {
 	public:
 		/// <summary>
@@ -42,7 +44,6 @@ namespace ao::vulkan {
 		~CommandBufferContainer();
 
 		virtual void clear() override;
-
 	protected:
 		std::weak_ptr<Device> device;
 	};

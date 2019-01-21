@@ -7,8 +7,6 @@
 #include <optional>
 #include <tuple>
 
-#include <fmt/format.h>
-
 #include "../utilities/types.h"
 #include "exception.h"
 

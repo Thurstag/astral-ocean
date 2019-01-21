@@ -4,6 +4,15 @@
 
 #include "logger.h"
 
+#include <iostream>
+
+#include <boost/log/utility/setup/common_attributes.hpp>
+#include <boost/log/utility/setup/formatter_parser.hpp>
+#include <boost/log/utility/setup.hpp>
+#include <boost/core/demangle.hpp>
+#include <boost/log/trivial.hpp>
+#include <boost/log/core.hpp>
+
 ao::core::Logger::Logger(std::type_info const& type) {
 	this->key = boost::core::demangle(type.name());
 }

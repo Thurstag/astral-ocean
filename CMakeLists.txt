@@ -20,14 +20,9 @@ set(SUBMODULES fmt)
 set(fmt_INCLUDE_DIR "${AO_LIB_SUBMODULES_DIR}/fmt/include")
 set(AO_INCLUDE_DIR "${CMAKE_SOURCE_DIR}/include")
 
-IF(AO_BUILD_TESTS)
+if(AO_BUILD_TESTS)
 	set(SUBMODULES ${SUBMODULES} googletest)
-ENDIF()
-
-# Disable GLFW unwanted builds
-set(GLFW_BUILD_DOCS OFF CACHE BOOL "" FORCE)
-set(GLFW_BUILD_TESTS OFF CACHE BOOL "" FORCE)
-set(GLFW_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
+endif()
 
 # Disable FMT unwanted builds
 set(FMT_DOC OFF CACHE BOOL "" FORCE)
@@ -53,11 +48,11 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 project(${AO_LIB_PROJECT_NAME} VERSION ${AO_LIB_PROJECT_VERSION})
 
 # Try to find libraries
-IF (NOT CMAKE_VERSION VERSION_LESS 3.7.0)
-	FOREACH(DEPENDENCY ${DEPENDENCIES})
+if(NOT CMAKE_VERSION VERSION_LESS 3.7.0)
+	foreach(DEPENDENCY ${DEPENDENCIES})
 		find_package(${DEPENDENCY} REQUIRED)
-	ENDFOREACH(DEPENDENCY)
-ENDIF()
+	endforeach(DEPENDENCY)
+endif()
 
 # Boost lib
 find_package(Boost 1.68 COMPONENTS log log_setup thread system REQUIRED)
@@ -65,27 +60,27 @@ include_directories(${Boost_INCLUDE_DIR})
 link_directories(${Boost_LIBRARY_DIR})
 
 # Check all libs
-FOREACH(DEPENDENCY ${DEPENDENCIES})
-	IF(NOT ${${DEPENDENCY}_FOUND})
+foreach(DEPENDENCY ${DEPENDENCIES})
+	if(NOT ${${DEPENDENCY}_FOUND})
 		message(FATAL_ERROR "Could not find ${DEPENDENCY} library!")
-	ELSE()
+	else()
 		set(LIB_PATH "${${DEPENDENCY}_INCLUDE_DIR}")
-		IF(LIB_PATH STREQUAL "")
+		if(LIB_PATH STREQUAL "")
 			message("${DEPENDENCY} library found")
-		ELSE()
+		else()
 			message("${DEPENDENCY} library found: '${LIB_PATH}', auto-include it")
 			include_directories(${LIB_PATH})
-		ENDIF()
-	ENDIF()
-ENDFOREACH(DEPENDENCY)
+		endif()
+	endif()
+endforeach(DEPENDENCY)
 
 # Add submodules
-FOREACH(SUBMODULE ${SUBMODULES})
+foreach(SUBMODULE ${SUBMODULES})
 	message("Include ${SUBMODULE} submodule")
 	
 	add_subdirectory("${AO_LIB_SUBMODULES_DIR}/${SUBMODULE}")
 	include_directories(${${SUBMODULE}_INCLUDE_DIR})
-ENDFOREACH(SUBMODULE)
+endforeach(SUBMODULE)
 include_directories("${AO_LIB_SUBMODULES_DIR}/CTPL/")
 
 # Include lib headers
@@ -93,13 +88,13 @@ include_directories(${AO_INCLUDE_DIR})
 
 # Include sub-projects
 add_subdirectory("src/main")
-IF(${AO_BUILD_TESTS})
+if(${AO_BUILD_TESTS})
 	enable_testing()
 	add_subdirectory("src/tests")
-ENDIF()
+endif()
 
 # Force folder creation
 set_target_properties(fmt PROPERTIES FOLDER "FMT")
-IF(AO_BUILD_TESTS)
+if(AO_BUILD_TESTS)
 	set_target_properties(gmock gmock_main gtest gtest_main PROPERTIES FOLDER "GOOGLE-TEST")
-ENDIF()
+endif()

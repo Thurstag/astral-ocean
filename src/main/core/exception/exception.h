@@ -4,10 +4,7 @@
 
 #pragma once
 
-#include <exception>
 #include <optional>
-#include <sstream>
-#include <string>
 
 #include <boost/stacktrace.hpp>
 
@@ -37,24 +34,19 @@ namespace ao::core {
 		virtual ~Exception() = default;
 
 		/// <summary>
+		/// Method to string
+		/// </summary>
+		/// <returns>String representation</returns>
+		std::string toString() const;
+
+		/// <summary>
 		/// Method to define << operator
 		/// </summary>
 		/// <param name="os">Stream</param>
 		/// <param name="e">Exception</param>
 		/// <returns>Stream</returns>
 		friend std::ostream& operator<<(std::ostream& os, const Exception& e) {
-			// Display message
-			os << e.what();
-
-			// Display stack trace
-			if (e.stack) {
-				std::stringstream _stack;
-				_stack << e.stack.value();
-				std::string stack = _stack.str();
-
-				os << std::endl << stack.substr(0, stack.size() - 1);
-			}
-			return os;
+			return os << e.toString();
 		}
 
 	private:

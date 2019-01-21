@@ -9,6 +9,9 @@
 #include "iterable_container.hpp"
 
 namespace ao::core {
+	/// <summary>
+	/// MapContainer class
+	/// </summary>
 	template<class T, class U>
 	class MapContainer : public IterableContainer<T, U, typename std::map<T, U>::iterator> {
 	public:

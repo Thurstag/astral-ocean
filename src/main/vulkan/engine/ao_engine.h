@@ -227,10 +227,8 @@ namespace ao::vulkan {
 		/// <param name="pMsg">Message</param>
 		/// <param name="pUserData">Use data</param>
 		/// <returns>True or False</returns>
-		static VKAPI_ATTR VkBool32 VKAPI_CALL debugReportCallBack(
-			VkDebugReportFlagsEXT flags, VkDebugReportObjectTypeEXT type,
-			u64 srcObject, size_t location, s32 msgCode, const char* pLayerPrefix,
-			const char* message, void* pUserData);
+		static VKAPI_ATTR VkBool32 VKAPI_CALL debugReportCallBack(VkDebugReportFlagsEXT flags, VkDebugReportObjectTypeEXT type, u64 srcObject, size_t location, s32 msgCode,
+																  const char* pLayerPrefix, const char* message, void* pUserData);
 
 		/// <summary>
 		/// Method to select a vk::PhysicalDevice

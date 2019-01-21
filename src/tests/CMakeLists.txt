@@ -1,7 +1,7 @@
 file(GLOB_RECURSE AO_TEST_FILES "*.cpp")
 file(GLOB_RECURSE AO_HELPER_FILES "*.hpp" "*.h")
 
-FOREACH(TEST_FILE IN LISTS AO_TEST_FILES)
+foreach(TEST_FILE IN LISTS AO_TEST_FILES)
 	# Get relative path & file's name
 	get_filename_component(TEST_FILE_ABS_PATH "${TEST_FILE}" PATH)
 	file(RELATIVE_PATH TEST_FILE_PATH "${CMAKE_CURRENT_SOURCE_DIR}" "${TEST_FILE_ABS_PATH}")
@@ -19,9 +19,9 @@ FOREACH(TEST_FILE IN LISTS AO_TEST_FILES)
 
 	# Define test
 	add_test(NAME "${TEST_FILE_NAME}" COMMAND "${TEST_FILE_NAME}" WORKING_DIRECTORY) 
-ENDFOREACH()
+endforeach()
 
 # Re-create sub-directories in Visual Studio
-IF (WIN32)
+if(WIN32)
 	create_sub_directories(AO_HELPER_FILES ${CMAKE_CURRENT_SOURCE_DIR} "")
-ENDIF()
+endif()

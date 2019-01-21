@@ -28,6 +28,9 @@ namespace ao::vulkan {
 		explicit QueueData(vk::Queue const& _queue, u32 const _index, vk::QueueFamilyProperties const _properties) : queue(_queue), index(_index), properties(_properties) {}
 	};
 
+	/// <summary>
+	/// Queue container
+	/// </summary>
 	class QueueContainer : public core::MapContainer<vk::QueueFlagBits, QueueData> {
 	public:
 		/// <summary>

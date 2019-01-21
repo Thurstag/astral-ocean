@@ -9,6 +9,9 @@
 #include "container.hpp"
 
 namespace ao::core {
+	/// <summary>
+	/// Container with iterable features
+	/// </summary>
 	template<class T, class U, class V>
 	class IterableContainer : public Container<T, U> {
 	public:

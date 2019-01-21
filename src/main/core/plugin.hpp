@@ -8,7 +8,7 @@
 
 namespace ao::core {
 	/// <summary>
-	/// Plugin
+	/// Plugin (TODO: REFACTOR ME)
 	/// </summary>
 	template<class T>
 	class Plugin {

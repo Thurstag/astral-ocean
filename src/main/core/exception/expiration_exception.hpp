@@ -20,7 +20,7 @@ namespace ao::core {
 		/// <summary>
 		/// Constructor
 		/// </summary>
-		explicit ExpirationException(std::weak_ptr<T> pointer);
+		explicit ExpirationException(std::weak_ptr<T> const& pointer);
 
 		/// <summary>
 		/// Destructor
@@ -31,5 +31,5 @@ namespace ao::core {
 	/* IMPLEMENTATION */
 
 	template<class T>
-	ExpirationException<T>::ExpirationException(std::weak_ptr<T> pointer) : Exception(fmt::format("{0} pointer is expired", typeid(T).name())) {}
+	ExpirationException<T>::ExpirationException(std::weak_ptr<T> const& pointer) : Exception(fmt::format("{0} pointer is expired", typeid(T).name())) {}
 }

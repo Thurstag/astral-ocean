@@ -4,6 +4,8 @@
 
 #include "commandbuffer_container.h"
 
+#include <ao/core/utilities/pointers.h>
+
 ao::vulkan::CommandBufferContainer::CommandBufferContainer(std::weak_ptr<Device> _device) : device(_device) {}
 
 ao::vulkan::CommandBufferContainer::~CommandBufferContainer() {

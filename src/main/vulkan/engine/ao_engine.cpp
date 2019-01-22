@@ -11,20 +11,10 @@ ao::vulkan::AOEngine::AOEngine(EngineSettings const& settings) : mSettings(setti
 }
 
 ao::vulkan::AOEngine::~AOEngine() {
-	// Execute plugins' beforeDestroy()
-	this->pluginsMutex.lock();
-	{
-		for (auto& plugin : this->plugins) {
-			plugin->beforeDestroy();
-		}
-	}
-	this->pluginsMutex.unlock();
-
 	// Kill thread pool
 	this->commandBufferPool.stop();
 
 	this->freeVulkan();
-	this->freePlugins();
 }
 
 void ao::vulkan::AOEngine::run() {
@@ -36,25 +26,8 @@ void ao::vulkan::AOEngine::run() {
 	this->initVulkan();
 	this->prepareVulkan();
 
-	// Execute plugins' onInit()
-	this->pluginsMutex.lock();
-	{
-		for (auto& plugin : this->plugins) {
-			plugin->onInit();
-		}
-	}
-	this->pluginsMutex.unlock();
-
 	// Execute main loop
 	this->loop();
-}
-
-void ao::vulkan::AOEngine::add(ao::core::Plugin<AOEngine> * plugin) {
-	this->pluginsMutex.lock();
-	{
-		this->plugins.push_back(plugin);
-	}
-	this->pluginsMutex.unlock();
 }
 
 void ao::vulkan::AOEngine::initVulkan() {
@@ -362,10 +335,6 @@ void ao::vulkan::AOEngine::prepareVulkan() {
 	this->setUpFrameBuffers();
 }
 
-void ao::vulkan::AOEngine::setWindowTitle(std::string const& title) {
-	this->mSettings.window.name = title;
-}
-
 ao::vulkan::EngineSettings const& ao::vulkan::AOEngine::settings() const {
 	return this->mSettings;
 }
@@ -380,17 +349,6 @@ void ao::vulkan::AOEngine::loop() {
 			this->waitMaximized();
 		}
 	}
-}
-
-void ao::vulkan::AOEngine::afterFrameSubmitted() {
-	// Execute plugins' onUpdate()
-	this->pluginsMutex.lock();
-	{
-		for (auto& plugin : this->plugins) {
-			plugin->onUpdate();
-		}
-	}
-	this->pluginsMutex.unlock();
 }
 
 void ao::vulkan::AOEngine::render() {
@@ -424,9 +382,6 @@ void ao::vulkan::AOEngine::render() {
 
 	// Submit frame
 	this->submitFrame();
-
-	// Execute plugins...
-	this->afterFrameSubmitted();
 }
 
 void ao::vulkan::AOEngine::prepareFrame() {
@@ -575,15 +530,4 @@ VKAPI_ATTR VkBool32 VKAPI_CALL ao::vulkan::AOEngine::DebugReportCallBack(VkDebug
 
 size_t ao::vulkan::AOEngine::selectVkPhysicalDevice(std::vector<vk::PhysicalDevice> const& devices) const {
 	return 0;    // First device
-}
-
-void ao::vulkan::AOEngine::freePlugins() {
-	this->pluginsMutex.lock();
-	{
-		for (size_t i = 0; i < this->plugins.size(); i++) {
-			delete this->plugins[i];
-		}
-		this->plugins.clear();
-	}
-	this->pluginsMutex.unlock();
 }

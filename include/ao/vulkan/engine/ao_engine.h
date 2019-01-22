@@ -147,6 +147,10 @@ namespace ao::vulkan {
 		/// <returns>True = continue to loop & False = stop looping</returns>
 		virtual bool loopingCondition() const = 0;
 		/// <summary>
+		/// Method executed after frame was submitted
+		/// </summary>
+		virtual void afterFrameSubmitted();
+		/// <summary>
 		/// Method to wait until window is maximized
 		/// </summary>
 		virtual void waitMaximized() = 0;

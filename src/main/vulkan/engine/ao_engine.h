@@ -75,48 +75,82 @@ namespace ao::vulkan {
 		/// <summary>
 		/// Method to init vulkan
 		/// </summary>
-		void initVulkan();
+		virtual void initVulkan();
 		/// <summary>
 		/// Method to prepare vulkan before running
 		/// </summary>
-		void prepareVulkan();
+		virtual void prepareVulkan();
 		/// <summary>
 		/// Method to clean-up vulkan
 		/// </summary>
-		void freeVulkan();
+		virtual void freeVulkan();
 
 		/// <summary>
 		/// Method to set-up debugging
 		/// </summary>
-		void setUpDebugging();
+		virtual void setUpDebugging();
 		/// <summary>
 		/// Method to create waiting fences
 		/// </summary>
-		void createWaitingFences();
+		virtual void createWaitingFences();
 		/// <summary>
 		/// Method to create stencil buffer
 		/// </summary>
-		void createStencilBuffer();
+		virtual void createStencilBuffer();
 		/// <summary>
 		/// Method to create render pass
 		/// </summary>
-		void createRenderPass();
+		virtual void createRenderPass();
 		/// <summary>
 		/// Method to set-up frame buffers
 		/// </summary>
-		void setUpFrameBuffers();
+		virtual void setUpFrameBuffers();
 		/// <summary>
 		/// Method to re-create swap chain
 		/// </summary>
-		void recreateSwapChain();
+		virtual void recreateSwapChain();
 		/// <summary>
 		/// Method to create pipelines
 		/// </summary>
-		void createPipelines();
+		virtual void createPipelines();
 		/// <summary>
 		/// Method to create semaphores
 		/// </summary>
-		void createSemaphores();
+		virtual void createSemaphores();
+		/// <summary>
+		/// Method to create descriptor set layouts
+		/// </summary>
+		virtual void createDescriptorSetLayouts() = 0;
+		/// <summary>
+		/// Method to create descriptor pools
+		/// </summary>
+		virtual void createDescriptorPools() = 0;
+		/// <summary>
+		/// Method to create descriptor sets
+		/// </summary>
+		virtual void createDescriptorSets() = 0;
+		/// <summary>
+		/// Method to create pipeline layouts
+		/// </summary>
+		virtual void createPipelineLayouts() = 0;
+		/// <summary>
+		/// Method to set-up pipelines
+		/// </summary>
+		/// <returns></returns>
+		virtual void setUpPipelines() = 0;
+		/// <summary>
+		/// Method to set-up render pass
+		/// </summary>
+		virtual void setUpRenderPass() = 0;
+		/// <summary>
+		/// Method to set-up vulkan buffers
+		/// </summary>
+		/// <returns></returns>
+		virtual void setUpVulkanBuffers() = 0;
+		/// <summary>
+		/// Method to create secondary command buffers
+		/// </summary>
+		virtual void createSecondaryCommandBuffers() = 0;
 
 		/// <summary>
 		/// Method to init surface
@@ -150,23 +184,32 @@ namespace ao::vulkan {
 		/// Method to wait until window is maximized
 		/// </summary>
 		virtual void waitMaximized() = 0;
-
 		/// <summary>
 		/// Method to render a frame
 		/// </summary>
-		void render();
+		virtual void render();
 		/// <summary>
 		/// Method to prepare frame
 		/// </summary>
-		void prepareFrame();
+		virtual void prepareFrame();
 		/// <summary>
 		/// Method to submit frame
 		/// </summary>
-		void submitFrame();
+		virtual void submitFrame();
+
 		/// <summary>
 		/// Method to update command buffers
 		/// </summary>
-		void updateCommandBuffers();
+		virtual void updateCommandBuffers();
+		/// <summary>
+		/// Method to update uniform buffers
+		/// </summary>
+		virtual void updateUniformBuffers() = 0;
+        /// <summary>
+		/// Method to get functions that will update secondary command buffers
+		/// </summary>
+		/// <returns>Function vector</returns>
+		virtual std::vector<DrawInCommandBuffer> updateSecondaryCommandBuffers() = 0;
 
 		/// <summary>
 		/// Method to get vkInstance extensions
@@ -220,50 +263,6 @@ namespace ao::vulkan {
 		/// <param name="devices">vk::PhysicalDevice</param>
 		/// <returns>Index</returns>
 		virtual size_t selectVkPhysicalDevice(std::vector<vk::PhysicalDevice> const& devices) const;  // TODO: Optimize this, return reference
-
-		/// <summary>
-		/// Method to create pipeline layouts
-		/// </summary>
-		virtual void createPipelineLayouts() = 0;
-		/// <summary>
-		/// Method to set-up pipelines
-		/// </summary>
-		/// <returns></returns>
-		virtual void setUpPipelines() = 0;
-		/// <summary>
-		/// Method to set-up render pass
-		/// </summary>
-		virtual void setUpRenderPass() = 0;
-		/// <summary>
-		/// Method to set-up vulkan buffers
-		/// </summary>
-		/// <returns></returns>
-		virtual void setUpVulkanBuffers() = 0;
-		/// <summary>
-		/// Method to create secondary command buffers
-		/// </summary>
-		virtual void createSecondaryCommandBuffers() = 0;
-		/// <summary>
-		/// Method to get functions that will update secondary command buffers
-		/// </summary>
-		/// <returns>Function vector</returns>
-		virtual std::vector<DrawInCommandBuffer> updateSecondaryCommandBuffers() = 0;
-		/// <summary>
-		/// Method to update uniform buffers
-		/// </summary>
-		virtual void updateUniformBuffers() = 0;
-		/// <summary>
-		/// Method to create descriptor set layouts
-		/// </summary>
-		virtual void createDescriptorSetLayouts() = 0;
-		/// <summary>
-		/// Method to create descriptor pools
-		/// </summary>
-		virtual void createDescriptorPools() = 0;
-		/// <summary>
-		/// Method to create descriptor sets
-		/// </summary>
-		virtual void createDescriptorSets() = 0;
 	private:
 		ctpl::thread_pool commandBufferPool;
 	};

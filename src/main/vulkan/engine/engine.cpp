@@ -2,22 +2,22 @@
 // Licensed under GPLv3 or any later version
 // Refer to the LICENSE.md file included.
 
-#include "ao_engine.h"
+#include "engine.h"
 
-ao::vulkan::AOEngine::AOEngine(EngineSettings const& settings) : mSettings(settings) {
+ao::vulkan::Engine::Engine(EngineSettings const& settings) : mSettings(settings) {
 	// Resize pool
 	this->commandBufferPool.resize(this->mSettings.core.threadPoolSize);
 	LOGGER << ao::core::LogLevel::info << fmt::format("Init a thread pool for command buffer processing with {0} thread{1}", this->commandBufferPool.size(), this->commandBufferPool.size() > 1 ? "s" : "");
 }
 
-ao::vulkan::AOEngine::~AOEngine() {
+ao::vulkan::Engine::~Engine() {
 	// Kill thread pool
 	this->commandBufferPool.stop();
 
 	this->freeVulkan();
 }
 
-void ao::vulkan::AOEngine::run() {
+void ao::vulkan::Engine::run() {
 	// Init window
 	this->initWindow();
 	LOGGER << ao::core::LogLevel::info << fmt::format("Init {0}x{1} window", this->mSettings.window.width, this->mSettings.window.height);
@@ -30,7 +30,7 @@ void ao::vulkan::AOEngine::run() {
 	this->loop();
 }
 
-void ao::vulkan::AOEngine::initVulkan() {
+void ao::vulkan::Engine::initVulkan() {
 	// Create instance
 	this->instance = std::make_shared<vk::Instance>(utilities::createVkInstance(this->mSettings, this->instanceExtensions()));
 
@@ -62,7 +62,7 @@ void ao::vulkan::AOEngine::initVulkan() {
 	this->swapchain = std::make_shared<ao::vulkan::SwapChain>(this->instance, this->device);
 }
 
-void ao::vulkan::AOEngine::freeVulkan() {
+void ao::vulkan::Engine::freeVulkan() {
 	this->swapchain.reset();
 
 	this->pipeline.reset();
@@ -110,7 +110,7 @@ void ao::vulkan::AOEngine::freeVulkan() {
 	this->instance->destroy();
 }
 
-void ao::vulkan::AOEngine::setUpDebugging() {
+void ao::vulkan::Engine::setUpDebugging() {
 	PFN_vkCreateDebugReportCallbackEXT CreateDebugReportCallback = reinterpret_cast<PFN_vkCreateDebugReportCallbackEXT>(this->instance->getProcAddr("vkCreateDebugReportCallbackEXT"));
 
 	// Check function
@@ -119,7 +119,7 @@ void ao::vulkan::AOEngine::setUpDebugging() {
 		return;
 	}
 
-	VkDebugReportCallbackCreateInfoEXT createInfo = vk::DebugReportCallbackCreateInfoEXT(this->debugReportFlags(), ao::vulkan::AOEngine::DebugReportCallBack);
+	VkDebugReportCallbackCreateInfoEXT createInfo = vk::DebugReportCallbackCreateInfoEXT(this->debugReportFlags(), ao::vulkan::Engine::DebugReportCallBack);
 	VkDebugReportCallbackEXT callback;
 
 	// Create callback
@@ -129,7 +129,7 @@ void ao::vulkan::AOEngine::setUpDebugging() {
 	this->debugCallBack = vk::DebugReportCallbackEXT(callback);
 }
 
-void ao::vulkan::AOEngine::createWaitingFences() {
+void ao::vulkan::Engine::createWaitingFences() {
 	// Resize vector
 	this->waitingFences.resize(this->swapchain->buffers.size());
 
@@ -139,7 +139,7 @@ void ao::vulkan::AOEngine::createWaitingFences() {
 	}
 }
 
-void ao::vulkan::AOEngine::createStencilBuffer() {
+void ao::vulkan::Engine::createStencilBuffer() {
 	// Create info
 	vk::ImageCreateInfo imageInfo(
 		vk::ImageCreateFlags(), vk::ImageType::e2D, this->device->depthFormat,
@@ -172,7 +172,7 @@ void ao::vulkan::AOEngine::createStencilBuffer() {
 	std::get<2>(this->stencilBuffer) = this->device->logical.createImageView(depthStencilView);
 }
 
-void ao::vulkan::AOEngine::createRenderPass() {
+void ao::vulkan::Engine::createRenderPass() {
 	this->setUpRenderPass();
 
 	// Check render pass
@@ -181,7 +181,7 @@ void ao::vulkan::AOEngine::createRenderPass() {
 	}
 }
 
-void ao::vulkan::AOEngine::setUpFrameBuffers() {
+void ao::vulkan::Engine::setUpFrameBuffers() {
 	std::array<vk::ImageView, 2> attachments;
 
 	// Depth/Stencil attachment is the same for all frame buffers
@@ -202,7 +202,7 @@ void ao::vulkan::AOEngine::setUpFrameBuffers() {
 	}
 }
 
-void ao::vulkan::AOEngine::recreateSwapChain() {
+void ao::vulkan::Engine::recreateSwapChain() {
 	// Ensure all operations on the device have been finished
 	this->device->logical.waitIdle();
 
@@ -251,7 +251,7 @@ void ao::vulkan::AOEngine::recreateSwapChain() {
 	this->device->logical.waitIdle();
 }
 
-void ao::vulkan::AOEngine::createPipelines() {
+void ao::vulkan::Engine::createPipelines() {
 	// Create pipeline
 	this->pipeline = std::make_shared<ao::vulkan::Pipeline>(this->device);
 
@@ -275,7 +275,7 @@ void ao::vulkan::AOEngine::createPipelines() {
 	}
 }
 
-void ao::vulkan::AOEngine::createSemaphores() {
+void ao::vulkan::Engine::createSemaphores() {
 	this->semaphores = SemaphoreContainer(this->device);
 
 	// Create semaphores
@@ -291,7 +291,7 @@ void ao::vulkan::AOEngine::createSemaphores() {
 	this->semaphores["presentQueue"].waits.push_back(renderSem);
 }
 
-void ao::vulkan::AOEngine::prepareVulkan() {
+void ao::vulkan::Engine::prepareVulkan() {
 	// Init surface
 	this->initSurface(this->swapchain->surface);
 	this->swapchain->initSurface();
@@ -335,11 +335,11 @@ void ao::vulkan::AOEngine::prepareVulkan() {
 	this->setUpFrameBuffers();
 }
 
-ao::vulkan::EngineSettings const& ao::vulkan::AOEngine::settings() const {
+ao::vulkan::EngineSettings const& ao::vulkan::Engine::settings() const {
 	return this->mSettings;
 }
 
-void ao::vulkan::AOEngine::loop() {
+void ao::vulkan::Engine::loop() {
 	while (this->loopingCondition()) {
 		if (!this->isIconified()) {
 			// Render frame
@@ -351,7 +351,7 @@ void ao::vulkan::AOEngine::loop() {
 	}
 }
 
-void ao::vulkan::AOEngine::render() {
+void ao::vulkan::Engine::render() {
 	// Wait fence
 	this->device->logical.waitForFences(this->waitingFences[this->frameBufferIndex], VK_TRUE, (std::numeric_limits<u64>::max)());
 
@@ -384,7 +384,7 @@ void ao::vulkan::AOEngine::render() {
 	this->submitFrame();
 }
 
-void ao::vulkan::AOEngine::prepareFrame() {
+void ao::vulkan::Engine::prepareFrame() {
 	vk::Result result = this->swapchain->nextImage(this->semaphores["acquireNextImage"].signals.front(), this->frameBufferIndex);
 
 	// Check result
@@ -397,7 +397,7 @@ void ao::vulkan::AOEngine::prepareFrame() {
 	ao::vulkan::utilities::vkAssert(result, "Fail to get next image from swap chain");
 }
 
-void ao::vulkan::AOEngine::submitFrame() {
+void ao::vulkan::Engine::submitFrame() {
 	vk::Result result = this->swapchain->enqueueImage(this->frameBufferIndex, this->semaphores["presentQueue"].waits);
 
 	// Check result
@@ -410,7 +410,7 @@ void ao::vulkan::AOEngine::submitFrame() {
 	ao::vulkan::utilities::vkAssert(result, "Fail to enqueue image");
 }
 
-void ao::vulkan::AOEngine::updateCommandBuffers() {
+void ao::vulkan::Engine::updateCommandBuffers() {
 	// Get current command buffer/frame
 	vk::CommandBuffer& currentCommand = this->swapchain->commandBuffers["primary"].buffers[this->frameBufferIndex];
 	vk::Framebuffer& currentFrame = this->frameBuffers[this->frameBufferIndex];
@@ -458,29 +458,29 @@ void ao::vulkan::AOEngine::updateCommandBuffers() {
 	currentCommand.end();
 }
 
-std::vector<char const*> ao::vulkan::AOEngine::deviceExtensions() const {
+std::vector<char const*> ao::vulkan::Engine::deviceExtensions() const {
 	return std::vector<char const*>();
 }
 
-std::vector<vk::PhysicalDeviceFeatures> ao::vulkan::AOEngine::deviceFeatures() const {
+std::vector<vk::PhysicalDeviceFeatures> ao::vulkan::Engine::deviceFeatures() const {
 	return std::vector<vk::PhysicalDeviceFeatures>();
 }
 
-vk::QueueFlags ao::vulkan::AOEngine::queueFlags() const {
+vk::QueueFlags ao::vulkan::Engine::queueFlags() const {
 	return vk::QueueFlagBits::eGraphics | vk::QueueFlagBits::eCompute;
 }
 
-vk::CommandPoolCreateFlags ao::vulkan::AOEngine::commandPoolFlags() const {
+vk::CommandPoolCreateFlags ao::vulkan::Engine::commandPoolFlags() const {
 	return vk::CommandPoolCreateFlagBits::eResetCommandBuffer;
 }
 
-vk::DebugReportFlagsEXT ao::vulkan::AOEngine::debugReportFlags() const {
+vk::DebugReportFlagsEXT ao::vulkan::Engine::debugReportFlags() const {
 	return vk::DebugReportFlagBitsEXT::eError | vk::DebugReportFlagBitsEXT::eWarning | vk::DebugReportFlagBitsEXT::eInformation |
 		vk::DebugReportFlagBitsEXT::eDebug | vk::DebugReportFlagBitsEXT::ePerformanceWarning;
 }
 
-VKAPI_ATTR VkBool32 VKAPI_CALL ao::vulkan::AOEngine::DebugReportCallBack(VkDebugReportFlagsEXT flags, VkDebugReportObjectTypeEXT type, u64 srcObject, size_t location, s32 msgCode, const char * pLayerPrefix, const char * message, void * pUserData) {
-	ao::core::Logger LOGGER = core::Logger::GetInstance<ao::vulkan::AOEngine>();
+VKAPI_ATTR VkBool32 VKAPI_CALL ao::vulkan::Engine::DebugReportCallBack(VkDebugReportFlagsEXT flags, VkDebugReportObjectTypeEXT type, u64 srcObject, size_t location, s32 msgCode, const char * pLayerPrefix, const char * message, void * pUserData) {
+	ao::core::Logger LOGGER = core::Logger::GetInstance<ao::vulkan::Engine>();
 	std::array<vk::DebugReportFlagBitsEXT, 5> Allflags = {
 		vk::DebugReportFlagBitsEXT::eError, vk::DebugReportFlagBitsEXT::eWarning,
 		vk::DebugReportFlagBitsEXT::eDebug, vk::DebugReportFlagBitsEXT::eInformation,
@@ -528,6 +528,6 @@ VKAPI_ATTR VkBool32 VKAPI_CALL ao::vulkan::AOEngine::DebugReportCallBack(VkDebug
 	return VK_FALSE; // Avoid to abort
 }
 
-size_t ao::vulkan::AOEngine::selectVkPhysicalDevice(std::vector<vk::PhysicalDevice> const& devices) const {
+size_t ao::vulkan::Engine::selectVkPhysicalDevice(std::vector<vk::PhysicalDevice> const& devices) const {
 	return 0;    // First device
 }

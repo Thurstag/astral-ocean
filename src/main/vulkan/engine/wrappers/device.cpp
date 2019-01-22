@@ -37,6 +37,8 @@ void ao::vulkan::Device::initLogicalDevice(
 		throw ao::core::Exception("Empty queueFamilyProperties");
 	}
 
+	// TODO: Print a report of all queues
+
 	// Find queues
 	std::map<u32, vk::QueueFlagBits> indexes;
 	std::optional<u32> defaultQueueIndex;

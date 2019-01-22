@@ -25,19 +25,19 @@ namespace ao::vulkan {
 	using DrawInCommandBuffer = std::function<vk::CommandBuffer(int const, vk::CommandBufferInheritanceInfo const&, std::pair<std::array<vk::ClearValue, 2> const&, vk::Rect2D> const&)>;
 
 	/// <summary>
-	/// AOEngine class
+	/// Engine class
 	/// </summary>
-	class AOEngine {
+	class Engine {
 	public:
 		/// <summary>
 		/// Constructor
 		/// </summary>
 		/// <param name="settings">Settings</param>
-		explicit AOEngine(EngineSettings const& settings);
+		explicit Engine(EngineSettings const& settings);
 		/// <summary>
 		/// Destructor
 		/// </summary>
-		virtual ~AOEngine();
+		virtual ~Engine();
 
 		/// <summary>
 		/// Methdo to run engine
@@ -50,7 +50,8 @@ namespace ao::vulkan {
 		/// <returns>Settings</returns>
 		EngineSettings const& settings() const;
 	protected:
-		core::Logger LOGGER = core::Logger::GetInstance<AOEngine>();
+		core::Logger LOGGER = core::Logger::GetInstance<Engine>();
+		ctpl::thread_pool commandBufferPool;
 
 		std::vector<vk::Fence> waitingFences;
 		SemaphoreContainer semaphores;
@@ -263,7 +264,5 @@ namespace ao::vulkan {
 		/// <param name="devices">vk::PhysicalDevice</param>
 		/// <returns>Index</returns>
 		virtual size_t selectVkPhysicalDevice(std::vector<vk::PhysicalDevice> const& devices) const;  // TODO: Optimize this, return reference
-	private:
-		ctpl::thread_pool commandBufferPool;
 	};
 }

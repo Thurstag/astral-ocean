@@ -68,6 +68,6 @@ namespace ao::vulkan {
 		/// <returns>Index</returns>
 		u32 memoryType(u32 typeBits, vk::MemoryPropertyFlags const properties) const;
 	protected:
-		core::Logger LOGGER = core::Logger::getInstance<Device>();
+		core::Logger LOGGER = core::Logger::GetInstance<Device>();
 	};
 }

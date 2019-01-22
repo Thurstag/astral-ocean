@@ -61,7 +61,7 @@ namespace ao::vulkan {
 			vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent, sizes)
 		);
 
-				// Init buffer in device's memory
+		// Init buffer in device's memory
 		this->deviceBuffer = std::shared_ptr<TupleBuffer<T...>>(
 			(new BasicTupleBuffer<T...>(StagingBuffer::device))
 			->init(usageFlags ? vk::BufferUsageFlagBits::eTransferDst | usageFlags.value() : vk::BufferUsageFlagBits::eTransferDst,

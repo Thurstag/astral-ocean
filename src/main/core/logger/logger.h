@@ -39,7 +39,7 @@ namespace ao::core {
 		/// Method to get a logger instance
 		/// </summary>
 		template<class T>
-		inline static Logger getInstance() {
+		inline static Logger GetInstance() {
 			return Logger(typeid(T));
 		};
 

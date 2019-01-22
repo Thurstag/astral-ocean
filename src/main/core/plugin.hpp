@@ -38,7 +38,7 @@ namespace ao::core {
 		virtual void beforeDestroy() = 0;
 
 	protected:
-		Logger LOGGER = Logger::getInstance<Plugin<T>>();
+		Logger LOGGER = Logger::GetInstance<Plugin<T>>();
 		T* const subject = nullptr;
 	};
 

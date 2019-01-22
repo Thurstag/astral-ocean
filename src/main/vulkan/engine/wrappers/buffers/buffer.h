@@ -71,7 +71,7 @@ namespace ao::vulkan {
 		static size_t CalculateUBOAligmentSize(vk::PhysicalDevice const& device, size_t const objectSize);
 
 	protected:
-		core::Logger LOGGER = core::Logger::getInstance<Buffer>();
+		core::Logger LOGGER = core::Logger::GetInstance<Buffer>();
 		std::weak_ptr<Device> device;
 	};
 }

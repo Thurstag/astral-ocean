@@ -8,7 +8,7 @@ option(AO_BUILD_STATIC_LIB "Build static" ON)
 # Define variables
 set(AO_LIB_PROJECT_NAME "astral-ocean")
 set(AO_LIB_PROJECT_VERSION "0.0.0")
-set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake")
+set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 set(AO_LIB_SUBMODULES_DIR "${CMAKE_CURRENT_SOURCE_DIR}/submodules")
 set(googletest_INCLUDE_DIR "${AO_LIB_SUBMODULES_DIR}/googletest/include" "${AO_LIB_SUBMODULES_DIR}/googlemock/include")
 
@@ -18,7 +18,7 @@ set(SUBMODULES fmt)
 
 # Define includes
 set(fmt_INCLUDE_DIR "${AO_LIB_SUBMODULES_DIR}/fmt/include")
-set(AO_INCLUDE_DIR "${CMAKE_SOURCE_DIR}/include")
+set(AO_INCLUDE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/include")
 
 if(AO_BUILD_TESTS)
 	set(SUBMODULES ${SUBMODULES} googletest)

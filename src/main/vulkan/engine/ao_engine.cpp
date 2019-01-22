@@ -146,7 +146,7 @@ void ao::vulkan::AOEngine::setUpDebugging() {
 		return;
 	}
 
-	VkDebugReportCallbackCreateInfoEXT createInfo = vk::DebugReportCallbackCreateInfoEXT(this->debugReportFlags(), debugReportCallBack);
+	VkDebugReportCallbackCreateInfoEXT createInfo = vk::DebugReportCallbackCreateInfoEXT(this->debugReportFlags(), ao::vulkan::AOEngine::DebugReportCallBack);
 	VkDebugReportCallbackEXT callback;
 
 	// Create callback
@@ -524,8 +524,8 @@ vk::DebugReportFlagsEXT ao::vulkan::AOEngine::debugReportFlags() const {
 		vk::DebugReportFlagBitsEXT::eDebug | vk::DebugReportFlagBitsEXT::ePerformanceWarning;
 }
 
-VKAPI_ATTR VkBool32 VKAPI_CALL ao::vulkan::AOEngine::debugReportCallBack(VkDebugReportFlagsEXT flags, VkDebugReportObjectTypeEXT type, u64 srcObject, size_t location, s32 msgCode, const char * pLayerPrefix, const char * message, void * pUserData) {
-	ao::core::Logger LOGGER = core::Logger::getInstance<ao::vulkan::AOEngine>();
+VKAPI_ATTR VkBool32 VKAPI_CALL ao::vulkan::AOEngine::DebugReportCallBack(VkDebugReportFlagsEXT flags, VkDebugReportObjectTypeEXT type, u64 srcObject, size_t location, s32 msgCode, const char * pLayerPrefix, const char * message, void * pUserData) {
+	ao::core::Logger LOGGER = core::Logger::GetInstance<ao::vulkan::AOEngine>();
 	std::array<vk::DebugReportFlagBitsEXT, 5> Allflags = {
 		vk::DebugReportFlagBitsEXT::eError, vk::DebugReportFlagBitsEXT::eWarning,
 		vk::DebugReportFlagBitsEXT::eDebug, vk::DebugReportFlagBitsEXT::eInformation,

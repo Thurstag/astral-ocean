@@ -63,7 +63,7 @@ namespace ao::vulkan {
 		/// <returns>Settings</returns>
 		EngineSettings const& settings() const;
 	protected:
-		core::Logger LOGGER = core::Logger::getInstance<AOEngine>();
+		core::Logger LOGGER = core::Logger::GetInstance<AOEngine>();
 
 		std::vector<vk::Fence> waitingFences;
 		SemaphoreContainer semaphores;
@@ -227,7 +227,7 @@ namespace ao::vulkan {
 		/// <param name="pMsg">Message</param>
 		/// <param name="pUserData">Use data</param>
 		/// <returns>True or False</returns>
-		static VKAPI_ATTR VkBool32 VKAPI_CALL debugReportCallBack(VkDebugReportFlagsEXT flags, VkDebugReportObjectTypeEXT type, u64 srcObject, size_t location, s32 msgCode,
+		static VKAPI_ATTR VkBool32 VKAPI_CALL DebugReportCallBack(VkDebugReportFlagsEXT flags, VkDebugReportObjectTypeEXT type, u64 srcObject, size_t location, s32 msgCode,
 																  const char* pLayerPrefix, const char* message, void* pUserData);
 
 		/// <summary>

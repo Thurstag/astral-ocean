@@ -195,7 +195,7 @@ namespace ao::vulkan {
 		/// <returns>Index or -1</returns>
 		inline u32 findQueueFamilyIndex(std::vector<vk::QueueFamilyProperties> const& queueFamilyProperties, vk::QueueFlagBits const flag) {
 			std::vector<VkQueueFlagBits> flags = { VK_QUEUE_COMPUTE_BIT, VK_QUEUE_TRANSFER_BIT, VK_QUEUE_GRAPHICS_BIT, VK_QUEUE_SPARSE_BINDING_BIT, VK_QUEUE_PROTECTED_BIT };
-			core::Logger LOGGER = core::Logger::getInstance<Utilities>();
+			core::Logger LOGGER = core::Logger::GetInstance<Utilities>();
 
 			// Calculate value of flags whitout flag parameter
 			VkQueueFlags other = std::accumulate(flags.begin(), flags.end(), 0, [flag](VkQueueFlags result, VkQueueFlagBits f) {

@@ -84,7 +84,7 @@ namespace ao::vulkan {
 		/// <returns>Result</returns>
 		vk::Result enqueueImage(u32& imageIndex, std::vector<vk::Semaphore>& waitSemaphores);
 	protected:
-		core::Logger LOGGER = core::Logger::getInstance<SwapChain>();
+		core::Logger LOGGER = core::Logger::GetInstance<SwapChain>();
 
 		std::weak_ptr<vk::Instance> instance;
 		std::weak_ptr<Device> device;

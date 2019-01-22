@@ -1,6 +1,6 @@
 ![Project logo](https://raw.githubusercontent.com/Thurstag/astral-ocean/res/images/logo/logo(banner).png)
 
-# Astral Ocean [![Build Status](https://jenkins.gekko-state.tk/buildStatus/icon?job=astral-ocean)](https://jenkins.gekko-state.tk/job/astral-ocean/)
+# Astral Ocean
 This project is a basic implementation of Vulkan API in C++.
 
 ## Sub-projects

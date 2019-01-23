@@ -21,7 +21,5 @@ foreach(TEST_FILE IN LISTS AO_TEST_FILES)
 	add_test(NAME "${TEST_FILE_NAME}" COMMAND "${TEST_FILE_NAME}" WORKING_DIRECTORY) 
 endforeach()
 
-# Re-create sub-directories in Visual Studio
-if(WIN32)
-	create_sub_directories(AO_HELPER_FILES ${CMAKE_CURRENT_SOURCE_DIR} "")
-endif()
+# Re-create sub-directories
+create_sub_directories(AO_HELPER_FILES ${CMAKE_CURRENT_SOURCE_DIR} "")

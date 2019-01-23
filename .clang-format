@@ -1,0 +1,20 @@
+BasedOnStyle: Google
+IndentWidth: 4
+
+# === C++ stuff ===
+Language: Cpp
+
+# Indentation in namespace
+NamespaceIndentation: All
+
+# Include sorting
+IncludeBlocks: Preserve
+
+# Line's length
+ColumnLimit: 150
+
+# One line function
+AllowShortFunctionsOnASingleLine: Empty
+
+# Space after template keyword
+SpaceAfterTemplateKeyword: false

@@ -4,44 +4,46 @@
 
 #pragma once
 
-#include <ao/core/memory/map_container.hpp>
 #include <ao/core/utilities/types.h>
+#include <ao/core/memory/map_container.hpp>
 #include <vulkan/vulkan.hpp>
 
 namespace ao::vulkan {
-	struct QueueData {
-		vk::QueueFamilyProperties properties;
-		vk::Queue queue;
-		u32 index;
+    namespace structs {
+        struct QueueData {
+            vk::QueueFamilyProperties properties;
+            vk::Queue queue;
+            u32 index;
 
-		/// <summary>
-		/// Constructor
-		/// </summary>
-		QueueData() = default;
+            /// <summary>
+            /// Constructor
+            /// </summary>
+            QueueData() = default;
 
-		/// <summary>
-		/// Constructor
-		/// </summary>
-		/// <param name="_queue">Queue</param>
-		/// <param name="_index">Index</param>
-		/// <param name="_properties">Properties</param>
-		explicit QueueData(vk::Queue const& _queue, u32 const _index, vk::QueueFamilyProperties const _properties) : queue(_queue), index(_index), properties(_properties) {}
-	};
+            /// <summary>
+            /// Constructor
+            /// </summary>
+            /// <param name="queue">Queue</param>
+            /// <param name="index">Index</param>
+            /// <param name="properties">Properties</param>
+            explicit QueueData(vk::Queue const& queue, u32 const index, vk::QueueFamilyProperties const properties)
+                : queue(queue), index(index), properties(properties) {}
+        };
+    }  // namespace structs
 
-	/// <summary>
-	/// Queue container
-	/// </summary>
-	class QueueContainer : public core::MapContainer<vk::QueueFlagBits, QueueData> {
-	public:
-		/// <summary>
-		/// Constructor
-		/// </summary>
-		QueueContainer() = default;
+    /// <summary>
+    /// Queue container
+    /// </summary>
+    class QueueContainer : public core::MapContainer<vk::QueueFlagBits, structs::QueueData> {
+       public:
+        /// <summary>
+        /// Constructor
+        /// </summary>
+        QueueContainer() = default;
 
-		/// <summary>
-		/// Destructor
-		/// </summary>
-		virtual ~QueueContainer() = default;
-	};
-}
-
+        /// <summary>
+        /// Destructor
+        /// </summary>
+        virtual ~QueueContainer() = default;
+    };
+}  // namespace ao::vulkan

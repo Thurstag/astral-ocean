@@ -2,10 +2,6 @@
 	path = submodules/googletest
 	url = https://github.com/google/googletest.git
 	ignore = dirty
-[submodule "submodules/CTPL"]
-	path = submodules/CTPL
-	url = https://github.com/vit-vit/CTPL.git
-	ignore = dirty
 [submodule "submodules/fmt"]
 	path = submodules/fmt
 	url = https://github.com/fmtlib/fmt.git

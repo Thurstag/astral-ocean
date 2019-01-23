@@ -4,32 +4,30 @@
 
 #pragma once
 
-#include <memory>
-
 #include <fmt/format.h>
+#include <memory>
 
 #include "exception.h"
 
 namespace ao::core {
-	/// <summary>
-	/// Exception for weak_ptr expiration
-	/// </summary>
-	template<class T>
-	class ExpirationException : public Exception {
-	public:
-		/// <summary>
-		/// Constructor
-		/// </summary>
-		explicit ExpirationException(std::weak_ptr<T> const& pointer);
+    /// <summary>
+    /// Exception for weak_ptr expiration
+    /// </summary>
+    template<class T>
+    class ExpirationException : public Exception {
+       public:
+        /// <summary>
+        /// Constructor
+        /// </summary>
+        explicit ExpirationException(std::weak_ptr<T> const& pointer);
 
-		/// <summary>
-		/// Destructor
-		/// </summary>
-		virtual ~ExpirationException() = default;
-	};
+        /// <summary>
+        /// Destructor
+        /// </summary>
+        virtual ~ExpirationException() = default;
+    };
 
-	/* IMPLEMENTATION */
-
-	template<class T>
-	ExpirationException<T>::ExpirationException(std::weak_ptr<T> const& pointer) : Exception(fmt::format("{0} pointer is expired", typeid(T).name())) {}
-}
+    template<class T>
+    inline ExpirationException<T>::ExpirationException(std::weak_ptr<T> const& pointer)
+        : Exception(fmt::format("{0} pointer is expired", typeid(T).name())) {}
+}  // namespace ao::core

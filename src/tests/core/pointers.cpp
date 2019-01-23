@@ -8,26 +8,24 @@
 #include "../helpers/tests.h"
 
 namespace ao::test {
-	struct Object {
-		int i = 0;
+    struct Object {
+        int i = 0;
 
-		explicit Object(int _i) : i(_i) {}
-	};
+        explicit Object(int _i) : i(_i) {}
+    };
 
-	TEST(WeakPointer, Empty) {
-		std::weak_ptr<int> ptr(std::make_shared<int>());
+    TEST(WeakPointer, Empty) {
+        std::weak_ptr<int> ptr(std::make_shared<int>());
 
-		ASSERT_EXCEPTION<core::Exception>([&]() {
-			core::shared(ptr);
-		});
-	}
+        ASSERT_EXCEPTION<core::Exception>([&]() { core::shared(ptr); });
+    }
 
-	TEST(WeakPointer, Fill) {
-		std::shared_ptr<Object> shared = std::make_shared<Object>(4);
-		std::weak_ptr<Object> weak(shared);
+    TEST(WeakPointer, Fill) {
+        std::shared_ptr<Object> shared = std::make_shared<Object>(4);
+        std::weak_ptr<Object> weak(shared);
 
-		if (auto ptr = core::shared(weak)) {
-			ASSERT_EQ(4, ptr->i);
-		}
-	}
-}
+        if (auto ptr = core::shared(weak)) {
+            ASSERT_EQ(4, ptr->i);
+        }
+    }
+}  // namespace ao::test

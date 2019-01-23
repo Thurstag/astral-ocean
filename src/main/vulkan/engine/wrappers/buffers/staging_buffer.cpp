@@ -4,84 +4,84 @@
 
 #include "staging_buffer.h"
 
-ao::vulkan::StagingBuffer::StagingBuffer(std::weak_ptr<Device> device, vk::CommandBufferUsageFlags const _usage, bool const _memoryBarrier) : ao::vulkan::Buffer(device), usage(_usage), memoryBarrier(_memoryBarrier) {}
+ao::vulkan::StagingBuffer::StagingBuffer(std::weak_ptr<Device> device, vk::CommandBufferUsageFlags usage, bool memory_barrier)
+    : ao::vulkan::Buffer(device), usage(usage), memory_barrier(memory_barrier) {}
 
 ao::vulkan::StagingBuffer::~StagingBuffer() {
-	this->free();
+    this->free();
 
-	if (auto _device = ao::core::shared(this->device)) {
-		_device->logical.freeCommandBuffers(_device->transferCommandPool, this->commandBuffer);
-		_device->logical.destroyFence(this->fence);
-	}
+    if (auto _device = ao::core::shared(this->device)) {
+        _device->logical.freeCommandBuffers(_device->transfer_command_pool, this->command_buffer);
+        _device->logical.destroyFence(this->fence);
+    }
 }
 
 void ao::vulkan::StagingBuffer::free() {
-	if (this->hostBuffer.get() != nullptr) {
-		this->hostBuffer.reset();
-	}
-	if (this->deviceBuffer.get() != nullptr) {
-		this->deviceBuffer.reset();
-	}
+    if (this->host_buffer.get() != nullptr) {
+        this->host_buffer.reset();
+    }
+    if (this->device_buffer.get() != nullptr) {
+        this->device_buffer.reset();
+    }
 }
 
-vk::DeviceSize ao::vulkan::StagingBuffer::offset(size_t const index) const {
-	return this->hostBuffer->offset(index);
+vk::DeviceSize ao::vulkan::StagingBuffer::offset(size_t index) const {
+    return this->host_buffer->offset(index);
 }
 
 ao::vulkan::Buffer* ao::vulkan::StagingBuffer::map() {
-	return this->hostBuffer->map();
+    return this->host_buffer->map();
 }
 
 vk::Buffer const& ao::vulkan::StagingBuffer::buffer() const {
-	if (this->deviceBuffer.get() == nullptr) {
-		throw ao::core::Exception("Device buffer hasn't been initialized");
-	}
-	return this->deviceBuffer->buffer();
+    if (this->device_buffer.get() == nullptr) {
+        throw ao::core::Exception("Device buffer hasn't been initialized");
+    }
+    return this->device_buffer->buffer();
 }
 
 vk::DeviceSize ao::vulkan::StagingBuffer::size() const {
-	if (this->deviceBuffer.get() == nullptr) {
-		throw ao::core::Exception("Device buffer hasn't been initialized");
-	}
-	return this->deviceBuffer->size();
+    if (this->device_buffer.get() == nullptr) {
+        throw ao::core::Exception("Device buffer hasn't been initialized");
+    }
+    return this->device_buffer->size();
 }
 
 bool ao::vulkan::StagingBuffer::hasBuffer() const {
-	if (this->hostBuffer.get() == nullptr || this->deviceBuffer.get() == nullptr) {
-		return false;
-	}
-	return this->hostBuffer->hasBuffer() && this->deviceBuffer->hasBuffer();
+    if (this->host_buffer.get() == nullptr || this->device_buffer.get() == nullptr) {
+        return false;
+    }
+    return this->host_buffer->hasBuffer() && this->device_buffer->hasBuffer();
 }
 
 void ao::vulkan::StagingBuffer::sync() {
-	auto _device = ao::core::shared(this->device);
+    auto _device = ao::core::shared(this->device);
 
-	// Create command to transfer data from host to device
-	this->commandBuffer.begin(vk::CommandBufferBeginInfo(this->usage));
-	{
-		// Memory barrier
-		if (this->memoryBarrier) {
-			vk::BufferMemoryBarrier barrier(
-				vk::AccessFlagBits::eTransferWrite,
-				vk::AccessFlags(), _device->queues[vk::QueueFlagBits::eTransfer].index,
-				_device->queues[vk::QueueFlagBits::eGraphics].index, this->deviceBuffer->buffer()
-			);
-			this->commandBuffer.pipelineBarrier(vk::PipelineStageFlagBits::eTopOfPipe, vk::PipelineStageFlagBits::eVertexInput, vk::DependencyFlags(), {}, barrier, {});
-		}
+    // Create command to transfer data from host to device
+    this->command_buffer.begin(vk::CommandBufferBeginInfo(this->usage));
+    {
+        // Memory barrier
+        if (this->memory_barrier) {
+            vk::BufferMemoryBarrier barrier(vk::AccessFlagBits::eTransferWrite, vk::AccessFlags(),
+                                            _device->queues[vk::QueueFlagBits::eTransfer].index, _device->queues[vk::QueueFlagBits::eGraphics].index,
+                                            this->device_buffer->buffer());
+            this->command_buffer.pipelineBarrier(vk::PipelineStageFlagBits::eTopOfPipe, vk::PipelineStageFlagBits::eVertexInput,
+                                                 vk::DependencyFlags(), {}, barrier, {});
+        }
 
-		// Copy buffer
-		this->commandBuffer.copyBuffer(this->hostBuffer->buffer(), this->deviceBuffer->buffer(), vk::BufferCopy().setSize(this->deviceBuffer->size()));
-	}
-	this->commandBuffer.end();
+        // Copy buffer
+        this->command_buffer.copyBuffer(this->host_buffer->buffer(), this->device_buffer->buffer(),
+                                        vk::BufferCopy().setSize(this->device_buffer->size()));
+    }
+    this->command_buffer.end();
 
-	// Submit command
-	_device->queues[vk::QueueFlagBits::eTransfer].queue.submit(vk::SubmitInfo().setCommandBufferCount(1)
-															   .setPCommandBuffers(&this->commandBuffer),
-															   this->fence);
+    // Submit command
+    _device->queues[vk::QueueFlagBits::eTransfer].queue.submit(vk::SubmitInfo().setCommandBufferCount(1).setPCommandBuffers(&this->command_buffer),
+                                                               this->fence);
 
-	// Wait fence
-	_device->logical.waitForFences(this->fence, VK_TRUE, (std::numeric_limits<u64>::max)());
+    // Wait fence
+    _device->logical.waitForFences(this->fence, VK_TRUE, (std::numeric_limits<u64>::max)());
 
-	// Reset fence
-	_device->logical.resetFences(this->fence);
+    // Reset fence
+    _device->logical.resetFences(this->fence);
 }

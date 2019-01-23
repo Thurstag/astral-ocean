@@ -7,14 +7,14 @@
 #include "../exception/expiration_exception.hpp"
 
 namespace ao::core {
-	/// <summary>
-	/// Method to get shared_ptr from a weak_ptr. Throw an exception if	weak_ptr is expired
-	/// </summary>
-	template<class T>
-	inline std::shared_ptr<T> shared(std::weak_ptr<T> const& ptr) {
-		if (auto _ptr = ptr.lock()) {
-			return _ptr;
-		}
-		throw ExpirationException<T>(ptr);
-	}
-}
+    /// <summary>
+    /// Method to get shared_ptr from a weak_ptr. Throw an exception if	weak_ptr is expired
+    /// </summary>
+    template<class T>
+    inline std::shared_ptr<T> shared(std::weak_ptr<T> const& ptr) {
+        if (auto _ptr = ptr.lock()) {
+            return _ptr;
+        }
+        throw ExpirationException<T>(ptr);
+    }
+}  // namespace ao::core

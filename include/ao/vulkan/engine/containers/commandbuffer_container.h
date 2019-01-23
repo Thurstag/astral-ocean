@@ -10,41 +10,44 @@
 #include "../wrappers/device.h"
 
 namespace ao::vulkan {
-	struct CommandBufferData {
-		std::vector<vk::CommandBuffer> buffers;
-		vk::CommandPool pool;
+    namespace structs {
+        struct CommandData {
+            std::vector<vk::CommandBuffer> buffers;
+            vk::CommandPool pool;
 
-		/// <summary>
-		/// Constructor
-		/// </summary>
-		CommandBufferData() = default;
+            /// <summary>
+            /// Constructor
+            /// </summary>
+            CommandData() = default;
 
-		/// <summary>
-		/// Constructor
-		/// </summary>
-		/// <param name="_buffers">Buffers</param>
-		/// <param name="_pool">Pool</param>
-		explicit CommandBufferData(std::vector<vk::CommandBuffer> const& _buffers, vk::CommandPool const& _pool) : buffers(_buffers), pool(_pool) {}
-	};
+            /// <summary>
+            /// Constructor
+            /// </summary>
+            /// <param name="buffers">Buffers</param>
+            /// <param name="pool">Pool</param>
+            explicit CommandData(std::vector<vk::CommandBuffer> const& buffers, vk::CommandPool const& pool) : buffers(buffers), pool(pool) {}
+        };
+    }  // namespace structs
 
-	/// <summary>
-	/// CommandBufferContainer class
-	/// </summary>
-	class CommandBufferContainer : public core::MapContainer<std::string, CommandBufferData> {
-	public:
-		/// <summary>
-		/// Constructor
-		/// </summary>
-		/// <param name="_device">Device</param>
-		explicit CommandBufferContainer(std::weak_ptr<Device> _device);
+    /// <summary>
+    /// CommandBufferContainer class
+    /// </summary>
+    class CommandBufferContainer : public core::MapContainer<std::string, structs::CommandData> {
+       public:
+        /// <summary>
+        /// Constructor
+        /// </summary>
+        /// <param name="device">Device</param>
+        explicit CommandBufferContainer(std::weak_ptr<Device> device);
 
-		/// <summary>
-		/// Destructor
-		/// </summary>
-		~CommandBufferContainer();
+        /// <summary>
+        /// Destructor
+        /// </summary>
+        ~CommandBufferContainer();
 
-		virtual void clear() override;
-	protected:
-		std::weak_ptr<Device> device;
-	};
-}
+        virtual void clear() override;
+
+       protected:
+        std::weak_ptr<Device> device;
+    };
+}  // namespace ao::vulkan

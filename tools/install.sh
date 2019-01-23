@@ -7,6 +7,10 @@ SRC_RELATIVE_PATH=src/main/
 INCLUDE_RELATIVE_PATH=include/
 INCLUDE_PATH_FROM_SRC=../../include
 
+# Format files
+echo "[INFO] Format files"
+find src/ -iname *.h -o -iname *.hpp -o -iname *.cpp | xargs clang-format -i
+
 # Check include folder
 if [ -d $INCLUDE_RELATIVE_PATH ]; then
 	echo "[INFO] Flush include directory"

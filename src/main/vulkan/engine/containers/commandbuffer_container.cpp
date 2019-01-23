@@ -6,19 +6,19 @@
 
 #include <ao/core/utilities/pointers.h>
 
-ao::vulkan::CommandBufferContainer::CommandBufferContainer(std::weak_ptr<Device> _device) : device(_device) {}
+ao::vulkan::CommandBufferContainer::CommandBufferContainer(std::weak_ptr<Device> device) : device(device) {}
 
 ao::vulkan::CommandBufferContainer::~CommandBufferContainer() {
-	if (!this->map.empty()) {
-		this->clear();
-	}
+    if (!this->map.empty()) {
+        this->clear();
+    }
 }
 
 void ao::vulkan::CommandBufferContainer::clear() {
-	if (auto _device = ao::core::shared(this->device)) {
-		for (auto& pair : this->map) {
-			_device->logical.freeCommandBuffers(pair.second.pool, pair.second.buffers);
-		}
-		this->map.clear();
-	}
+    if (auto _device = ao::core::shared(this->device)) {
+        for (auto& pair : this->map) {
+            _device->logical.freeCommandBuffers(pair.second.pool, pair.second.buffers);
+        }
+        this->map.clear();
+    }
 }

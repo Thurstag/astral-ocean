@@ -9,72 +9,70 @@
 #include "iterable_container.hpp"
 
 namespace ao::core {
-	/// <summary>
-	/// MapContainer class
-	/// </summary>
-	template<class T, class U>
-	class MapContainer : public IterableContainer<T, U, typename std::map<T, U>::iterator> {
-	public:
-		/// <summary>
-		/// Constructor
-		/// </summary>
-		MapContainer() = default;
+    /// <summary>
+    /// MapContainer class
+    /// </summary>
+    template<class Key, class Value>
+    class MapContainer : public IterableContainer<Key, Value, typename std::map<Key, Value>::iterator> {
+       public:
+        /// <summary>
+        /// Constructor
+        /// </summary>
+        MapContainer() = default;
 
-		/// <summary>
-		/// Destructor
-		/// </summary>
-		virtual ~MapContainer() = default;
+        /// <summary>
+        /// Destructor
+        /// </summary>
+        virtual ~MapContainer() = default;
 
-		virtual U& operator[](T const& index) override;
-		virtual bool remove(T const& index) override;
-		virtual bool exists(T const& index) const override;
-		virtual void clear() override;
-		virtual size_t size() const override;
-		typename std::map<T, U>::iterator begin() override;
-		typename std::map<T, U>::iterator end() override;
+        virtual Value& operator[](Key const& index) override;
+        virtual bool remove(Key const& index) override;
+        virtual bool exists(Key const& index) const override;
+        virtual void clear() override;
+        virtual size_t size() const override;
+        typename std::map<Key, Value>::iterator begin() override;
+        typename std::map<Key, Value>::iterator end() override;
 
-	protected:
-		std::map<T, U> map;
-	};
+       protected:
+        std::map<Key, Value> map;
+    };
 
-	/* IMPLEMENTATION */
+    template<class Key, class Value>
+    inline Value& MapContainer<Key, Value>::operator[](Key const& index) {
+        return this->map[index];
+    }
 
-	template<class T, class U>
-	U& MapContainer<T, U>::operator[](T const& index) {
-		return this->map[index];
-	}
+    template<class Key, class Value>
+    inline bool MapContainer<Key, Value>::remove(Key const& index) {
+        if (!this->exists(index)) {
+            return false;
+        }
+        this->map.erase(this->map.find(index));
+        return true;
+    }
 
-	template<class T, class U>
-	bool MapContainer<T, U>::remove(T const& index) {
-		if (!this->exists(index)) {
-			return false;
-		}
-		this->map.erase(this->map.find(index));
-		return true;
-	}
+    template<class Key, class Value>
+    inline bool MapContainer<Key, Value>::exists(Key const& index) const {
+        return this->map.find(index) != this->map.end();
+    }
 
-	template<class T, class U>
-	bool MapContainer<T, U>::exists(T const& index) const {
-		return this->map.find(index) != this->map.end();
-	}
+    template<class Key, class Value>
+    inline void MapContainer<Key, Value>::clear() {
+        this->map.clear();
+    }
 
-	template<class T, class U>
-	void MapContainer<T, U>::clear() {
-		this->map.clear();
-	}
+    template<class Key, class Value>
+    inline size_t MapContainer<Key, Value>::size() const {
+        return this->map.size();
+    }
 
-	template<class T, class U>
-	size_t MapContainer<T, U>::size() const {
-		return this->map.size();
-	}
+    template<class Key, class Value>
+    inline typename std::map<Key, Value>::iterator MapContainer<Key, Value>::begin() {
+        return this->map.begin();
+    }
 
-	template<class T, class U>
-	typename std::map<T, U>::iterator MapContainer<T, U>::begin() {
-		return this->map.begin();
-	}
-
-	template<class T, class U>
-	typename std::map<T, U>::iterator MapContainer<T, U>::end() {
-		return this->map.end();
-	}
-}
+    template<class Key, class Value>
+    inline typename std::map<Key, Value>::iterator MapContainer<Key, Value>::end() {
+        return this->map.end();
+    }
+}  // namespace ao::core

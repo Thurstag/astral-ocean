@@ -9,37 +9,38 @@
 #include <ao/core/utilities/pointers.h>
 #include <vulkan/vulkan.hpp>
 
-#include "swapchain.h"
 #include "device.h"
+#include "swapchain.h"
 
 namespace ao::vulkan {
-	/// <summary>
-	/// Wrapper for vulkan pipelines
-	/// </summary>
-	struct Pipeline {
-	public:
-		vk::PipelineStageFlags submitPipelineStages = vk::PipelineStageFlagBits::eColorAttachmentOutput;
+    /// <summary>
+    /// Wrapper for vulkan pipelines
+    /// </summary>
+    struct Pipeline {
+       public:
+        vk::PipelineStageFlags submit_pipeline_stages;
 
-		std::vector<vk::PipelineLayout> layouts;
-		std::vector<vk::Pipeline> pipelines;
-		vk::PipelineCache cache;
+        std::vector<vk::PipelineLayout> layouts;
+        std::vector<vk::Pipeline> pipelines;
+        vk::PipelineCache cache;
 
-		/// <summary>
-		/// Constructor
-		/// </summary>
-		Pipeline() = default;
+        /// <summary>
+        /// Constructor
+        /// </summary>
+        Pipeline() = default;
 
-		/// <summary>
-		/// Constructor
-		/// </summary>
-		/// <param name="_device">Device</param>
-		explicit Pipeline(std::weak_ptr<Device> _device);
+        /// <summary>
+        /// Constructor
+        /// </summary>
+        /// <param name="device">Device</param>
+        explicit Pipeline(std::weak_ptr<Device> device);
 
-		/// <summary>
-		/// Destructor
-		/// </summary>
-		virtual ~Pipeline();
-	protected:
-		std::weak_ptr<Device> device;
-	};
-}
+        /// <summary>
+        /// Destructor
+        /// </summary>
+        virtual ~Pipeline();
+
+       protected:
+        std::weak_ptr<Device> device;
+    };
+}  // namespace ao::vulkan

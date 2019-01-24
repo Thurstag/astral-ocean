@@ -37,7 +37,6 @@ namespace ao::vulkan {
     };
 
     struct CoreSettings {
-        int threadPoolSize = std::thread::hardware_concurrency();
         bool validationLayers = false;
 
         /// <summary>
@@ -48,10 +47,8 @@ namespace ao::vulkan {
         /// <summary>
         /// Constructor
         /// </summary>
-        /// <param name="threadPoolSize">Thread pool's size</param>
         /// <param name="validationLayers">Enable validation layers</param>
-        explicit CoreSettings(int threadPoolSize = std::thread::hardware_concurrency(), bool _validationLayers = false)
-            : threadPoolSize(threadPoolSize), validationLayers(validationLayers) {}
+        explicit CoreSettings(bool _validationLayers = false) : validationLayers(validationLayers) {}
     };
 
     struct EngineSettings {

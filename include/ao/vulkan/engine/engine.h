@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include <execution>
 #include <functional>
 #include <mutex>
 #include <tuple>
@@ -11,7 +12,6 @@
 
 #include <ao/core/exception/exception.h>
 #include <ao/core/logger/logger.h>
-#include <ao/core/threading/thread_pool.h>
 #include <vulkan/vulkan.hpp>
 
 #include "../utilities/vulkan.h"
@@ -22,7 +22,7 @@
 #include "wrappers/swapchain.h"
 
 namespace ao::vulkan {
-    using DrawInCommandBuffer = std::function<vk::CommandBuffer(int const, vk::CommandBufferInheritanceInfo const&,
+    using DrawInCommandBuffer = std::function<vk::CommandBuffer(int, vk::CommandBufferInheritanceInfo const&,
                                                                 std::pair<std::array<vk::ClearValue, 2> const&, vk::Rect2D> const&)>;
 
     /// <summary>
@@ -53,7 +53,6 @@ namespace ao::vulkan {
 
        protected:
         core::Logger LOGGER = core::Logger::GetInstance<Engine>();
-        core::ThreadPool thread_pool;
 
         std::vector<vk::Fence> waiting_fences;
         SemaphoreContainer semaphores;

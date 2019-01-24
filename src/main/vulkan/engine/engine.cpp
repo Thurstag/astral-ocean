@@ -4,16 +4,9 @@
 
 #include "engine.h"
 
-ao::vulkan::Engine::Engine(EngineSettings const& settings) : settings_(settings), thread_pool(settings.core.threadPoolSize) {
-    LOGGER << ao::core::Logger::Level::info
-           << fmt::format("Init a thread pool for command buffer processing with {0} thread{1}", this->thread_pool.size(),
-                          this->thread_pool.size() > 1 ? "s" : "");
-}
+ao::vulkan::Engine::Engine(EngineSettings const& settings) : settings_(settings) {}
 
 ao::vulkan::Engine::~Engine() {
-    // Kill thread pool
-    this->thread_pool.kill();
-
     this->freeVulkan();
 }
 
@@ -411,10 +404,6 @@ void ao::vulkan::Engine::updateCommandBuffers() {
     vk::Framebuffer& currentFrame = this->frames[this->frameBufferIndex];
     auto& helpers = this->swapchain->command_helpers;
     int index = this->frameBufferIndex;
-
-    // Prepare sync objects
-    std::atomic_size_t completed = 0;
-    std::condition_variable task_cv;
     std::mutex cmdMutex;
 
     // Create info
@@ -434,28 +423,15 @@ void ao::vulkan::Engine::updateCommandBuffers() {
         std::vector<ao::vulkan::DrawInCommandBuffer> functions = this->updateSecondaryCommandBuffers();
 
         // Execute drawing functions
-        for (auto& function : functions) {
-            // TODO: futures.push_back(this->thread_pool.push([&](int id) { return function(index, inheritanceInfo, helpers); }));
-            this->thread_pool.enqueue<bool>([function, index, &inheritanceInfo, &helpers, &cmdMutex, &currentCommand, &completed, &task_cv]() {
-                auto& cmd = function(index, inheritanceInfo, helpers);
+        std::for_each(std::execution::par, functions.begin(), functions.end(),
+                      [index, &inheritanceInfo, &helpers, &cmdMutex, &currentCommand](ao::vulkan::DrawInCommandBuffer& function) {
+                          auto& cmd = function(index, inheritanceInfo, helpers);
 
-                // Execute in primary command
-                cmdMutex.lock();
-                currentCommand.executeCommands(cmd);
-                cmdMutex.unlock();
-
-                // Notify task end
-                completed++;
-                task_cv.notify_one();
-
-                return std::make_shared<bool>(false);
-            });
-        }
-
-        // Wait execution
-        std::mutex cv_m;
-        std::unique_lock<std::mutex> lock(cv_m);
-        task_cv.wait(lock, [&]() { return completed == functions.size(); });
+                          // Add to primary
+                          cmdMutex.lock();
+                          currentCommand.executeCommands(cmd);
+                          cmdMutex.unlock();
+                      });
     }
     currentCommand.endRenderPass();
     currentCommand.end();

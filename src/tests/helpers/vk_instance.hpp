@@ -23,8 +23,7 @@ namespace ao::test {
     };
 
     bool VkInstance::init() {
-        vulkan::EngineSettings settings =
-            vulkan::EngineSettings(vulkan::WindowSettings("TEST", 0, 0), vulkan::CoreSettings(std::thread::hardware_concurrency(), true));
+        vulkan::EngineSettings settings = vulkan::EngineSettings(vulkan::WindowSettings("TEST", 0, 0), vulkan::CoreSettings(true));
 
         try {
             // Create instance

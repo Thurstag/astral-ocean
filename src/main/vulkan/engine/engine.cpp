@@ -4,7 +4,7 @@
 
 #include "engine.h"
 
-ao::vulkan::Engine::Engine(EngineSettings const& settings) : settings_(settings), thread_pool(this->settings_.core.threadPoolSize) {
+ao::vulkan::Engine::Engine(EngineSettings const& settings) : settings_(settings), thread_pool(settings.core.threadPoolSize) {
     LOGGER << ao::core::Logger::Level::info
            << fmt::format("Init a thread pool for command buffer processing with {0} thread{1}", this->thread_pool.size(),
                           this->thread_pool.size() > 1 ? "s" : "");

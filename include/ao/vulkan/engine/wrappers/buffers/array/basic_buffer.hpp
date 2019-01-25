@@ -134,7 +134,7 @@ namespace ao::vulkan {
 
         // Update fragments
         for (size_t i = 0; i < this->count; i++) {
-            std::memcpy((void*)((uint64_t)this->mapper + i * this->size_ / this->count), &data[i], this->size_ / this->count);
+            std::memcpy((void*)((u64)this->mapper + i * this->size_ / this->count), &data[i], this->size_ / this->count);
         }
 
         // Notify changes
@@ -162,7 +162,7 @@ namespace ao::vulkan {
         }
 
         // Copy into buffer
-        std::memcpy((void*)((uint64_t)this->mapper + (index * this->size_ / this->count)), data, this->size_ / this->count);
+        std::memcpy((void*)((u64)this->mapper + (index * this->size_ / this->count)), data, this->size_ / this->count);
 
         // Notify changes
         if (!(this->memory_flags & vk::MemoryPropertyFlagBits::eHostCoherent)) {
@@ -319,7 +319,7 @@ namespace ao::vulkan {
 
         // Update fragments
         for (size_t i = 0; i < N; i++) {
-            std::memcpy((void*)((uint64_t)this->mapper + i * this->size_ / N), &data[i], this->size_ / N);
+            std::memcpy((void*)((u64)this->mapper + i * this->size_ / N), &data[i], this->size_ / N);
         }
 
         // Notify changes
@@ -347,7 +347,7 @@ namespace ao::vulkan {
         }
 
         // Copy into buffer
-        std::memcpy((void*)((uint64_t)this->mapper + (index * this->size_ / N)), data, this->size_ / N);
+        std::memcpy((void*)((u64)this->mapper + (index * this->size_ / N)), data, this->size_ / N);
 
         // Notify changes
         if (!(this->memoryFlags & vk::MemoryPropertyFlagBits::eHostCoherent)) {

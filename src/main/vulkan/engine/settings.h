@@ -4,67 +4,74 @@
 
 #pragma once
 
-#include <string>
-#include <thread>
+#include <map>
+#include <optional>
 
-#include <ao/core/utilities/types.h>
+#include <ao/core/exception/exception.h>
+#include <ao/core/logger/logger.h>
+#include <fmt/format.h>
 
 namespace ao::vulkan {
-    struct WindowSettings {
-        std::string name;
+    namespace settings {
+        static const std::string WindowWidth = "window.width";
+        static const std::string WindowHeight = "window.height";
+        static const std::string WindowVsync = "window.vsync";
 
-        u64 width;
-        u64 height;
+        static const std::string AppName = "application.name";
+        static const std::string AppVersion = "application.version";
 
-        bool rezisable = true;
-        bool vsync = false;
+        static const std::string EngineName = "engine.name";
+        static const std::string EngineVersion = "engine.version";
 
-        /// <summary>
-        /// Constructor
-        /// </summary>
-        WindowSettings() = default;
+        static const std::string ValidationLayers = "vulkan.validation_layers";
+    };  // namespace settings
 
-        /// <summary>
-        /// Constructor
-        /// </summary>
-        /// <param name="name">Window's name</param>
-        /// <param name="width">Window's width</param>
-        /// <param name="height">Window's height</param>
-        /// <param name="rezisable">Window is rezisable</param>
-        /// <param name="vsync">V-Sync is enabled</param>
-        explicit WindowSettings(std::string const& name, u64 const& width, u64 const& height, bool rezisable = true, bool vsync = false)
-            : name(name), width(width), height(height), rezisable(rezisable), vsync(vsync) {}
-    };
-
-    struct CoreSettings {
-        bool validationLayers = false;
-
-        /// <summary>
-        /// Constructor
-        /// </summary>
-        CoreSettings() = default;
-
-        /// <summary>
-        /// Constructor
-        /// </summary>
-        /// <param name="validationLayers">Enable validation layers</param>
-        explicit CoreSettings(bool _validationLayers = false) : validationLayers(validationLayers) {}
-    };
-
-    struct EngineSettings {
-        WindowSettings window;
-        CoreSettings core;
-
+    /// <summary>
+    /// EngineSettings class
+    /// </summary>
+    class EngineSettings {
+       public:
         /// <summary>
         /// Constructor
         /// </summary>
         EngineSettings() = default;
 
         /// <summary>
-        /// Constructor
+        /// Destructor
         /// </summary>
-        /// <param name="_window">Window settings</param>
-        /// <param name="_core">Core settings</param>
-        explicit EngineSettings(WindowSettings const& _window, CoreSettings const& _core) : window(_window), core(_core) {}
+        virtual ~EngineSettings();
+
+        /// <summary>
+        /// Method to know if existing value with specified key
+        /// </summary>
+        /// <param name="key">Key</param>
+        /// <returns>Exist</returns>
+        bool exists(std::string const& key) const;
+
+        /// <summary>
+        ///  Method to get value with a specified key
+        /// </summary>
+        /// <param name="key">Key</param>
+        /// <param name="_default">Default value returned</param>
+        /// <returns>Value</returns>
+        template<class T>
+        T& get(std::string const& key, std::optional<T> _default = std::nullopt) {
+            // Create value
+            if (!this->exists(key)) {
+                this->values[key] = std::make_pair(std::make_pair(typeid(T*).hash_code(), typeid(T*).name()), _default ? new T(*_default) : new T());
+            }
+
+            // Check type
+            if (this->values[key].first.first != typeid(T*).hash_code()) {
+                this->LOGGER << core::Logger::Level::warning << fmt::format("Cast {} into {}", this->values[key].first.second, typeid(T*).name());
+            }
+
+            return *static_cast<T*>(this->values[key].second);
+        }
+
+       protected:
+        core::Logger LOGGER = core::Logger::GetInstance<EngineSettings>();
+
+        std::map<std::string, std::pair<std::pair<size_t, std::string>, void*>> values;
     };
 }  // namespace ao::vulkan

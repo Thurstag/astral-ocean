@@ -23,7 +23,8 @@ namespace ao::test {
     };
 
     bool VkInstance::init() {
-        vulkan::EngineSettings settings = vulkan::EngineSettings(vulkan::WindowSettings("TEST", 0, 0), vulkan::CoreSettings(true));
+        vulkan::EngineSettings settings;
+        settings.get<bool>(vulkan::settings::ValidationLayers) = true;
 
         try {
             // Create instance

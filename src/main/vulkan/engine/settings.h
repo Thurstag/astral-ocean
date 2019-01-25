@@ -56,9 +56,17 @@ namespace ao::vulkan {
         /// <returns>Value</returns>
         template<class T>
         T& get(std::string const& key, std::optional<T> _default = std::nullopt) {
-            // Create value
             if (!this->exists(key)) {
-                this->values[key] = std::make_pair(std::make_pair(typeid(T*).hash_code(), typeid(T*).name()), _default ? new T(*_default) : new T());
+                // Allocate
+                T* ptr = static_cast<T*>(calloc(1, sizeof(T)));
+
+                // Create value
+                this->values[key] = std::make_pair(std::make_pair(typeid(T*).hash_code(), typeid(T*).name()), ptr);
+
+                // Assign
+                if (_default) {
+                    *ptr = *_default;
+                }
             }
 
             // Check type

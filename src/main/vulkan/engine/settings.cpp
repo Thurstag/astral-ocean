@@ -8,7 +8,7 @@
 
 ao::vulkan::EngineSettings::~EngineSettings() {
     for (auto& pair : this->values) {
-        delete pair.second.second;
+        free(pair.second.second);
     }
 
     this->values.clear();

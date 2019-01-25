@@ -23,8 +23,8 @@ namespace ao::test {
     };
 
     bool VkInstance::init() {
-        vulkan::EngineSettings settings;
-        settings.get<bool>(vulkan::settings::ValidationLayers) = true;
+        std::shared_ptr<vulkan::EngineSettings> settings = std::make_shared<vulkan::EngineSettings>();
+        settings->get<bool>(vulkan::settings::ValidationLayers) = true;
 
         try {
             // Create instance

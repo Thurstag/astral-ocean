@@ -4,7 +4,7 @@
 
 #include "engine.h"
 
-ao::vulkan::Engine::Engine(EngineSettings const& settings) : settings_(settings) {}
+ao::vulkan::Engine::Engine(std::shared_ptr<EngineSettings> settings) : settings_(settings) {}
 
 ao::vulkan::Engine::~Engine() {
     this->freeVulkan();
@@ -14,8 +14,8 @@ void ao::vulkan::Engine::run() {
     // Init window
     this->initWindow();
     LOGGER << ao::core::Logger::Level::info
-           << fmt::format("Init {0}x{1} window", this->settings_.get<u64>(ao::vulkan::settings::WindowWidth),
-                          this->settings_.get<u64>(ao::vulkan::settings::WindowHeight));
+           << fmt::format("Init {0}x{1} window", this->settings_->get<u64>(ao::vulkan::settings::WindowWidth),
+                          this->settings_->get<u64>(ao::vulkan::settings::WindowHeight));
 
     // Init vulkan
     this->initVulkan();
@@ -30,7 +30,7 @@ void ao::vulkan::Engine::initVulkan() {
     this->instance = std::make_shared<vk::Instance>(utilities::createVkInstance(this->settings_, this->instanceExtensions()));
 
     // Set-up debugging
-    if (this->settings_.get(ao::vulkan::settings::ValidationLayers, std::make_optional<bool>(false))) {
+    if (this->settings_->get(ao::vulkan::settings::ValidationLayers, std::make_optional<bool>(false))) {
         this->setUpDebugging();
     }
 
@@ -91,7 +91,7 @@ void ao::vulkan::Engine::freeVulkan() {
 
     this->device.reset();
 
-    if (this->settings_.get(ao::vulkan::settings::ValidationLayers, std::make_optional<bool>(false))) {
+    if (this->settings_->get(ao::vulkan::settings::ValidationLayers, std::make_optional<bool>(false))) {
         PFN_vkDestroyDebugReportCallbackEXT DestroyDebugReportCallback =
             reinterpret_cast<PFN_vkDestroyDebugReportCallbackEXT>(vkGetInstanceProcAddr(*this->instance, "vkDestroyDebugReportCallbackEXT"));
 
@@ -140,8 +140,8 @@ void ao::vulkan::Engine::createWaitingFences() {
 void ao::vulkan::Engine::createStencilBuffer() {
     // Create info
     vk::ImageCreateInfo imageInfo(vk::ImageCreateFlags(), vk::ImageType::e2D, this->device->depth_format,
-                                  vk::Extent3D(static_cast<u32>(this->settings_.get<u64>(ao::vulkan::settings::WindowWidth)),
-                                               static_cast<u32>(this->settings_.get<u64>(ao::vulkan::settings::WindowHeight)), 1),
+                                  vk::Extent3D(static_cast<u32>(this->settings_->get<u64>(ao::vulkan::settings::WindowWidth)),
+                                               static_cast<u32>(this->settings_->get<u64>(ao::vulkan::settings::WindowHeight)), 1),
                                   1, 1, vk::SampleCountFlagBits::e1, vk::ImageTiling::eOptimal,
                                   vk::ImageUsageFlagBits::eDepthStencilAttachment | vk::ImageUsageFlagBits::eTransferSrc);
 
@@ -185,8 +185,9 @@ void ao::vulkan::Engine::setUpFrameBuffers() {
 
     // Create info
     vk::FramebufferCreateInfo frameBufferCreateInfo(vk::FramebufferCreateFlags(), renderPass, static_cast<u32>(attachments.size()),
-                                                    attachments.data(), static_cast<u32>(this->settings_.get<u64>(ao::vulkan::settings::WindowWidth)),
-                                                    static_cast<u32>(this->settings_.get<u64>(ao::vulkan::settings::WindowHeight)), 1);
+                                                    attachments.data(),
+                                                    static_cast<u32>(this->settings_->get<u64>(ao::vulkan::settings::WindowWidth)),
+                                                    static_cast<u32>(this->settings_->get<u64>(ao::vulkan::settings::WindowHeight)), 1);
 
     // Create frame buffers
     this->frames.resize(this->swapchain->buffers.size());
@@ -224,8 +225,8 @@ void ao::vulkan::Engine::recreateSwapChain() {
     /* RE-CREATION PART */
 
     // Init swap chain
-    this->swapchain->init(this->settings_.get<u64>(ao::vulkan::settings::WindowWidth), this->settings_.get<u64>(ao::vulkan::settings::WindowHeight),
-                          this->settings_.get(ao::vulkan::settings::WindowVsync, std::make_optional<bool>(false)));
+    this->swapchain->init(this->settings_->get<u64>(ao::vulkan::settings::WindowWidth), this->settings_->get<u64>(ao::vulkan::settings::WindowHeight),
+                          this->settings_->get(ao::vulkan::settings::WindowVsync, std::make_optional<bool>(false)));
 
     // Create command buffers
     this->swapchain->createCommandBuffers();
@@ -299,8 +300,8 @@ void ao::vulkan::Engine::prepareVulkan() {
     this->swapchain->initCommandPool();
 
     // Init swap chain
-    this->swapchain->init(this->settings_.get<u64>(ao::vulkan::settings::WindowWidth), this->settings_.get<u64>(ao::vulkan::settings::WindowHeight),
-                          this->settings_.get(ao::vulkan::settings::WindowVsync, std::make_optional<bool>(false)));
+    this->swapchain->init(this->settings_->get<u64>(ao::vulkan::settings::WindowWidth), this->settings_->get<u64>(ao::vulkan::settings::WindowHeight),
+                          this->settings_->get(ao::vulkan::settings::WindowVsync, std::make_optional<bool>(false)));
 
     // Create command buffers
     this->swapchain->createCommandBuffers();
@@ -332,7 +333,7 @@ void ao::vulkan::Engine::prepareVulkan() {
     this->setUpFrameBuffers();
 }
 
-ao::vulkan::EngineSettings const& ao::vulkan::Engine::settings() const {
+std::shared_ptr<ao::vulkan::EngineSettings> ao::vulkan::Engine::settings() const {
     return this->settings_;
 }
 

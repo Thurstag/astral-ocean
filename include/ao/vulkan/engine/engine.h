@@ -34,7 +34,7 @@ namespace ao::vulkan {
         /// Constructor
         /// </summary>
         /// <param name="settings">Settings</param>
-        explicit Engine(EngineSettings const& settings);
+        explicit Engine(std::shared_ptr<EngineSettings> settings);
         /// <summary>
         /// Destructor
         /// </summary>
@@ -49,7 +49,7 @@ namespace ao::vulkan {
         /// Method to get settings
         /// </summary>
         /// <returns>Settings</returns>
-        EngineSettings const& settings() const;
+        std::shared_ptr<EngineSettings> settings() const;
 
        protected:
         core::Logger LOGGER = core::Logger::GetInstance<Engine>();
@@ -66,7 +66,7 @@ namespace ao::vulkan {
         u32 frameBufferIndex = 0;             // TODO: MOVE TO SWAPCHAIN
 
         vk::DebugReportCallbackEXT debug_callBack;
-        EngineSettings settings_;
+        std::shared_ptr<EngineSettings> settings_;
 
         std::shared_ptr<vk::Instance> instance;
         std::shared_ptr<SwapChain> swapchain;

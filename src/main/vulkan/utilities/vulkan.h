@@ -121,18 +121,18 @@ namespace ao::vulkan {
         /// <param name="settings">Engine settings</param>
         /// <param name="extensions">Extensions</param>
         /// <returns>vk::Instance</returns>
-        inline vk::Instance createVkInstance(EngineSettings& settings, std::vector<char const*> extensions) {
+        inline vk::Instance createVkInstance(std::shared_ptr<EngineSettings> settings, std::vector<char const*> extensions) {
             std::vector<char const*> validationLayer{"VK_LAYER_LUNARG_standard_validation"};
 
             // Create app info
-            vk::ApplicationInfo appInfo(settings.get<std::string>(ao::vulkan::settings::AppName, std::make_optional("Undefined")).c_str(),
-                                        settings.get<int>(ao::vulkan::settings::AppVersion, std::make_optional(VK_MAKE_VERSION(0, 0, 0))),
-                                        settings.get<std::string>(ao::vulkan::settings::EngineName, std::make_optional("Astral-Ocean")).c_str(),
-                                        settings.get<int>(ao::vulkan::settings::EngineVersion, std::make_optional(VK_MAKE_VERSION(0, 0, 0))),
+            vk::ApplicationInfo appInfo(settings->get<std::string>(ao::vulkan::settings::AppName, std::make_optional("Undefined")).c_str(),
+                                        settings->get<int>(ao::vulkan::settings::AppVersion, std::make_optional(VK_MAKE_VERSION(0, 0, 0))),
+                                        settings->get<std::string>(ao::vulkan::settings::EngineName, std::make_optional("Astral-Ocean")).c_str(),
+                                        settings->get<int>(ao::vulkan::settings::EngineVersion, std::make_optional(VK_MAKE_VERSION(0, 0, 0))),
                                         VK_API_VERSION_1_1);
 
             // Add validation extension
-            if (settings.get(ao::vulkan::settings::ValidationLayers, std::make_optional<bool>(false))) {
+            if (settings->get(ao::vulkan::settings::ValidationLayers, std::make_optional<bool>(false))) {
                 extensions.push_back(VK_EXT_DEBUG_REPORT_EXTENSION_NAME);
             }
 
@@ -141,7 +141,7 @@ namespace ao::vulkan {
                                                       .setEnabledExtensionCount(static_cast<u32>(extensions.size()))
                                                       .setPpEnabledExtensionNames(extensions.data());
 
-            if (settings.get(ao::vulkan::settings::ValidationLayers, std::make_optional<bool>(false))) {
+            if (settings->get(ao::vulkan::settings::ValidationLayers, std::make_optional<bool>(false))) {
                 instanceInfo.setEnabledLayerCount(static_cast<u32>(validationLayer.size())).setPpEnabledLayerNames(validationLayer.data());
             }
 

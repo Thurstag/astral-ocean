@@ -407,15 +407,12 @@ void ao::vulkan::Engine::submitFrame() {
 void ao::vulkan::Engine::updateCommandBuffers() {
     // Get current command buffer/frame
     vk::CommandBuffer& currentCommand = this->swapchain->commands["primary"].buffers[this->frameBufferIndex];
-    vk::Framebuffer& currentFrame = this->frames[this->frameBufferIndex];
-    auto& helpers = this->swapchain->command_helpers;
-    int index = this->frameBufferIndex;
     std::mutex cmdMutex;
 
     // Create info
     vk::CommandBufferBeginInfo beginInfo(vk::CommandBufferUsageFlagBits::eRenderPassContinue);
 
-    vk::RenderPassBeginInfo renderPassInfo(this->renderPass, currentFrame, this->swapchain->command_helpers.second,
+    vk::RenderPassBeginInfo renderPassInfo(this->renderPass, this->frames[this->frameBufferIndex], this->swapchain->command_helpers.second,
                                            static_cast<u32>(this->swapchain->command_helpers.first.size()),
                                            this->swapchain->command_helpers.first.data());
 
@@ -423,21 +420,10 @@ void ao::vulkan::Engine::updateCommandBuffers() {
     currentCommand.beginRenderPass(renderPassInfo, vk::SubpassContents::eSecondaryCommandBuffers);
     {
         // Create inheritance info for the secondary command buffers
-        vk::CommandBufferInheritanceInfo inheritanceInfo(this->renderPass, 0, currentFrame);
+        vk::CommandBufferInheritanceInfo inheritanceInfo(this->renderPass, 0, this->frames[this->frameBufferIndex]);
 
-        // Get functions
-        std::vector<ao::vulkan::DrawInCommandBuffer> functions = this->updateSecondaryCommandBuffers();
-
-        // Execute drawing functions
-        std::for_each(std::execution::par, functions.begin(), functions.end(),
-                      [index, &inheritanceInfo, &helpers, &cmdMutex, &currentCommand](ao::vulkan::DrawInCommandBuffer& function) {
-                          auto& cmd = function(index, inheritanceInfo, helpers);
-
-                          // Add to primary
-                          cmdMutex.lock();
-                          currentCommand.executeCommands(cmd);
-                          cmdMutex.unlock();
-                      });
+        // Execute secondary command buffers
+        this->executeSecondaryCommandBuffers(inheritanceInfo, this->frameBufferIndex, currentCommand);
     }
     currentCommand.endRenderPass();
     currentCommand.end();

@@ -22,9 +22,6 @@
 #include "wrappers/swapchain.h"
 
 namespace ao::vulkan {
-    using DrawInCommandBuffer = std::function<vk::CommandBuffer(int, vk::CommandBufferInheritanceInfo const&,
-                                                                std::pair<std::array<vk::ClearValue, 2> const&, vk::Rect2D> const&)>;
-
     /// <summary>
     /// Engine class
     /// </summary>
@@ -208,10 +205,13 @@ namespace ao::vulkan {
         /// </summary>
         virtual void updateUniformBuffers() = 0;
         /// <summary>
-        /// Method to get functions that will update secondary command buffers
+        /// Method to execute secondary command buffers
         /// </summary>
-        /// <returns>Function vector</returns>
-        virtual std::vector<DrawInCommandBuffer> updateSecondaryCommandBuffers() = 0;
+        /// <param name="inheritanceInfo">Inheritance info</param>
+        /// <param name="frameIndex">Current frame index</param>
+        /// <param name="primaryCmd">Primary command buffer</param>
+        virtual void executeSecondaryCommandBuffers(vk::CommandBufferInheritanceInfo& inheritanceInfo, int frameIndex,
+                                                    vk::CommandBuffer& primaryCmd) = 0;
 
         /// <summary>
         /// Method to get vkInstance extensions

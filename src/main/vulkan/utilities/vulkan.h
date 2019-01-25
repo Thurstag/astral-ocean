@@ -197,8 +197,12 @@ namespace ao::vulkan {
         /// <param name="flag">Flag</param>
         /// <returns>Index or -1</returns>
         inline u32 findQueueFamilyIndex(std::vector<vk::QueueFamilyProperties> const& queueFamilyProperties, vk::QueueFlagBits const flag) {
-            std::vector<VkQueueFlagBits> flags = {VK_QUEUE_COMPUTE_BIT, VK_QUEUE_TRANSFER_BIT, VK_QUEUE_GRAPHICS_BIT, VK_QUEUE_SPARSE_BINDING_BIT,
-                                                  VK_QUEUE_PROTECTED_BIT};
+            // clang-format off
+            std::vector<VkQueueFlagBits> flags = {
+                VK_QUEUE_COMPUTE_BIT, VK_QUEUE_TRANSFER_BIT, VK_QUEUE_GRAPHICS_BIT, 
+				VK_QUEUE_SPARSE_BINDING_BIT, VK_QUEUE_PROTECTED_BIT
+			};
+            // clang-format on
             core::Logger LOGGER = core::Logger::GetInstance<Utilities>();
 
             // Calculate value of flags whitout flag parameter
@@ -232,8 +236,12 @@ namespace ao::vulkan {
         /// <param name="physicalDevice">vk::PhysicalDevice</param>
         /// <returns>vk::Format</returns>
         inline vk::Format getSupportedDepthFormat(vk::PhysicalDevice const& physicalDevice) {
-            std::vector<vk::Format> formats = {vk::Format::eD32SfloatS8Uint, vk::Format::eD32Sfloat, vk::Format::eD24UnormS8Uint,
-                                               vk::Format::eD16UnormS8Uint, vk::Format::eD16Unorm};
+            // clang-format off
+            std::vector<vk::Format> formats = {
+				vk::Format::eD32SfloatS8Uint, vk::Format::eD32Sfloat, vk::Format::eD24UnormS8Uint,
+                vk::Format::eD16UnormS8Uint, vk::Format::eD16Unorm
+			};
+            // clang-format on
 
             for (auto& format : formats) {
                 vk::FormatProperties formatProps = physicalDevice.getFormatProperties(format);

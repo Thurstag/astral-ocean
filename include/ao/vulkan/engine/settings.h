@@ -13,17 +13,17 @@
 
 namespace ao::vulkan {
     namespace settings {
-        static const std::string WindowWidth = "window.width";
-        static const std::string WindowHeight = "window.height";
-        static const std::string WindowVsync = "window.vsync";
+        constexpr char* WindowWidth = "window.width";
+        constexpr char* WindowHeight = "window.height";
+        constexpr char* WindowVsync = "window.vsync";
 
-        static const std::string AppName = "application.name";
-        static const std::string AppVersion = "application.version";
+        constexpr char* AppName = "application.name";
+        constexpr char* AppVersion = "application.version";
 
-        static const std::string EngineName = "engine.name";
-        static const std::string EngineVersion = "engine.version";
+        constexpr char* EngineName = "engine.name";
+        constexpr char* EngineVersion = "engine.version";
 
-        static const std::string ValidationLayers = "vulkan.validation_layers";
+        constexpr char* ValidationLayers = "vulkan.validation_layers";
     };  // namespace settings
 
     /// <summary>

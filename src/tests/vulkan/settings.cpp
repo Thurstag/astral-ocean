@@ -4,6 +4,11 @@
 
 #include <ao/vulkan/engine/settings.h>
 #include <gtest/gtest.h>
+#include <boost/log/core.hpp>
+#include <boost/log/trivial.hpp>
+#include <boost/log/utility/setup.hpp>
+#include <boost/log/utility/setup/common_attributes.hpp>
+#include <boost/log/utility/setup/formatter_parser.hpp>
 
 #include "../helpers/tests.h"
 
@@ -38,6 +43,17 @@ namespace ao::test {
     }
 
     TEST(EngineSettings, WrongCast) {
-        // TODO: When logger is enhanced
+        // Create a new output for logger
+        std::stringbuf ss;
+        std::ostream os(&ss);
+        boost::log::add_console_log(os, boost::log::keywords::format = "%Message%", boost::log::keywords::auto_flush = true);
+
+        vulkan::EngineSettings s;
+        s.get<bool>("test") = false;
+
+        s.get<uint32_t>("test");
+
+        // Assert log
+        ASSERT_TRUE(ss.str().find("Cast") != std::string::npos);
     }
 }  // namespace ao::test

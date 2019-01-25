@@ -11,6 +11,10 @@
 #include "logger_instance.hpp"
 
 namespace ao::core {
+    namespace logger {
+        constexpr char* DefaultFormat = "[%TimeStamp%] [Thread-%ThreadID%] [%Severity%] %Message%";
+    }
+
     /// <summary>
     /// Wrapper for Boost::log
     /// </summary>
@@ -45,16 +49,22 @@ namespace ao::core {
         };
 
         /// <summary>
-        /// Method to init logger
-        /// </summary>
-        static void Init();
-
-        /// <summary>
         /// Operator <<
         /// </summary>
         /// <param name="level">Level</param>
         /// <returns>LoggerInstance</returns>
         LoggerInstance operator<<(Level const level) const;
+
+        /// <summary>
+        /// Method to init logger
+        /// </summary>
+        static void Init();
+
+        /// <summary>
+        /// Method to know if logger is initiated
+        /// </summary>
+        /// <returns>Initiated</returns>
+        static bool Initiated();
 
         /// <summary>
         /// Method to set minimum level
@@ -63,6 +73,8 @@ namespace ao::core {
         static void SetMinLevel(Level const level);
 
        protected:
+        static bool initiated_;
+
         LoggerInstance::Data data;
     };
 }  // namespace ao::core

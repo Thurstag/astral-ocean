@@ -54,7 +54,7 @@ void ao::vulkan::Engine::initVulkan() {
     this->device->depth_format = ao::vulkan::utilities::getSupportedDepthFormat(this->device->physical);
 
     // Create swapChain
-    this->swapchain = std::make_shared<ao::vulkan::SwapChain>(this->instance, this->device);
+    this->swapchain = std::make_shared<ao::vulkan::Swapchain>(this->instance, this->device);
 }
 
 void ao::vulkan::Engine::freeVulkan() {
@@ -65,29 +65,18 @@ void ao::vulkan::Engine::freeVulkan() {
     for (auto& pool : this->descriptorPools) {
         this->device->logical.destroyDescriptorPool(pool);
     }
-    this->descriptorPools.clear();
+
     for (auto& layout : this->descriptorSetLayouts) {
         this->device->logical.destroyDescriptorSetLayout(layout);
     }
-    this->descriptorSetLayouts.clear();
 
     this->device->logical.destroyRenderPass(this->renderPass);
-
-    for (auto& frameBuffer : this->frames) {
-        this->device->logical.destroyFramebuffer(frameBuffer);
-    }
-    this->frames.clear();
 
     this->device->logical.destroyImageView(std::get<2>(this->stencil_buffer));
     this->device->logical.destroyImage(std::get<0>(this->stencil_buffer));
     this->device->logical.freeMemory(std::get<1>(this->stencil_buffer));
 
     this->semaphores.clear();
-
-    for (auto& fence : this->waiting_fences) {
-        this->device->logical.destroyFence(fence);
-    }
-    this->waiting_fences.clear();
 
     this->device.reset();
 
@@ -116,56 +105,45 @@ void ao::vulkan::Engine::setUpDebugging() {
         return;
     }
 
-    VkDebugReportCallbackCreateInfoEXT createInfo =
+    VkDebugReportCallbackCreateInfoEXT create_info =
         vk::DebugReportCallbackCreateInfoEXT(this->debugReportFlags(), ao::vulkan::Engine::DebugReportCallBack);
     VkDebugReportCallbackEXT callback;
 
     // Create callback
-    CreateDebugReportCallback(*this->instance, &createInfo, nullptr, &callback);
+    CreateDebugReportCallback(*this->instance, &create_info, nullptr, &callback);
 
     // Update real callback
     this->debug_callBack = vk::DebugReportCallbackEXT(callback);
 }
 
-void ao::vulkan::Engine::createWaitingFences() {
-    // Resize vector
-    this->waiting_fences.resize(this->swapchain->buffers.size());
-
-    // Create fences
-    for (auto& fence : this->waiting_fences) {
-        fence = this->device->logical.createFence(vk::FenceCreateInfo(vk::FenceCreateFlagBits::eSignaled));
-    }
-}
-
 void ao::vulkan::Engine::createStencilBuffer() {
     // Create info
-    vk::ImageCreateInfo imageInfo(vk::ImageCreateFlags(), vk::ImageType::e2D, this->device->depth_format,
-                                  vk::Extent3D(static_cast<u32>(this->settings_->get<u64>(ao::vulkan::settings::WindowWidth)),
-                                               static_cast<u32>(this->settings_->get<u64>(ao::vulkan::settings::WindowHeight)), 1),
-                                  1, 1, vk::SampleCountFlagBits::e1, vk::ImageTiling::eOptimal,
-                                  vk::ImageUsageFlagBits::eDepthStencilAttachment | vk::ImageUsageFlagBits::eTransferSrc);
+    vk::ImageCreateInfo image_info(vk::ImageCreateFlags(), vk::ImageType::e2D, this->device->depth_format,
+                                   vk::Extent3D(static_cast<u32>(this->settings_->get<u64>(ao::vulkan::settings::WindowWidth)),
+                                                static_cast<u32>(this->settings_->get<u64>(ao::vulkan::settings::WindowHeight)), 1),
+                                   1, 1, vk::SampleCountFlagBits::e1, vk::ImageTiling::eOptimal,
+                                   vk::ImageUsageFlagBits::eDepthStencilAttachment | vk::ImageUsageFlagBits::eTransferSrc);
 
-    vk::MemoryAllocateInfo allocInfo;
-
-    vk::ImageViewCreateInfo depthStencilView(
+    vk::ImageViewCreateInfo depth_stencil_info(
         vk::ImageViewCreateFlags(), vk::Image(), vk::ImageViewType::e2D, this->device->depth_format, vk::ComponentMapping(),
         vk::ImageSubresourceRange(vk::ImageAspectFlagBits::eDepth | vk::ImageAspectFlagBits::eStencil, 0, 1, 0, 1));
 
     // Create image
-    std::get<0>(this->stencil_buffer) = this->device->logical.createImage(imageInfo);
+    std::get<0>(this->stencil_buffer) = this->device->logical.createImage(image_info);
 
     // Get memory requirements
-    vk::MemoryRequirements memReqs = this->device->logical.getImageMemoryRequirements(std::get<0>(this->stencil_buffer));
-    allocInfo.setAllocationSize(memReqs.size);
-    allocInfo.setMemoryTypeIndex(this->device->memoryType(memReqs.memoryTypeBits, vk::MemoryPropertyFlagBits::eDeviceLocal));
+    vk::MemoryAllocateInfo alloc_info;
+    vk::MemoryRequirements mem_requirements = this->device->logical.getImageMemoryRequirements(std::get<0>(this->stencil_buffer));
+    alloc_info.setAllocationSize(mem_requirements.size);
+    alloc_info.setMemoryTypeIndex(this->device->memoryType(mem_requirements.memoryTypeBits, vk::MemoryPropertyFlagBits::eDeviceLocal));
 
     // Allocate memory
-    std::get<1>(this->stencil_buffer) = this->device->logical.allocateMemory(allocInfo);
+    std::get<1>(this->stencil_buffer) = this->device->logical.allocateMemory(alloc_info);
     this->device->logical.bindImageMemory(std::get<0>(this->stencil_buffer), std::get<1>(this->stencil_buffer), 0);
 
     // Create image view
-    depthStencilView.setImage(std::get<0>(this->stencil_buffer));
-    std::get<2>(this->stencil_buffer) = this->device->logical.createImageView(depthStencilView);
+    depth_stencil_info.setImage(std::get<0>(this->stencil_buffer));
+    std::get<2>(this->stencil_buffer) = this->device->logical.createImageView(depth_stencil_info);
 }
 
 void ao::vulkan::Engine::createRenderPass() {
@@ -174,27 +152,6 @@ void ao::vulkan::Engine::createRenderPass() {
     // Check render pass
     if (!this->renderPass) {
         throw ao::core::Exception("Fail to create render pass");
-    }
-}
-
-void ao::vulkan::Engine::setUpFrameBuffers() {
-    std::array<vk::ImageView, 2> attachments;
-
-    // Depth/Stencil attachment is the same for all frame buffers
-    attachments[1] = std::get<2>(this->stencil_buffer);
-
-    // Create info
-    vk::FramebufferCreateInfo frameBufferCreateInfo(vk::FramebufferCreateFlags(), renderPass, static_cast<u32>(attachments.size()),
-                                                    attachments.data(),
-                                                    static_cast<u32>(this->settings_->get<u64>(ao::vulkan::settings::WindowWidth)),
-                                                    static_cast<u32>(this->settings_->get<u64>(ao::vulkan::settings::WindowHeight)), 1);
-
-    // Create frame buffers
-    this->frames.resize(this->swapchain->buffers.size());
-    for (u32 i = 0; i < frames.size(); i++) {
-        attachments[0] = this->swapchain->buffers[i].second;
-
-        this->frames[i] = this->device->logical.createFramebuffer(frameBufferCreateInfo);
     }
 }
 
@@ -208,11 +165,8 @@ void ao::vulkan::Engine::recreateSwapChain() {
     // Destroy render pass
     this->device->logical.destroyRenderPass(this->renderPass);
 
-    // Destroy frame buffers
-    for (auto& frameBuffer : this->frames) {
-        this->device->logical.destroyFramebuffer(frameBuffer);
-    }
-    this->frames.clear();
+    // Destroy framebuffers
+    this->swapchain->destroyFramebuffers();
 
     // Destroy stencil buffer
     this->device->logical.destroyImageView(std::get<2>(this->stencil_buffer));
@@ -241,8 +195,8 @@ void ao::vulkan::Engine::recreateSwapChain() {
     // Create pipelines
     this->createPipelines();
 
-    // Set-up frame buffers
-    this->setUpFrameBuffers();
+    // Create framebuffers
+    this->swapchain->createFramebuffers(this->renderPass, this->stencil_buffer);
 
     // Wait device idle
     this->device->logical.waitIdle();
@@ -276,16 +230,16 @@ void ao::vulkan::Engine::createSemaphores() {
     this->semaphores = SemaphoreContainer(this->device);
 
     // Create semaphores
-    vk::Semaphore acquireSem = this->device->logical.createSemaphore(vk::SemaphoreCreateInfo());
-    vk::Semaphore renderSem = this->device->logical.createSemaphore(vk::SemaphoreCreateInfo());
+    vk::Semaphore acquire = this->device->logical.createSemaphore(vk::SemaphoreCreateInfo());
+    vk::Semaphore render = this->device->logical.createSemaphore(vk::SemaphoreCreateInfo());
 
     // Fill container
-    this->semaphores["acquireNextImage"].signals.push_back(acquireSem);
+    this->semaphores["acquireNextImage"].signals.push_back(acquire);
 
-    this->semaphores["graphicQueue"].waits.push_back(acquireSem);
-    this->semaphores["graphicQueue"].signals.push_back(renderSem);
+    this->semaphores["graphicQueue"].waits.push_back(acquire);
+    this->semaphores["graphicQueue"].signals.push_back(render);
 
-    this->semaphores["presentQueue"].waits.push_back(renderSem);
+    this->semaphores["presentQueue"].waits.push_back(render);
 }
 
 void ao::vulkan::Engine::prepareVulkan() {
@@ -296,19 +250,14 @@ void ao::vulkan::Engine::prepareVulkan() {
     // Create semaphores
     this->createSemaphores();
 
-    // Init command pool
-    this->swapchain->initCommandPool();
-
     // Init swap chain
     this->swapchain->init(this->settings_->get<u64>(ao::vulkan::settings::WindowWidth), this->settings_->get<u64>(ao::vulkan::settings::WindowHeight),
                           this->settings_->get(ao::vulkan::settings::WindowVsync, std::make_optional<bool>(false)));
+    this->swapchain->prepare();
 
     // Create command buffers
     this->swapchain->createCommandBuffers();
     this->createSecondaryCommandBuffers();
-
-    // Create waiting fences
-    this->createWaitingFences();
 
     // Create stencil buffer
     this->createStencilBuffer();
@@ -329,8 +278,8 @@ void ao::vulkan::Engine::prepareVulkan() {
     this->createDescriptorPools();
     this->createDescriptorSets();
 
-    // Set-up frame buffer
-    this->setUpFrameBuffers();
+    // Create framebuffers
+    this->swapchain->createFramebuffers(this->renderPass, this->stencil_buffer);
 }
 
 std::shared_ptr<ao::vulkan::EngineSettings> ao::vulkan::Engine::settings() const {
@@ -349,8 +298,10 @@ void ao::vulkan::Engine::loop() {
 }
 
 void ao::vulkan::Engine::render() {
+    vk::Fence& fence = this->swapchain->currentFence();
+
     // Wait fence
-    this->device->logical.waitForFences(this->waiting_fences[this->frameBufferIndex], VK_TRUE, (std::numeric_limits<u64>::max)());
+    this->device->logical.waitForFences(fence, VK_TRUE, (std::numeric_limits<u64>::max)());
 
     // Prepare frame
     this->prepareFrame();
@@ -364,22 +315,22 @@ void ao::vulkan::Engine::render() {
     // Create submit info
     vk::SubmitInfo submitInfo(static_cast<u32>(this->semaphores["graphicQueue"].waits.size()),
                               this->semaphores["graphicQueue"].waits.empty() ? nullptr : this->semaphores["graphicQueue"].waits.data(),
-                              &this->pipeline->submit_pipeline_stages, 1, &this->swapchain->commands["primary"].buffers[this->frameBufferIndex],
+                              &this->pipeline->submit_pipeline_stages, 1, &this->swapchain->commands["primary"].buffers[this->swapchain->frame_index],
                               static_cast<u32>(this->semaphores["graphicQueue"].signals.size()),
                               this->semaphores["graphicQueue"].signals.empty() ? nullptr : this->semaphores["graphicQueue"].signals.data());
 
     // Reset fence
-    this->device->logical.resetFences(this->waiting_fences[this->frameBufferIndex]);
+    this->device->logical.resetFences(fence);
 
     // Submit command buffer
-    this->device->queues[vk::QueueFlagBits::eGraphics].queue.submit(submitInfo, this->waiting_fences[this->frameBufferIndex]);
+    this->device->queues[vk::QueueFlagBits::eGraphics].queue.submit(submitInfo, fence);
 
     // Submit frame
     this->submitFrame();
 }
 
 void ao::vulkan::Engine::prepareFrame() {
-    vk::Result result = this->swapchain->nextImage(this->semaphores["acquireNextImage"].signals.front(), this->frameBufferIndex);
+    vk::Result result = this->swapchain->nextImage(this->semaphores["acquireNextImage"].signals.front());
 
     // Check result
     if (result == vk::Result::eErrorOutOfDateKHR || result == vk::Result::eSuboptimalKHR) {
@@ -392,7 +343,7 @@ void ao::vulkan::Engine::prepareFrame() {
 }
 
 void ao::vulkan::Engine::submitFrame() {
-    vk::Result result = this->swapchain->enqueueImage(this->frameBufferIndex, this->semaphores["presentQueue"].waits);
+    vk::Result result = this->swapchain->enqueueImage(this->semaphores["presentQueue"].waits);
 
     // Check result
     if (result == vk::Result::eErrorOutOfDateKHR) {
@@ -406,31 +357,30 @@ void ao::vulkan::Engine::submitFrame() {
 
 void ao::vulkan::Engine::updateCommandBuffers() {
     // Get current command buffer/frame
-    vk::CommandBuffer& currentCommand = this->swapchain->commands["primary"].buffers[this->frameBufferIndex];
-    std::mutex cmdMutex;
+    vk::CommandBuffer& command = this->swapchain->commands["primary"].buffers[this->swapchain->frame_index];
+    vk::Framebuffer& frame = this->swapchain->currentFrame();
 
     // Create info
-    vk::CommandBufferBeginInfo beginInfo(vk::CommandBufferUsageFlagBits::eRenderPassContinue);
+    vk::CommandBufferBeginInfo begin_info(vk::CommandBufferUsageFlagBits::eRenderPassContinue);
 
     std::array<vk::ClearValue, 2> clearValues;
     clearValues[0].setColor(vk::ClearColorValue());
     clearValues[1].setDepthStencil(vk::ClearDepthStencilValue(1));
 
-    vk::RenderPassBeginInfo renderPassInfo(this->renderPass, this->frames[this->frameBufferIndex],
-                                           vk::Rect2D().setExtent(this->swapchain->current_extent), static_cast<u32>(clearValues.size()),
-                                           clearValues.data());
+    vk::RenderPassBeginInfo render_pass_info(this->renderPass, frame, vk::Rect2D().setExtent(this->swapchain->current_extent),
+                                             static_cast<u32>(clearValues.size()), clearValues.data());
 
-    currentCommand.begin(&beginInfo);
-    currentCommand.beginRenderPass(renderPassInfo, vk::SubpassContents::eSecondaryCommandBuffers);
+    command.begin(&begin_info);
+    command.beginRenderPass(render_pass_info, vk::SubpassContents::eSecondaryCommandBuffers);
     {
         // Create inheritance info for the secondary command buffers
-        vk::CommandBufferInheritanceInfo inheritanceInfo(this->renderPass, 0, this->frames[this->frameBufferIndex]);
+        vk::CommandBufferInheritanceInfo inheritance(this->renderPass, 0, frame);
 
         // Execute secondary command buffers
-        this->executeSecondaryCommandBuffers(inheritanceInfo, this->frameBufferIndex, currentCommand);
+        this->executeSecondaryCommandBuffers(inheritance, this->swapchain->frame_index, command);
     }
-    currentCommand.endRenderPass();
-    currentCommand.end();
+    command.endRenderPass();
+    command.end();
 }
 
 std::vector<char const*> ao::vulkan::Engine::deviceExtensions() const {
@@ -459,7 +409,7 @@ VKAPI_ATTR VkBool32 VKAPI_CALL ao::vulkan::Engine::DebugReportCallBack(VkDebugRe
                                                                        void* pUserData) {
     ao::core::Logger LOGGER = core::Logger::GetInstance<ao::vulkan::Engine>();
     // clang-format off
-    std::array<vk::DebugReportFlagBitsEXT, 5> Allflags = {
+    std::array<vk::DebugReportFlagBitsEXT, 5> all_flags = {
 		vk::DebugReportFlagBitsEXT::eError, vk::DebugReportFlagBitsEXT::eWarning,
         vk::DebugReportFlagBitsEXT::eDebug, vk::DebugReportFlagBitsEXT::eInformation,
         vk::DebugReportFlagBitsEXT::ePerformanceWarning
@@ -469,7 +419,7 @@ VKAPI_ATTR VkBool32 VKAPI_CALL ao::vulkan::Engine::DebugReportCallBack(VkDebugRe
     // Find best flag
     vk::DebugReportFlagsEXT _flags(flags);
     std::optional<vk::DebugReportFlagBitsEXT> flag;
-    for (auto& _flag : Allflags) {
+    for (auto& _flag : all_flags) {
         if ((_flags & _flag) && (!flag || flag.value() < _flag)) {
             flag = _flag;
         }

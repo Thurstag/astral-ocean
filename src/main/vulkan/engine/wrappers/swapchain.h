@@ -16,14 +16,17 @@
 
 namespace ao::vulkan {
     /// <summary>
-    /// Wrapper for vulkan swap chain
+    /// Wrapper for vulkan swapchain
     /// </summary>
-    struct SwapChain {
+    struct Swapchain {
        public:
         std::vector<std::pair<vk::Image, vk::ImageView>> buffers;
-        vk::SwapchainKHR swapChain;
+        std::vector<vk::Fence> waiting_fences;
+        std::vector<vk::Framebuffer> frames;
+        vk::SwapchainKHR swapchain;
         vk::Queue present_queue;
         vk::SurfaceKHR surface;
+        u32 frame_index;
 
         CommandBufferContainer commands;
         vk::CommandPool command_pool;
@@ -37,54 +40,81 @@ namespace ao::vulkan {
         /// </summary>
         /// <param name="instance">Instance</param>
         /// <param name="device">Device</param>
-        SwapChain(std::weak_ptr<vk::Instance> instance, std::weak_ptr<Device> device);
+        Swapchain(std::weak_ptr<vk::Instance> instance, std::weak_ptr<Device> device);
 
         /// <summary>
         /// Destructor
         /// </summary>
-        virtual ~SwapChain();
+        virtual ~Swapchain();
 
         /// <summary>
         /// Method to init swap chain
         /// </summary>
-        /// <param name="width">Width</param>
-        /// <param name="height">Height</param>
+        /// <param name="win_width">Window's width</param>
+        /// <param name="win_height">Window's height</param>
         /// <param name="vsync">Vsync enabled or not</param>
-        void init(u64& width, u64& height, bool vsync);
+        void init(u64& win_width, u64& win_height, bool vsync);
+
         /// <summary>
         /// Method to init surface
         /// </summary>
         void initSurface();
+
         /// <summary>
-        /// Method to init command pool
+        /// Method to prepare swapchain
         /// </summary>
-        void initCommandPool();
+        void prepare();
 
         /// <summary>
         /// Method to create command buffers
         /// </summary>
         void createCommandBuffers();
+
+        /// <summary>
+        /// Method to create framebuffers
+        /// </summary>
+        /// <param name="render_pass">Render pass</param>
+        /// <param name="stencil_buffer">Stencil buffer</param>
+        void createFramebuffers(vk::RenderPass& render_pass,
+                                std::optional<std::tuple<vk::Image, vk::DeviceMemory, vk::ImageView>> const& stencil_buffer);
+
         /// <summary>
         /// Method to free command buffers
         /// </summary>
         void freeCommandBuffers();
 
         /// <summary>
+        /// Method to destroy framebuffers
+        /// </summary>
+        void destroyFramebuffers();
+
+        /// <summary>
+        /// Method to get current fence
+        /// </summary>
+        /// <returns>Current fence</returns>
+        vk::Fence& currentFence();
+
+        /// <summary>
+        /// Method to get current frame
+        /// </summary>
+        /// <returns>Current Frame</returns>
+        vk::Framebuffer& currentFrame();
+
+        /// <summary>
         /// Method to get next image
         /// </summary>
-        /// <param name="acquire">Acquire semaphore (Signal semaphore)</param>
-        /// <param name="imageIndex">Image index</param>
-        vk::Result nextImage(vk::Semaphore& acquire, u32& imageIndex);
+        /// <param name="acquire">Acquire semaphore</param>
+        vk::Result nextImage(vk::Semaphore& acquire);
+
         /// <summary>
         /// Method to enqueue an image
         /// </summary>
-        /// <param name="imageIndex">ImageIndex</param>
-        /// <param name="waitSemaphores">Waiting semaphores</param>
+        /// <param name="waiting_semaphores">Waiting semaphores</param>
         /// <returns>Result</returns>
-        vk::Result enqueueImage(u32& imageIndex, std::vector<vk::Semaphore>& waitSemaphores);
+        vk::Result enqueueImage(std::vector<vk::Semaphore>& waiting_semaphores);
 
        protected:
-        core::Logger LOGGER = core::Logger::GetInstance<SwapChain>();
+        core::Logger LOGGER = core::Logger::GetInstance<Swapchain>();
 
         std::weak_ptr<vk::Instance> instance;
         std::weak_ptr<Device> device;

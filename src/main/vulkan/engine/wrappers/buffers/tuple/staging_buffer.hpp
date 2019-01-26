@@ -15,9 +15,9 @@ namespace ao::vulkan {
         /// Constructor
         /// </summary>
         /// <param name="device">Device</param>
-        /// <param name="usage">Usage</param>
+        /// <param name="usage_flags">Usage</param>
         /// <param name="memory_barrier">Bind memory barrier on transfer</param>
-        StagingTupleBuffer(std::weak_ptr<Device> device, vk::CommandBufferUsageFlags usage = vk::CommandBufferUsageFlagBits::eSimultaneousUse,
+        StagingTupleBuffer(std::weak_ptr<Device> device, vk::CommandBufferUsageFlags usage_flags = vk::CommandBufferUsageFlagBits::eSimultaneousUse,
                            bool memory_barrier = false);
 
         /// <summary>
@@ -31,10 +31,10 @@ namespace ao::vulkan {
         /// If object already stores a buffer, it will free the old one
         /// </summary>
         /// <param name="sizes">Fragment sizes</param>
-        /// <param name="usageFlags">Usage flags</param>
+        /// <param name="usage_flags">Usage flags</param>
         /// <returns>This</returns>
         StagingTupleBuffer<T...>* init(std::initializer_list<vk::DeviceSize> const& sizes,
-                                       std::optional<vk::BufferUsageFlags> usageFlags = std::nullopt);
+                                       std::optional<vk::BufferUsageFlags> usage_flags = std::nullopt);
 
         TupleBuffer<T...>* update(T const*... data) override;
         TupleBuffer<T...>* updateFragment(std::size_t index, void* const data) override;
@@ -46,12 +46,12 @@ namespace ao::vulkan {
     };
 
     template<class... T>
-    StagingTupleBuffer<T...>::StagingTupleBuffer(std::weak_ptr<Device> device, vk::CommandBufferUsageFlags usage, bool memory_barrier)
-        : TupleBuffer<T...>(device), StagingBuffer(device, usage, memory_barrier) {}
+    StagingTupleBuffer<T...>::StagingTupleBuffer(std::weak_ptr<Device> device, vk::CommandBufferUsageFlags usage_flags, bool memory_barrier)
+        : TupleBuffer<T...>(device), StagingBuffer(device, usage_flags, memory_barrier) {}
 
     template<class... T>
     StagingTupleBuffer<T...>* StagingTupleBuffer<T...>::init(std::initializer_list<vk::DeviceSize> const& sizes,
-                                                             std::optional<vk::BufferUsageFlags> usageFlags) {
+                                                             std::optional<vk::BufferUsageFlags> usage_flags) {
         if (this->hasBuffer()) {
             this->free();
         }
@@ -65,7 +65,7 @@ namespace ao::vulkan {
         // Init buffer in device's memory
         this->device_buffer = std::shared_ptr<TupleBuffer<T...>>(
             (new BasicTupleBuffer<T...>(StagingBuffer::device))
-                ->init(usageFlags ? vk::BufferUsageFlagBits::eTransferDst | usageFlags.value() : vk::BufferUsageFlagBits::eTransferDst,
+                ->init(usage_flags ? vk::BufferUsageFlagBits::eTransferDst | usage_flags.value() : vk::BufferUsageFlagBits::eTransferDst,
                        vk::SharingMode::eExclusive, vk::MemoryPropertyFlagBits::eDeviceLocal, sizes));
 
         auto _device = ao::core::shared(StagingBuffer::device);

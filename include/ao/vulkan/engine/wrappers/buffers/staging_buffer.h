@@ -13,10 +13,10 @@ namespace ao::vulkan {
         /// Constructor
         /// </summary>
         /// <param name="device">Device</param>
-        /// <param name="usage">Usage</param>
-        /// <param name="memoryBarrier">Bind memory barrier on transfer</param>
-        StagingBuffer(std::weak_ptr<Device> device, vk::CommandBufferUsageFlags usage = vk::CommandBufferUsageFlagBits::eSimultaneousUse,
-                      bool memoryBarrier = false);
+        /// <param name="usage_flags">Usage</param>
+        /// <param name="memory_barrier">Bind memory barrier on transfer</param>
+        StagingBuffer(std::weak_ptr<Device> device, vk::CommandBufferUsageFlags usage_flags = vk::CommandBufferUsageFlagBits::eSimultaneousUse,
+                      bool memory_barrier = false);
 
         /// <summary>
         /// Destructor
@@ -42,14 +42,13 @@ namespace ao::vulkan {
         bool hasBuffer() const override;
 
        protected:
-        vk::CommandBufferUsageFlags usage;
+        vk::CommandBufferUsageFlags cmd_usage;
+        vk::CommandBuffer command_buffer;
         bool memory_barrier;
+        vk::Fence fence;
 
         std::shared_ptr<Buffer> device_buffer;
         std::shared_ptr<Buffer> host_buffer;
-
-        vk::CommandBuffer command_buffer;
-        vk::Fence fence;
 
         /// <summary>
         /// Method to synchronize host & device memories

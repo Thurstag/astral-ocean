@@ -49,23 +49,23 @@ namespace ao::vulkan {
         /// <summary>
         ///	Method to init logical device
         /// </summary>
-        /// <param name="deviceExtensions">Extensions</param>
-        /// <param name="deviceFeatures">Features</param>
+        /// <param name="device_extensions">Extensions</param>
+        /// <param name="device_features">Features</param>
         /// <param name="qflags">Queue Flags</param>
-        /// <param name="defaultQueue">Default queue for queue container</param>
+        /// <param name="default_queue">Default queue for queue container</param>
         /// <param name="cflags">CommandPool Flags</param>
-        /// <param name="swapChain">Enable swapChain</param>
-        void initLogicalDevice(std::vector<char const*> deviceExtensions, std::vector<vk::PhysicalDeviceFeatures> const& deviceFeatures,
+        /// <param name="swapchain_support">Enable swapchain_support</param>
+        void initLogicalDevice(std::vector<char const*> device_extensions, std::vector<vk::PhysicalDeviceFeatures> const& device_features,
                                vk::QueueFlags qflags, vk::CommandPoolCreateFlags cflags,
-                               vk::QueueFlagBits defaultQueue = vk::QueueFlagBits::eGraphics, bool swapChain = true);
+                               vk::QueueFlagBits default_queue = vk::QueueFlagBits::eGraphics, bool swapchain_support = true);
 
         /// <summary>
         /// Method to get memory type
         /// </summary>
-        /// <param name="typeBits">Type bits</param>
+        /// <param name="type_bits">Type bits</param>
         /// <param name="properties">Properties</param>
         /// <returns>Index</returns>
-        u32 memoryType(u32 typeBits, vk::MemoryPropertyFlags properties) const;
+        u32 memoryType(u32 type_bits, vk::MemoryPropertyFlags properties) const;
 
        protected:
         core::Logger LOGGER = core::Logger::GetInstance<Device>();

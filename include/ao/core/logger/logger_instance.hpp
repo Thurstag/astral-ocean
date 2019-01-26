@@ -34,9 +34,9 @@ namespace ao::core {
         /// <summary>
         /// Constructor
         /// </summary>
-        /// <param name="_level">Level</param>
-        /// <param name="_data">Data</param>
-        explicit LoggerInstance(boost::log::trivial::severity_level const& _level, Data const& _data) : level(_level), data(_data) {}
+        /// <param name="level">Level</param>
+        /// <param name="data">Data</param>
+        LoggerInstance(boost::log::trivial::severity_level const& level, Data const& data) : level(level), data(data) {}
 
         /// <summary>
         /// Destructor
@@ -67,32 +67,32 @@ namespace ao::core {
         s << object;
 
         // Add more info
-        std::string _message = fmt::format("{0} - {1}", this->data.class_, s.str());
+        std::string message = fmt::format("{0} - {1}", this->data.class_, s.str());
 
         // Log
         switch (this->level) {
             case boost::log::trivial::trace:
-                BOOST_LOG_TRIVIAL(trace) << _message;
+                BOOST_LOG_TRIVIAL(trace) << message;
                 break;
 
             case boost::log::trivial::debug:
-                BOOST_LOG_TRIVIAL(debug) << _message;
+                BOOST_LOG_TRIVIAL(debug) << message;
                 break;
 
             case boost::log::trivial::info:
-                BOOST_LOG_TRIVIAL(info) << _message;
+                BOOST_LOG_TRIVIAL(info) << message;
                 break;
 
             case boost::log::trivial::warning:
-                BOOST_LOG_TRIVIAL(warning) << _message;
+                BOOST_LOG_TRIVIAL(warning) << message;
                 break;
 
             case boost::log::trivial::error:
-                BOOST_LOG_TRIVIAL(error) << _message;
+                BOOST_LOG_TRIVIAL(error) << message;
                 break;
 
             case boost::log::trivial::fatal:
-                BOOST_LOG_TRIVIAL(fatal) << _message;
+                BOOST_LOG_TRIVIAL(fatal) << message;
                 break;
 
             default:

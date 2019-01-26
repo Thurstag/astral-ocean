@@ -19,10 +19,11 @@ namespace ao::vulkan {
         /// </summary>
         /// <param name="count">Count</param>
         /// <param name="device">Device</param>
-        /// <param name="usage">Usage</param>
+        /// <param name="usage_flags">Usage</param>
         /// <param name="memory_barrier">Bind memory barrier on transfer</param>
         StagingDynamicArrayBuffer(size_t count, std::weak_ptr<Device> device,
-                                  vk::CommandBufferUsageFlags usage = vk::CommandBufferUsageFlagBits::eSimultaneousUse, bool memory_barrier = false);
+                                  vk::CommandBufferUsageFlags usage_flags = vk::CommandBufferUsageFlagBits::eSimultaneousUse,
+                                  bool memory_barrier = false);
 
         /// <summary>
         /// Destructor
@@ -35,9 +36,9 @@ namespace ao::vulkan {
         /// If object already stores a buffer, it will free the old one
         /// </summary>
         /// <param name="size">Fragment size</param>
-        /// <param name="usageFlags">Usage flags</param>
+        /// <param name="usage_flags">Usage flags</param>
         /// <returns>This</returns>
-        StagingDynamicArrayBuffer<T>* init(vk::DeviceSize size, std::optional<vk::BufferUsageFlags> usageFlags = std::nullopt);
+        StagingDynamicArrayBuffer<T>* init(vk::DeviceSize size, std::optional<vk::BufferUsageFlags> usage_flags = std::nullopt);
 
         DynamicArrayBuffer<T>* update(std::vector<T> const& data) override;
         DynamicArrayBuffer<T>* updateFragment(std::size_t index, T const* data) override;
@@ -49,12 +50,12 @@ namespace ao::vulkan {
     };
 
     template<class T>
-    StagingDynamicArrayBuffer<T>::StagingDynamicArrayBuffer(size_t count, std::weak_ptr<Device> device, vk::CommandBufferUsageFlags usage,
+    StagingDynamicArrayBuffer<T>::StagingDynamicArrayBuffer(size_t count, std::weak_ptr<Device> device, vk::CommandBufferUsageFlags usage_flags,
                                                             bool memory_barrier)
-        : DynamicArrayBuffer<T>(count, device), StagingBuffer(device, usage, memory_barrier) {}
+        : DynamicArrayBuffer<T>(count, device), StagingBuffer(device, usage_flags, memory_barrier) {}
 
     template<class T>
-    StagingDynamicArrayBuffer<T>* StagingDynamicArrayBuffer<T>::init(vk::DeviceSize size, std::optional<vk::BufferUsageFlags> usageFlags) {
+    StagingDynamicArrayBuffer<T>* StagingDynamicArrayBuffer<T>::init(vk::DeviceSize size, std::optional<vk::BufferUsageFlags> usage_flags) {
         if (this->hasBuffer()) {
             this->free();
         }
@@ -68,7 +69,7 @@ namespace ao::vulkan {
         // Init buffer in device's memory
         this->device_buffer = std::shared_ptr<DynamicArrayBuffer<T>>(
             (new BasicDynamicArrayBuffer<T>(this->count, StagingBuffer::device))
-                ->init(usageFlags ? vk::BufferUsageFlagBits::eTransferDst | usageFlags.value() : vk::BufferUsageFlagBits::eTransferDst,
+                ->init(usage_flags ? vk::BufferUsageFlagBits::eTransferDst | usage_flags.value() : vk::BufferUsageFlagBits::eTransferDst,
                        vk::SharingMode::eExclusive, vk::MemoryPropertyFlagBits::eDeviceLocal, size));
 
         auto _device = ao::core::shared(StagingBuffer::device);
@@ -147,9 +148,9 @@ namespace ao::vulkan {
         /// Constructor
         /// </summary>
         /// <param name="device">Device</param>
-        /// <param name="usage">Usage</param>
+        /// <param name="usage_flags">Usage</param>
         /// <param name="memory_barrier">Bind memory barrier on transfer</param>
-        StagingArrayBuffer(std::weak_ptr<Device> device, vk::CommandBufferUsageFlags usage = vk::CommandBufferUsageFlagBits::eSimultaneousUse,
+        StagingArrayBuffer(std::weak_ptr<Device> device, vk::CommandBufferUsageFlags usage_flags = vk::CommandBufferUsageFlagBits::eSimultaneousUse,
                            bool memory_barrier = false);
 
         /// <summary>
@@ -163,9 +164,9 @@ namespace ao::vulkan {
         /// If object already stores a buffer, it will free the old one
         /// </summary>
         /// <param name="size">Fragment size</param>
-        /// <param name="usageFlags">Usage flags</param>
+        /// <param name="usage_flags">Usage flags</param>
         /// <returns>This</returns>
-        StagingArrayBuffer<T, N>* init(vk::DeviceSize size, std::optional<vk::BufferUsageFlags> usageFlags = std::nullopt);
+        StagingArrayBuffer<T, N>* init(vk::DeviceSize size, std::optional<vk::BufferUsageFlags> usage_flags = std::nullopt);
 
         ArrayBuffer<T, N>* update(std::array<T, N> const& data) override;
         ArrayBuffer<T, N>* updateFragment(std::size_t index, T const* data) override;
@@ -177,11 +178,11 @@ namespace ao::vulkan {
     };
 
     template<class T, size_t N>
-    StagingArrayBuffer<T, N>::StagingArrayBuffer(std::weak_ptr<Device> device, vk::CommandBufferUsageFlags usage, bool memory_barrier)
-        : ArrayBuffer<T, N>(device), StagingBuffer(device, usage, memory_barrier) {}
+    StagingArrayBuffer<T, N>::StagingArrayBuffer(std::weak_ptr<Device> device, vk::CommandBufferUsageFlags usage_flags, bool memory_barrier)
+        : ArrayBuffer<T, N>(device), StagingBuffer(device, usage_flags, memory_barrier) {}
 
     template<class T, size_t N>
-    StagingArrayBuffer<T, N>* StagingArrayBuffer<T, N>::init(vk::DeviceSize size, std::optional<vk::BufferUsageFlags> usageFlags) {
+    StagingArrayBuffer<T, N>* StagingArrayBuffer<T, N>::init(vk::DeviceSize size, std::optional<vk::BufferUsageFlags> usage_flags) {
         if (this->hasBuffer()) {
             this->free();
         }
@@ -195,7 +196,7 @@ namespace ao::vulkan {
         // Init buffer in device's memory
         this->device_buffer = std::shared_ptr<ArrayBuffer<T, N>>(
             (new BasicArrayBuffer<T, N>(StagingBuffer::device))
-                ->init(usageFlags ? vk::BufferUsageFlagBits::eTransferDst | usageFlags.value() : vk::BufferUsageFlagBits::eTransferDst,
+                ->init(usage_flags ? vk::BufferUsageFlagBits::eTransferDst | usage_flags.value() : vk::BufferUsageFlagBits::eTransferDst,
                        vk::SharingMode::eExclusive, vk::MemoryPropertyFlagBits::eDeviceLocal, size));
 
         auto _device = ao::core::shared(StagingBuffer::device);

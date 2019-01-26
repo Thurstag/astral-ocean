@@ -81,7 +81,6 @@ foreach(SUBMODULE ${SUBMODULES})
 	add_subdirectory("${AO_LIB_SUBMODULES_DIR}/${SUBMODULE}")
 	include_directories(${${SUBMODULE}_INCLUDE_DIR})
 endforeach(SUBMODULE)
-include_directories("${AO_LIB_SUBMODULES_DIR}/CTPL/")
 
 # Include lib headers
 include_directories(${AO_INCLUDE_DIR})

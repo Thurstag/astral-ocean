@@ -45,12 +45,12 @@ namespace ao::vulkan {
         ///
         /// If object already stores a buffer, it will free the old one
         /// </summary>
-        /// <param name="usageFlags">Usage flags</param>
-        /// <param name="sharingMode">Sharing mode</param>
+        /// <param name="usage_flags">Usage flags</param>
+        /// <param name="sharing_mode">Sharing mode</param>
         /// <param name="memory_flags">Memory flags</param>
         /// <param name="sizes">Fragment sizes</param>
         /// <returns>This</returns>
-        BasicTupleBuffer<T...>* init(vk::BufferUsageFlags usageFlags, vk::SharingMode sharingMode, vk::MemoryPropertyFlags memoryFlags,
+        BasicTupleBuffer<T...>* init(vk::BufferUsageFlags usage_flags, vk::SharingMode sharing_mode, vk::MemoryPropertyFlags memory_flags,
                                      std::initializer_list<vk::DeviceSize> const& sizes);
 
         TupleBuffer<T...>* update(T const*... data) override;
@@ -104,9 +104,9 @@ namespace ao::vulkan {
         }
 
         auto _device = ao::core::shared(this->device);
-        u64 offset = 0;
 
         // Map each fragment
+        u64 offset = 0;
         for (size_t i = 0; i < sizeof...(T); i++) {
             this->fragments[i].second = _device->logical.mapMemory(this->memory, offset, this->fragments[i].first);
 
@@ -119,8 +119,8 @@ namespace ao::vulkan {
     }
 
     template<class... T>
-    BasicTupleBuffer<T...>* BasicTupleBuffer<T...>::init(vk::BufferUsageFlags usageFlags, vk::SharingMode sharingMode,
-                                                         vk::MemoryPropertyFlags memoryFlags, std::initializer_list<vk::DeviceSize> const& sizes) {
+    BasicTupleBuffer<T...>* BasicTupleBuffer<T...>::init(vk::BufferUsageFlags usage_flags, vk::SharingMode sharing_mode,
+                                                         vk::MemoryPropertyFlags memory_flags, std::initializer_list<vk::DeviceSize> const& sizes) {
         if (this->hasBuffer()) {
             this->free();
         }
@@ -142,18 +142,18 @@ namespace ao::vulkan {
         this->size_ = std::accumulate(sizes.begin(), sizes.end(), vk::DeviceSize(0), std::plus<vk::DeviceSize>());
 
         // Create buffer
-        this->buffer_ = _device->logical.createBuffer(vk::BufferCreateInfo(vk::BufferCreateFlags(), this->size_, usageFlags, sharingMode));
+        this->buffer_ = _device->logical.createBuffer(vk::BufferCreateInfo(vk::BufferCreateFlags(), this->size_, usage_flags, sharing_mode));
 
         // Get memory requirements
-        vk::MemoryRequirements memRequirements = _device->logical.getBufferMemoryRequirements(this->buffer_);
+        vk::MemoryRequirements mem_requirements = _device->logical.getBufferMemoryRequirements(this->buffer_);
 
         // Allocate memory
         this->memory = _device->logical.allocateMemory(
-            vk::MemoryAllocateInfo(memRequirements.size, _device->memoryType(memRequirements.memoryTypeBits, memoryFlags)));
+            vk::MemoryAllocateInfo(mem_requirements.size, _device->memoryType(mem_requirements.memoryTypeBits, memory_flags)));
 
         // Bind memory and buffer
         _device->logical.bindBufferMemory(this->buffer_, this->memory, 0);
-        this->memory_flags = memoryFlags;
+        this->memory_flags = memory_flags;
         this->has_buffer = true;
 
         return this;

@@ -47,7 +47,7 @@ namespace ao::vulkan {
         /// </summary>
         /// <param name="index">Fragment index</param>
         /// <returns>Offset</returns>
-        virtual vk::DeviceSize offset(size_t const index) const = 0;
+        virtual vk::DeviceSize offset(size_t index) const = 0;
 
         /// <summary>
         /// Method to map buffer
@@ -58,17 +58,17 @@ namespace ao::vulkan {
         /// <summary>
         /// Method to calculate ubo size with aligment
         /// </summary>
-        /// <param name="objectSize">UBO's size</param>
+        /// <param name="size">UBO's size</param>
         /// <returns>Aligment size</returns>
-        size_t calculateUBOAligmentSize(size_t const objectSize) const;
+        size_t calculateUBOAligmentSize(size_t size) const;
 
         /// <summary>
         /// Method to calculate ubo size with aligment
         /// </summary>
         /// <param name="device">Device</param>
-        /// <param name="objectSize">UBO's size</param>
+        /// <param name="size">UBO's size</param>
         /// <returns>Aligment size</returns>
-        static size_t CalculateUBOAligmentSize(vk::PhysicalDevice const& device, size_t const objectSize);
+        static size_t CalculateUBOAligmentSize(vk::PhysicalDevice const& device, size_t size);
 
        protected:
         core::Logger LOGGER = core::Logger::GetInstance<Buffer>();

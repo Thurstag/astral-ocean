@@ -37,12 +37,12 @@ namespace ao::vulkan {
         ///
         /// If object already stores a buffer, it will free the old one
         /// </summary>
-        /// <param name="usageFlags">Usage flags</param>
-        /// <param name="sharingMode">Sharing mode</param>
+        /// <param name="usage_flags">Usage flags</param>
+        /// <param name="sharing_mode">Sharing mode</param>
         /// <param name="memory_flags">Memory flags</param>
         /// <param name="size">Fragment size</param>
         /// <returns>This</returns>
-        BasicDynamicArrayBuffer<T>* init(vk::BufferUsageFlags usageFlags, vk::SharingMode sharingMode, vk::MemoryPropertyFlags memoryFlags,
+        BasicDynamicArrayBuffer<T>* init(vk::BufferUsageFlags usage_flags, vk::SharingMode sharing_mode, vk::MemoryPropertyFlags memory_flags,
                                          vk::DeviceSize size);
 
         DynamicArrayBuffer<T>* update(std::vector<T> const& data) override;
@@ -88,8 +88,8 @@ namespace ao::vulkan {
     }
 
     template<class T>
-    BasicDynamicArrayBuffer<T>* BasicDynamicArrayBuffer<T>::init(vk::BufferUsageFlags usageFlags, vk::SharingMode sharingMode,
-                                                                 vk::MemoryPropertyFlags memoryFlags, vk::DeviceSize size) {
+    BasicDynamicArrayBuffer<T>* BasicDynamicArrayBuffer<T>::init(vk::BufferUsageFlags usage_flags, vk::SharingMode sharing_mode,
+                                                                 vk::MemoryPropertyFlags memory_flags, vk::DeviceSize size) {
         if (this->hasBuffer()) {
             this->free();
         }
@@ -99,18 +99,18 @@ namespace ao::vulkan {
         this->size_ = size * this->count;
 
         // Create buffer
-        this->buffer_ = _device->logical.createBuffer(vk::BufferCreateInfo(vk::BufferCreateFlags(), this->size_, usageFlags, sharingMode));
+        this->buffer_ = _device->logical.createBuffer(vk::BufferCreateInfo(vk::BufferCreateFlags(), this->size_, usage_flags, sharing_mode));
 
         // Get memory requirements
-        vk::MemoryRequirements memRequirements = _device->logical.getBufferMemoryRequirements(this->buffer_);
+        vk::MemoryRequirements mem_requirements = _device->logical.getBufferMemoryRequirements(this->buffer_);
 
         // Allocate memory
         this->memory = _device->logical.allocateMemory(
-            vk::MemoryAllocateInfo(memRequirements.size, _device->memoryType(memRequirements.memoryTypeBits, memoryFlags)));
+            vk::MemoryAllocateInfo(mem_requirements.size, _device->memoryType(mem_requirements.memoryTypeBits, memory_flags)));
 
         // Bind memory and buffer
         _device->logical.bindBufferMemory(this->buffer_, this->memory, 0);
-        this->memory_flags = memoryFlags;
+        this->memory_flags = memory_flags;
         this->has_buffer = true;
 
         return this;
@@ -228,12 +228,12 @@ namespace ao::vulkan {
         ///
         /// If object already stores a buffer, it will free the old one
         /// </summary>
-        /// <param name="usageFlags">Usage flags</param>
-        /// <param name="sharingMode">Sharing mode</param>
+        /// <param name="usage_flags">Usage flags</param>
+        /// <param name="sharing_mode">Sharing mode</param>
         /// <param name="memory_flags">Memory flags</param>
         /// <param name="size">Fragment size</param>
         /// <returns>This</returns>
-        BasicArrayBuffer<T, N>* init(vk::BufferUsageFlags usageFlags, vk::SharingMode sharingMode, vk::MemoryPropertyFlags memoryFlags,
+        BasicArrayBuffer<T, N>* init(vk::BufferUsageFlags usage_flags, vk::SharingMode sharing_mode, vk::MemoryPropertyFlags memory_flags,
                                      vk::DeviceSize size);
 
         ArrayBuffer<T, N>* update(std::array<T, N> const& data) override;
@@ -244,18 +244,18 @@ namespace ao::vulkan {
         ArrayBuffer<T, N>* map() override;
 
        protected:
-        vk::MemoryPropertyFlags memoryFlags;
+        vk::MemoryPropertyFlags memory_flags;
 
         vk::DeviceMemory memory;
         vk::DeviceSize size_;
         vk::Buffer buffer_;
 
-        bool hasMapper;
+        bool has_mapper;
         void* mapper;
     };
 
     template<class T, size_t N>
-    BasicArrayBuffer<T, N>::BasicArrayBuffer(std::weak_ptr<Device> device) : ArrayBuffer<T, N>(device), hasMapper(false) {}
+    BasicArrayBuffer<T, N>::BasicArrayBuffer(std::weak_ptr<Device> device) : ArrayBuffer<T, N>(device), has_mapper(false) {}
 
     template<class T, size_t N>
     BasicArrayBuffer<T, N>::~BasicArrayBuffer() {
@@ -266,9 +266,9 @@ namespace ao::vulkan {
     void BasicArrayBuffer<T, N>::free() {
         auto _device = ao::core::shared(this->device);
 
-        if (this->hasMapper) {
+        if (this->has_mapper) {
             _device->logical.unmapMemory(this->memory);
-            this->hasMapper = false;
+            this->has_mapper = false;
         }
         if (this->has_buffer) {
             _device->logical.destroyBuffer(this->buffer_);
@@ -278,8 +278,8 @@ namespace ao::vulkan {
     }
 
     template<class T, size_t N>
-    BasicArrayBuffer<T, N>* BasicArrayBuffer<T, N>::init(vk::BufferUsageFlags usageFlags, vk::SharingMode sharingMode,
-                                                         vk::MemoryPropertyFlags memoryFlags, vk::DeviceSize size) {
+    BasicArrayBuffer<T, N>* BasicArrayBuffer<T, N>::init(vk::BufferUsageFlags usage_flags, vk::SharingMode sharing_mode,
+                                                         vk::MemoryPropertyFlags memory_flags, vk::DeviceSize size) {
         if (this->hasBuffer()) {
             this->free();
         }
@@ -289,18 +289,18 @@ namespace ao::vulkan {
         this->size_ = size * N;
 
         // Create buffer
-        this->buffer_ = _device->logical.createBuffer(vk::BufferCreateInfo(vk::BufferCreateFlags(), this->size_, usageFlags, sharingMode));
+        this->buffer_ = _device->logical.createBuffer(vk::BufferCreateInfo(vk::BufferCreateFlags(), this->size_, usage_flags, sharing_mode));
 
         // Get memory requirements
-        vk::MemoryRequirements memRequirements = _device->logical.getBufferMemoryRequirements(this->buffer_);
+        vk::MemoryRequirements mem_requirements = _device->logical.getBufferMemoryRequirements(this->buffer_);
 
         // Allocate memory
         this->memory = _device->logical.allocateMemory(
-            vk::MemoryAllocateInfo(memRequirements.size, _device->memoryType(memRequirements.memoryTypeBits, memoryFlags)));
+            vk::MemoryAllocateInfo(mem_requirements.size, _device->memoryType(mem_requirements.memoryTypeBits, memory_flags)));
 
         // Bind memory and buffer
         _device->logical.bindBufferMemory(this->buffer_, this->memory, 0);
-        this->memoryFlags = memoryFlags;
+        this->memory_flags = memory_flags;
         this->has_buffer = true;
 
         return this;
@@ -313,7 +313,7 @@ namespace ao::vulkan {
         }
 
         // Map memory
-        if (!this->hasMapper) {
+        if (!this->has_mapper) {
             this->map();
         }
 
@@ -323,7 +323,7 @@ namespace ao::vulkan {
         }
 
         // Notify changes
-        if (!(this->memoryFlags & vk::MemoryPropertyFlagBits::eHostCoherent)) {
+        if (!(this->memory_flags & vk::MemoryPropertyFlagBits::eHostCoherent)) {
             ao::core::shared(this->device)->logical.flushMappedMemoryRanges(vk::MappedMemoryRange(this->memory, 0, this->size_));
         }
 
@@ -342,7 +342,7 @@ namespace ao::vulkan {
         }
 
         // Map memory
-        if (!this->hasMapper) {
+        if (!this->has_mapper) {
             this->map();
         }
 
@@ -350,7 +350,7 @@ namespace ao::vulkan {
         std::memcpy((void*)((u64)this->mapper + (index * this->size_ / N)), data, this->size_ / N);
 
         // Notify changes
-        if (!(this->memoryFlags & vk::MemoryPropertyFlagBits::eHostCoherent)) {
+        if (!(this->memory_flags & vk::MemoryPropertyFlagBits::eHostCoherent)) {
             ao::core::shared(this->device)
                 ->logical.flushMappedMemoryRanges(vk::MappedMemoryRange(this->memory, this->offset(index), this->size_ / N));
         }
@@ -378,14 +378,14 @@ namespace ao::vulkan {
 
     template<class T, size_t N>
     ArrayBuffer<T, N>* BasicArrayBuffer<T, N>::map() {
-        if (this->hasMapper) {
+        if (this->has_mapper) {
             throw ao::core::Exception("Buffer is already mapped");
         }
 
         // Map entire buffer
         this->mapper = ao::core::shared(this->device)->logical.mapMemory(this->memory, 0, this->size_);
 
-        this->hasMapper = true;
+        this->has_mapper = true;
         return this;
     }
 }  // namespace ao::vulkan

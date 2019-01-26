@@ -49,6 +49,6 @@ namespace ao::core {
         }
 
        protected:
-        std::optional<boost::stacktrace::stacktrace> stack;
+        std::optional<boost::stacktrace::stacktrace> stacktrace;
     };
 }  // namespace ao::core

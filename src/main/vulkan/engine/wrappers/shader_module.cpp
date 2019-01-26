@@ -2,7 +2,7 @@
 // Licensed under GPLv3 or any later version
 // Refer to the LICENSE.md file included.
 
-#include "shadermodule.h"
+#include "shader_module.h"
 
 ao::vulkan::ShaderModule::ShaderModule(std::weak_ptr<Device> device) : device(device) {}
 
@@ -27,14 +27,14 @@ std::vector<char> ao::vulkan::ShaderModule::read(std::string const& filename) {
     }
 
     // Get size
-    size_t fileSize = static_cast<size_t>(file.tellg());
+    size_t size = static_cast<size_t>(file.tellg());
 
     // Resize vector
-    vector.resize(fileSize);
+    vector.resize(size);
 
     // Rollback to start & copy into vector
     file.seekg(0);
-    file.read(vector.data(), fileSize);
+    file.read(vector.data(), size);
 
     // Close file
     file.close();

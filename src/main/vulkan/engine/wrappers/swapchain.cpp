@@ -6,29 +6,37 @@
 
 #include "swapchain.h"
 
-ao::vulkan::SwapChain::SwapChain(std::weak_ptr<vk::Instance> instance, std::weak_ptr<Device> device)
-    : instance(instance), device(device), commands(device) {}
+ao::vulkan::Swapchain::Swapchain(std::weak_ptr<vk::Instance> instance, std::weak_ptr<Device> device)
+    : instance(instance), device(device), commands(device), frame_index(0) {}
 
-ao::vulkan::SwapChain::~SwapChain() {
+ao::vulkan::Swapchain::~Swapchain() {
     auto _device = ao::core::shared(this->device);
 
     for (auto& buffer : this->buffers) {
         _device->logical.destroyImageView(buffer.second);
     }
-    this->buffers.clear();
 
-    _device->logical.destroySwapchainKHR(this->swapChain);
+    _device->logical.destroySwapchainKHR(this->swapchain);
     if (auto _instance = ao::core::shared(this->instance)) {
         _instance->destroySurfaceKHR(this->surface);
     }
 
     this->freeCommandBuffers();
     _device->logical.destroyCommandPool(this->command_pool);
+
+    for (auto& framebuffer : this->frames) {
+        _device->logical.destroyFramebuffer(framebuffer);
+    }
+
+    for (auto& fence : this->waiting_fences) {
+        _device->logical.destroyFence(fence);
+    }
+    this->waiting_fences.clear();
 }
 
-void ao::vulkan::SwapChain::init(u64& width, u64& height, bool vsync) {
+void ao::vulkan::Swapchain::init(u64& win_width, u64& win_height, bool vsync) {
     // Back-up swap chain
-    vk::SwapchainKHR old = this->swapChain;
+    vk::SwapchainKHR old = this->swapchain;
 
     auto _device = ao::core::shared(this->device);
 
@@ -37,49 +45,49 @@ void ao::vulkan::SwapChain::init(u64& width, u64& height, bool vsync) {
 
     // Find best swap chain size
     if (capabilities.currentExtent.width == (u32)-1) {
-        this->current_extent = vk::Extent2D(static_cast<u32>(width), static_cast<u32>(height));
+        this->current_extent = vk::Extent2D(static_cast<u32>(win_width), static_cast<u32>(win_height));
     } else {
-        if (capabilities.currentExtent.width != width || capabilities.currentExtent.height != height) {
+        if (capabilities.currentExtent.width != win_width || capabilities.currentExtent.height != win_height) {
             LOGGER << ao::core::Logger::Level::warning
-                   << fmt::format("Surface size is defined, change reference size from {0}x{1} to {2}x{3}", width, height,
+                   << fmt::format("Surface size is defined, change reference size from {0}x{1} to {2}x{3}", win_width, win_height,
                                   capabilities.currentExtent.width, capabilities.currentExtent.height);
         }
 
         this->current_extent = capabilities.currentExtent;
-        width = capabilities.currentExtent.width;
-        height = capabilities.currentExtent.height;
+        win_width = capabilities.currentExtent.width;
+        win_height = capabilities.currentExtent.height;
     }
 
     // Select best present mode
-    vk::PresentModeKHR presentMode = vk::PresentModeKHR::eFifo;
+    vk::PresentModeKHR present_mode = vk::PresentModeKHR::eFifo;
     if (vsync) {
-        presentMode = vk::PresentModeKHR::eFifo;
+        present_mode = vk::PresentModeKHR::eFifo;
     } else {
         // Get present modes
-        std::vector<vk::PresentModeKHR> presentModes = ao::vulkan::utilities::presentModeKHRs(_device->physical, this->surface);
+        std::vector<vk::PresentModeKHR> present_modes = ao::vulkan::utilities::presentModeKHRs(_device->physical, this->surface);
 
         // Check size
-        if (presentModes.empty()) {
+        if (present_modes.empty()) {
             throw ao::core::Exception("vk::PresentModeKHR vector is empty");
         }
 
-        for (auto& mode : presentModes) {
+        for (auto& mode : present_modes) {
             if (mode == vk::PresentModeKHR::eMailbox) {
-                presentMode = vk::PresentModeKHR::eMailbox;
+                present_mode = vk::PresentModeKHR::eMailbox;
                 break;
             }
             if (mode == vk::PresentModeKHR::eImmediate) {
-                presentMode = vk::PresentModeKHR::eImmediate;
+                present_mode = vk::PresentModeKHR::eImmediate;
             }
         }
     }
 
-    LOGGER << ao::core::Logger::Level::info << fmt::format("Use present mode: {0}", ao::vulkan::utilities::to_string(presentMode));
+    LOGGER << ao::core::Logger::Level::info << fmt::format("Use present mode: {0}", ao::vulkan::utilities::to_string(present_mode));
 
     // Determine surface image capacity
-    u32 countSurfaceImages = capabilities.minImageCount + 1;
-    if (capabilities.maxImageCount > 0 && countSurfaceImages > capabilities.maxImageCount) {
-        countSurfaceImages = capabilities.maxImageCount;
+    u32 surface_images_count = capabilities.minImageCount + 1;
+    if (capabilities.maxImageCount > 0 && surface_images_count > capabilities.maxImageCount) {
+        surface_images_count = capabilities.maxImageCount;
     }
 
     // Find the transformation of the surface
@@ -89,33 +97,33 @@ void ao::vulkan::SwapChain::init(u64& width, u64& height, bool vsync) {
     }
 
     // Find a supported composite alpha format
-    vk::CompositeAlphaFlagBitsKHR compositeAlpha = vk::CompositeAlphaFlagBitsKHR::eOpaque;
+    vk::CompositeAlphaFlagBitsKHR composite_alpha = vk::CompositeAlphaFlagBitsKHR::eOpaque;
     for (auto composite : {vk::CompositeAlphaFlagBitsKHR::eOpaque, vk::CompositeAlphaFlagBitsKHR::ePreMultiplied,
                            vk::CompositeAlphaFlagBitsKHR::ePostMultiplied, vk::CompositeAlphaFlagBitsKHR::eInherit}) {
         if (capabilities.supportedCompositeAlpha & composite) {
-            compositeAlpha = composite;
+            composite_alpha = composite;
             break;
         }
     }
 
     // Create info
-    vk::SwapchainCreateInfoKHR createInfo(vk::SwapchainCreateFlagsKHR(), surface, countSurfaceImages, color_format, color_space,
-                                          vk::Extent2D(this->current_extent.width, this->current_extent.height), 1,
-                                          vk::ImageUsageFlagBits::eColorAttachment, vk::SharingMode::eExclusive, 0, nullptr, transform,
-                                          compositeAlpha, presentMode, true, old);
+    vk::SwapchainCreateInfoKHR create_info(vk::SwapchainCreateFlagsKHR(), surface, surface_images_count, color_format, color_space,
+                                           vk::Extent2D(this->current_extent.width, this->current_extent.height), 1,
+                                           vk::ImageUsageFlagBits::eColorAttachment, vk::SharingMode::eExclusive, 0, nullptr, transform,
+                                           composite_alpha, present_mode, true, old);
 
     // Enable transfer source
     if (capabilities.supportedUsageFlags & vk::ImageUsageFlagBits::eTransferSrc) {
-        createInfo.imageUsage |= vk::ImageUsageFlagBits::eTransferSrc;
+        create_info.imageUsage |= vk::ImageUsageFlagBits::eTransferSrc;
     }
 
     // Enable transfer destination
     if (capabilities.supportedUsageFlags & vk::ImageUsageFlagBits::eTransferDst) {
-        createInfo.imageUsage |= vk::ImageUsageFlagBits::eTransferDst;
+        create_info.imageUsage |= vk::ImageUsageFlagBits::eTransferDst;
     }
 
     // Create swap chain
-    this->swapChain = _device->logical.createSwapchainKHR(createInfo);
+    this->swapchain = _device->logical.createSwapchainKHR(create_info);
 
     // Free old swap chain
     if (old) {
@@ -126,7 +134,7 @@ void ao::vulkan::SwapChain::init(u64& width, u64& height, bool vsync) {
     }
 
     // Get images
-    std::vector<vk::Image> images = ao::vulkan::utilities::swapChainImages(_device->logical, this->swapChain);
+    std::vector<vk::Image> images = ao::vulkan::utilities::swapChainImages(_device->logical, this->swapchain);
 
     // Resize buffer vector
     this->buffers.resize(images.size());
@@ -134,7 +142,7 @@ void ao::vulkan::SwapChain::init(u64& width, u64& height, bool vsync) {
     // Fill buffer vector
     for (size_t i = 0; i < images.size(); i++) {
         // Create info
-        vk::ImageViewCreateInfo colorCreateInfo(
+        vk::ImageViewCreateInfo color_info(
             vk::ImageViewCreateFlags(), images[i], vk::ImageViewType::e2D, color_format,
             vk::ComponentMapping(vk::ComponentSwizzle::eR, vk::ComponentSwizzle::eG, vk::ComponentSwizzle::eB, vk::ComponentSwizzle::eA),
             vk::ImageSubresourceRange(vk::ImageAspectFlagBits::eColor, 0, 1, 0, 1));
@@ -143,13 +151,13 @@ void ao::vulkan::SwapChain::init(u64& width, u64& height, bool vsync) {
         buffers[i].first = images[i];
 
         // Create view
-        this->buffers[i].second = _device->logical.createImageView(colorCreateInfo);
+        this->buffers[i].second = _device->logical.createImageView(color_info);
     }
 
     LOGGER << ao::core::Logger::Level::debug << fmt::format("Set-up a swap chain of {0} image{1}", buffers.size(), buffers.size() > 1 ? "s" : "");
 }
 
-void ao::vulkan::SwapChain::initSurface() {
+void ao::vulkan::Swapchain::initSurface() {
     auto _device = ao::core::shared(this->device);
 
     // Detect if a queue supports present
@@ -207,14 +215,23 @@ void ao::vulkan::SwapChain::initSurface() {
     }
 }
 
-void ao::vulkan::SwapChain::initCommandPool() {
+void ao::vulkan::Swapchain::prepare() {
     auto _device = ao::core::shared(this->device);
+
+    /* WAITING FENCES */
+
+    this->waiting_fences.resize(this->buffers.size());
+    for (auto& fence : this->waiting_fences) {
+        fence = _device->logical.createFence(vk::FenceCreateInfo(vk::FenceCreateFlagBits::eSignaled));
+    }
+
+    /* COMMAND POOL */
 
     this->command_pool = _device->logical.createCommandPool(
         vk::CommandPoolCreateInfo(vk::CommandPoolCreateFlagBits::eResetCommandBuffer, _device->queues[vk::QueueFlagBits::eGraphics].index));
 }
 
-void ao::vulkan::SwapChain::createCommandBuffers() {
+void ao::vulkan::Swapchain::createCommandBuffers() {
     // Allocate buffers
     std::vector<vk::CommandBuffer> buffers = ao::core::shared(this->device)
                                                  ->logical.allocateCommandBuffers(vk::CommandBufferAllocateInfo(
@@ -224,19 +241,58 @@ void ao::vulkan::SwapChain::createCommandBuffers() {
     this->commands["primary"] = ao::vulkan::structs::CommandData(buffers, this->command_pool);
 }
 
-void ao::vulkan::SwapChain::freeCommandBuffers() {
+void ao::vulkan::Swapchain::createFramebuffers(vk::RenderPass& render_pass,
+                                               std::optional<std::tuple<vk::Image, vk::DeviceMemory, vk::ImageView>> const& stencil_buffer) {
+    auto _device = ao::core::shared(this->device);
+
+    std::array<vk::ImageView, 2> attachments;
+
+    // Depth/Stencil attachment is the same for all framebuffers
+    attachments[1] = std::get<2>(*stencil_buffer);
+
+    // Create info
+    vk::FramebufferCreateInfo create_info(vk::FramebufferCreateFlags(), render_pass, static_cast<u32>(attachments.size()), attachments.data(),
+                                          this->current_extent.width, this->current_extent.height, 1);
+
+    // Create framebuffers
+    this->frames.resize(this->buffers.size());
+    for (u32 i = 0; i < frames.size(); i++) {
+        attachments[0] = this->buffers[i].second;
+
+        this->frames[i] = _device->logical.createFramebuffer(create_info);
+    }
+}
+
+void ao::vulkan::Swapchain::freeCommandBuffers() {
     this->commands.clear();
 }
 
-vk::Result ao::vulkan::SwapChain::nextImage(vk::Semaphore& acquire, u32& imageIndex) {
-    return ao::core::shared(this->device)
-        ->logical.acquireNextImageKHR(this->swapChain, (std::numeric_limits<u64>::max)(), acquire, nullptr, &imageIndex);
+void ao::vulkan::Swapchain::destroyFramebuffers() {
+    auto _device = ao::core::shared(this->device);
+
+    for (auto& frame : this->frames) {
+        _device->logical.destroyFramebuffer(frame);
+    }
+    this->frames.clear();
 }
 
-vk::Result ao::vulkan::SwapChain::enqueueImage(u32& imageIndex, std::vector<vk::Semaphore>& waitSemaphores) {
-    vk::PresentInfoKHR presentInfo(static_cast<u32>(waitSemaphores.size()), waitSemaphores.empty() ? nullptr : waitSemaphores.data(), 1,
-                                   &this->swapChain, &imageIndex);
+vk::Fence& ao::vulkan::Swapchain::currentFence() {
+    return this->waiting_fences[this->frame_index];
+}
+
+vk::Framebuffer& ao::vulkan::Swapchain::currentFrame() {
+    return this->frames[this->frame_index];
+}
+
+vk::Result ao::vulkan::Swapchain::nextImage(vk::Semaphore& acquire) {
+    return ao::core::shared(this->device)
+        ->logical.acquireNextImageKHR(this->swapchain, (std::numeric_limits<u64>::max)(), acquire, nullptr, &this->frame_index);
+}
+
+vk::Result ao::vulkan::Swapchain::enqueueImage(std::vector<vk::Semaphore>& waitSemaphores) {
+    vk::PresentInfoKHR present_info(static_cast<u32>(waitSemaphores.size()), waitSemaphores.empty() ? nullptr : waitSemaphores.data(), 1,
+                                    &this->swapchain, &this->frame_index);
 
     // Pass a pointer to don't trigger an exception
-    return this->present_queue.presentKHR(&presentInfo);
+    return this->present_queue.presentKHR(&present_info);
 }

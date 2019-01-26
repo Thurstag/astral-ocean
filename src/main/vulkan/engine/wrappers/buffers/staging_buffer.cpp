@@ -4,8 +4,8 @@
 
 #include "staging_buffer.h"
 
-ao::vulkan::StagingBuffer::StagingBuffer(std::weak_ptr<Device> device, vk::CommandBufferUsageFlags usage, bool memory_barrier)
-    : ao::vulkan::Buffer(device), usage(usage), memory_barrier(memory_barrier) {}
+ao::vulkan::StagingBuffer::StagingBuffer(std::weak_ptr<Device> device, vk::CommandBufferUsageFlags cmd_usage, bool memory_barrier)
+    : ao::vulkan::Buffer(device), cmd_usage(cmd_usage), memory_barrier(memory_barrier) {}
 
 ao::vulkan::StagingBuffer::~StagingBuffer() {
     auto _device = ao::core::shared(this->device);
@@ -57,7 +57,7 @@ void ao::vulkan::StagingBuffer::sync() {
     auto _device = ao::core::shared(this->device);
 
     // Create command to transfer data from host to device
-    this->command_buffer.begin(vk::CommandBufferBeginInfo(this->usage));
+    this->command_buffer.begin(vk::CommandBufferBeginInfo(this->cmd_usage));
     {
         // Memory barrier
         if (this->memory_barrier) {

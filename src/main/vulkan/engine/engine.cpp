@@ -412,9 +412,13 @@ void ao::vulkan::Engine::updateCommandBuffers() {
     // Create info
     vk::CommandBufferBeginInfo beginInfo(vk::CommandBufferUsageFlagBits::eRenderPassContinue);
 
-    vk::RenderPassBeginInfo renderPassInfo(this->renderPass, this->frames[this->frameBufferIndex], this->swapchain->command_helpers.second,
-                                           static_cast<u32>(this->swapchain->command_helpers.first.size()),
-                                           this->swapchain->command_helpers.first.data());
+    std::array<vk::ClearValue, 2> clearValues;
+    clearValues[0].setColor(vk::ClearColorValue());
+    clearValues[1].setDepthStencil(vk::ClearDepthStencilValue(1));
+
+    vk::RenderPassBeginInfo renderPassInfo(this->renderPass, this->frames[this->frameBufferIndex],
+                                           vk::Rect2D().setExtent(this->swapchain->current_extent), static_cast<u32>(clearValues.size()),
+                                           clearValues.data());
 
     currentCommand.begin(&beginInfo);
     currentCommand.beginRenderPass(renderPassInfo, vk::SubpassContents::eSecondaryCommandBuffers);

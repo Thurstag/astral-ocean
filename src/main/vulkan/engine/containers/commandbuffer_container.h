@@ -25,7 +25,7 @@ namespace ao::vulkan {
             /// </summary>
             /// <param name="buffers">Buffers</param>
             /// <param name="pool">Pool</param>
-            explicit CommandData(std::vector<vk::CommandBuffer> const& buffers, vk::CommandPool const& pool) : buffers(buffers), pool(pool) {}
+            explicit CommandData(std::vector<vk::CommandBuffer> buffers, vk::CommandPool pool) : buffers(buffers), pool(pool) {}
         };
     }  // namespace structs
 

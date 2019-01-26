@@ -13,27 +13,25 @@ ao::vulkan::SemaphoreContainer::~SemaphoreContainer() {
 }
 
 void ao::vulkan::SemaphoreContainer::clear() {
-    std::vector<vk::Semaphore> cleared;
+    auto _device = ao::core::shared(this->device);
+    std::vector<vk::Semaphore> destroyed;
 
     // Destroy semaphores
-    if (auto _device = ao::core::shared(this->device)) {
-        for (auto& pair : map) {
-            for (auto& semaphore : pair.second.waits) {
-                if (std::find(cleared.begin(), cleared.end(), semaphore) == cleared.end()) {
-                    _device->logical.destroySemaphore(semaphore);
-                    cleared.push_back(semaphore);
-                }
+    for (auto& [key, value] : map) {
+        for (auto& semaphore : value.waits) {
+            if (std::find(destroyed.begin(), destroyed.end(), semaphore) == destroyed.end()) {
+                _device->logical.destroySemaphore(semaphore);
+                destroyed.push_back(semaphore);
             }
-            for (auto& semaphore : pair.second.signals) {
-                if (std::find(cleared.begin(), cleared.end(), semaphore) == cleared.end()) {
-                    _device->logical.destroySemaphore(semaphore);
-                    cleared.push_back(semaphore);
-                }
+        }
+        for (auto& semaphore : value.signals) {
+            if (std::find(destroyed.begin(), destroyed.end(), semaphore) == destroyed.end()) {
+                _device->logical.destroySemaphore(semaphore);
+                destroyed.push_back(semaphore);
             }
         }
     }
 
     // Clear map
     this->map.clear();
-    cleared.clear();
 }

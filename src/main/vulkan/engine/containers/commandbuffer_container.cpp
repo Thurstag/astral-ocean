@@ -15,10 +15,11 @@ ao::vulkan::CommandBufferContainer::~CommandBufferContainer() {
 }
 
 void ao::vulkan::CommandBufferContainer::clear() {
-    if (auto _device = ao::core::shared(this->device)) {
-        for (auto& pair : this->map) {
-            _device->logical.freeCommandBuffers(pair.second.pool, pair.second.buffers);
-        }
-        this->map.clear();
+    auto _device = ao::core::shared(this->device);
+
+    // Free command buffers
+    for (auto& [key, value] : this->map) {
+        _device->logical.freeCommandBuffers(value.pool, value.buffers);
     }
+    this->map.clear();
 }

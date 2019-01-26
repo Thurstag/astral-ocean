@@ -14,14 +14,14 @@
 
 namespace ao::vulkan {
     /// <summary>
-    /// Wrapper for vulkan pipelines
+    /// Wrapper for vulkan pipelines (TODO: Refactor me)
     /// </summary>
     struct Pipeline {
        public:
         vk::PipelineStageFlags submit_pipeline_stages;
-
         std::vector<vk::PipelineLayout> layouts;
         std::vector<vk::Pipeline> pipelines;
+
         vk::PipelineCache cache;
 
         /// <summary>

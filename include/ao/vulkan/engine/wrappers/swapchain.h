@@ -21,17 +21,16 @@ namespace ao::vulkan {
     struct SwapChain {
        public:
         std::vector<std::pair<vk::Image, vk::ImageView>> buffers;
-        vk::Queue present_queue;
         vk::SwapchainKHR swapChain;
+        vk::Queue present_queue;
+        vk::SurfaceKHR surface;
 
-        std::pair<std::array<vk::ClearValue, 2>, vk::Rect2D> command_helpers;
         CommandBufferContainer commands;
         vk::CommandPool command_pool;
 
         vk::ColorSpaceKHR color_space;
         vk::Extent2D current_extent;
         vk::Format color_format;
-        vk::SurfaceKHR surface;
 
         /// <summary>
         /// Constructor

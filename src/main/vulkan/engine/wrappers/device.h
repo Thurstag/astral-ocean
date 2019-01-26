@@ -26,9 +26,9 @@ namespace ao::vulkan {
         QueueContainer queues;
 
         std::vector<vk::ExtensionProperties> extensions;
+        vk::Format depth_format;
 
         vk::PhysicalDevice physical;
-        vk::Format depth_format;
         vk::Device logical;
 
         /// <summary>

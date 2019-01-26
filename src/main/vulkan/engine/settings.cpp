@@ -7,11 +7,9 @@
 #include <algorithm>
 
 ao::vulkan::EngineSettings::~EngineSettings() {
-    for (auto& pair : this->values) {
-        free(pair.second.second);
+    for (auto& [key, value] : this->values) {
+        free(value.second);
     }
-
-    this->values.clear();
 }
 
 bool ao::vulkan::EngineSettings::exists(std::string const& key) const {

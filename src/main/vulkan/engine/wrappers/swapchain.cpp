@@ -7,27 +7,23 @@
 #include "swapchain.h"
 
 ao::vulkan::SwapChain::SwapChain(std::weak_ptr<vk::Instance> instance, std::weak_ptr<Device> device)
-    : instance(instance), device(device), commands(device) {
-    // Init helpers
-    this->command_helpers.first[0].setColor(vk::ClearColorValue());
-    this->command_helpers.first[1].setDepthStencil(vk::ClearDepthStencilValue(1));
-}
+    : instance(instance), device(device), commands(device) {}
 
 ao::vulkan::SwapChain::~SwapChain() {
-    if (auto _device = ao::core::shared(this->device)) {
-        for (auto& buffer : this->buffers) {
-            _device->logical.destroyImageView(buffer.second);
-        }
-        this->buffers.clear();
+    auto _device = ao::core::shared(this->device);
 
-        _device->logical.destroySwapchainKHR(this->swapChain);
-        if (auto _instance = ao::core::shared(this->instance)) {
-            _instance->destroySurfaceKHR(this->surface);
-        }
-
-        this->freeCommandBuffers();
-        _device->logical.destroyCommandPool(this->command_pool);
+    for (auto& buffer : this->buffers) {
+        _device->logical.destroyImageView(buffer.second);
     }
+    this->buffers.clear();
+
+    _device->logical.destroySwapchainKHR(this->swapChain);
+    if (auto _instance = ao::core::shared(this->instance)) {
+        _instance->destroySurfaceKHR(this->surface);
+    }
+
+    this->freeCommandBuffers();
+    _device->logical.destroyCommandPool(this->command_pool);
 }
 
 void ao::vulkan::SwapChain::init(u64& width, u64& height, bool vsync) {
@@ -151,9 +147,6 @@ void ao::vulkan::SwapChain::init(u64& width, u64& height, bool vsync) {
     }
 
     LOGGER << ao::core::Logger::Level::debug << fmt::format("Set-up a swap chain of {0} image{1}", buffers.size(), buffers.size() > 1 ? "s" : "");
-
-    // Update helpers
-    this->command_helpers.second = vk::Rect2D(vk::Offset2D(), this->current_extent);
 }
 
 void ao::vulkan::SwapChain::initSurface() {
@@ -167,11 +160,11 @@ void ao::vulkan::SwapChain::initSurface() {
 
     // Try to find a queue that supports present
     std::optional<vk::QueueFlagBits> flag;
-    for (auto& pair : _device->queues) {
-        if (supportsPresent[pair.second.index] == VK_TRUE) {
-            flag = pair.first;
+    for (auto& [key, value] : _device->queues) {
+        if (supportsPresent[value.index] == VK_TRUE) {
+            flag = key;
 
-            LOGGER << ao::core::Logger::Level::debug << fmt::format("Use {0} queue to present images", to_string(pair.first));
+            LOGGER << ao::core::Logger::Level::debug << fmt::format("Use {0} queue to present images", to_string(key));
             break;
         }
     }
@@ -215,10 +208,10 @@ void ao::vulkan::SwapChain::initSurface() {
 }
 
 void ao::vulkan::SwapChain::initCommandPool() {
-    if (auto _device = ao::core::shared(this->device)) {
-        this->command_pool = _device->logical.createCommandPool(
-            vk::CommandPoolCreateInfo(vk::CommandPoolCreateFlagBits::eResetCommandBuffer, _device->queues[vk::QueueFlagBits::eGraphics].index));
-    }
+    auto _device = ao::core::shared(this->device);
+
+    this->command_pool = _device->logical.createCommandPool(
+        vk::CommandPoolCreateInfo(vk::CommandPoolCreateFlagBits::eResetCommandBuffer, _device->queues[vk::QueueFlagBits::eGraphics].index));
 }
 
 void ao::vulkan::SwapChain::createCommandBuffers() {
@@ -236,10 +229,8 @@ void ao::vulkan::SwapChain::freeCommandBuffers() {
 }
 
 vk::Result ao::vulkan::SwapChain::nextImage(vk::Semaphore& acquire, u32& imageIndex) {
-    if (auto _device = ao::core::shared(this->device)) {
-        return _device->logical.acquireNextImageKHR(this->swapChain, (std::numeric_limits<u64>::max)(), acquire, nullptr, &imageIndex);
-    }
-    return vk::Result::eErrorDeviceLost;
+    return ao::core::shared(this->device)
+        ->logical.acquireNextImageKHR(this->swapChain, (std::numeric_limits<u64>::max)(), acquire, nullptr, &imageIndex);
 }
 
 vk::Result ao::vulkan::SwapChain::enqueueImage(u32& imageIndex, std::vector<vk::Semaphore>& waitSemaphores) {

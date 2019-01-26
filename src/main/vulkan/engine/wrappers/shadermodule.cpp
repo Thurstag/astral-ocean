@@ -8,9 +8,9 @@ ao::vulkan::ShaderModule::ShaderModule(std::weak_ptr<Device> device) : device(de
 
 ao::vulkan::ShaderModule::~ShaderModule() {
     if (auto _device = ao::core::shared(this->device)) {
-        for (auto& pair : this->shaders) {
-            _device->logical.destroyShaderModule(pair.second->module);
-            delete pair.second;
+        for (auto& [key, value] : this->shaders) {
+            _device->logical.destroyShaderModule(value->module);
+            delete value;
         }
         this->shaders.clear();
     }

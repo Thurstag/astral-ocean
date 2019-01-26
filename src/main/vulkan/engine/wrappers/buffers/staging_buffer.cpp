@@ -8,12 +8,11 @@ ao::vulkan::StagingBuffer::StagingBuffer(std::weak_ptr<Device> device, vk::Comma
     : ao::vulkan::Buffer(device), usage(usage), memory_barrier(memory_barrier) {}
 
 ao::vulkan::StagingBuffer::~StagingBuffer() {
+    auto _device = ao::core::shared(this->device);
     this->free();
 
-    if (auto _device = ao::core::shared(this->device)) {
-        _device->logical.freeCommandBuffers(_device->transfer_command_pool, this->command_buffer);
-        _device->logical.destroyFence(this->fence);
-    }
+    _device->logical.freeCommandBuffers(_device->transfer_command_pool, this->command_buffer);
+    _device->logical.destroyFence(this->fence);
 }
 
 void ao::vulkan::StagingBuffer::free() {

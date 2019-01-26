@@ -68,14 +68,13 @@ namespace ao::vulkan {
                 ->init(usageFlags ? vk::BufferUsageFlagBits::eTransferDst | usageFlags.value() : vk::BufferUsageFlagBits::eTransferDst,
                        vk::SharingMode::eExclusive, vk::MemoryPropertyFlagBits::eDeviceLocal, sizes));
 
-        if (auto _device = ao::core::shared(StagingBuffer::device)) {
-            // Create command buffer
-            this->command_buffer = _device->logical.allocateCommandBuffers(
-                vk::CommandBufferAllocateInfo(_device->transfer_command_pool, vk::CommandBufferLevel::ePrimary, 1))[0];
+        auto _device = ao::core::shared(StagingBuffer::device);
+        // Create command buffer
+        this->command_buffer = _device->logical.allocateCommandBuffers(
+            vk::CommandBufferAllocateInfo(_device->transfer_command_pool, vk::CommandBufferLevel::ePrimary, 1))[0];
 
-            // Create fence
-            this->fence = _device->logical.createFence(vk::FenceCreateInfo(vk::FenceCreateFlagBits::eSignaled));
-        }
+        // Create fence
+        this->fence = _device->logical.createFence(vk::FenceCreateInfo(vk::FenceCreateFlagBits::eSignaled));
         return this;
     }
 

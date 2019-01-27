@@ -320,9 +320,12 @@ void ao::vulkan::Engine::updateCommandBuffers() {
     // Create info
     vk::CommandBufferBeginInfo begin_info(vk::CommandBufferUsageFlagBits::eRenderPassContinue);
 
-    std::array<vk::ClearValue, 2> clearValues;
-    clearValues[0].setColor(vk::ClearColorValue());
-    clearValues[1].setDepthStencil(vk::ClearDepthStencilValue(1));
+    std::vector<vk::ClearValue> clearValues(1);
+    std::array<float, 4> color = {0.0f, 0.0f, 0.0f, 1.0f};
+    clearValues[0].setColor(vk::ClearColorValue(color));
+    if (this->settings_->get(ao::vulkan::settings::StencilBuffer, std::make_optional(false))) {
+        clearValues.push_back(vk::ClearValue().setDepthStencil(vk::ClearDepthStencilValue(1)));
+    }
 
     vk::RenderPassBeginInfo render_pass_info(this->renderPass, frame, vk::Rect2D().setExtent(this->swapchain->current_extent),
                                              static_cast<u32>(clearValues.size()), clearValues.data());

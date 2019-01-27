@@ -11,7 +11,7 @@ ao::vulkan::StagingBuffer::~StagingBuffer() {
     auto _device = ao::core::shared(this->device);
     this->free();
 
-    _device->logical.freeCommandBuffers(_device->transfer_command_pool, this->command_buffer);
+    _device->logical.freeCommandBuffers(_device->command_pool, this->command_buffer);
     _device->logical.destroyFence(this->fence);
 }
 

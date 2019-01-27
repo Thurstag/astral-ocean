@@ -20,6 +20,8 @@ namespace ao::vulkan {
     /// </summary>
     struct Swapchain {
        public:
+        using StencilBuffer = std::tuple<vk::Image, vk::DeviceMemory, vk::ImageView>;
+
         std::vector<std::pair<vk::Image, vk::ImageView>> buffers;
         std::vector<vk::Fence> waiting_fences;
         std::vector<vk::Framebuffer> frames;
@@ -28,6 +30,7 @@ namespace ao::vulkan {
         vk::SurfaceKHR surface;
         u32 frame_index;
 
+        std::optional<StencilBuffer> stencil_buffer;
         CommandBufferContainer commands;
         vk::CommandPool command_pool;
 
@@ -52,8 +55,9 @@ namespace ao::vulkan {
         /// </summary>
         /// <param name="win_width">Window's width</param>
         /// <param name="win_height">Window's height</param>
-        /// <param name="vsync">Vsync enabled or not</param>
-        void init(u64& win_width, u64& win_height, bool vsync);
+        /// <param name="vsync">Vsync enabled</param>
+        /// <param name="stencil_buffer">Stencil buffer enabled</param>
+        void init(u64& win_width, u64& win_height, bool vsync, bool stencil_buffer);
 
         /// <summary>
         /// Method to init surface
@@ -74,9 +78,12 @@ namespace ao::vulkan {
         /// Method to create framebuffers
         /// </summary>
         /// <param name="render_pass">Render pass</param>
-        /// <param name="stencil_buffer">Stencil buffer</param>
-        void createFramebuffers(vk::RenderPass& render_pass,
-                                std::optional<std::tuple<vk::Image, vk::DeviceMemory, vk::ImageView>> const& stencil_buffer);
+        void createFramebuffers(vk::RenderPass& render_pass);
+
+        /// <summary>
+        /// Method to destroy framebuffers
+        /// </summary>
+        void destroyFramebuffers();
 
         /// <summary>
         /// Method to free command buffers
@@ -84,9 +91,14 @@ namespace ao::vulkan {
         void freeCommandBuffers();
 
         /// <summary>
-        /// Method to destroy framebuffers
+        /// Method to create stencil buffer
         /// </summary>
-        void destroyFramebuffers();
+        void createStencilBuffer();
+
+        /// <summary>
+        /// Method to destroy stencil buffer
+        /// </summary>
+        void destroyStencilBuffer();
 
         /// <summary>
         /// Method to get current fence

@@ -72,10 +72,6 @@ void ao::vulkan::Engine::freeVulkan() {
 
     this->device->logical.destroyRenderPass(this->renderPass);
 
-    this->device->logical.destroyImageView(std::get<2>(this->stencil_buffer));
-    this->device->logical.destroyImage(std::get<0>(this->stencil_buffer));
-    this->device->logical.freeMemory(std::get<1>(this->stencil_buffer));
-
     this->semaphores.clear();
 
     this->device.reset();
@@ -116,36 +112,6 @@ void ao::vulkan::Engine::setUpDebugging() {
     this->debug_callBack = vk::DebugReportCallbackEXT(callback);
 }
 
-void ao::vulkan::Engine::createStencilBuffer() {
-    // Create info
-    vk::ImageCreateInfo image_info(vk::ImageCreateFlags(), vk::ImageType::e2D, this->device->depth_format,
-                                   vk::Extent3D(static_cast<u32>(this->settings_->get<u64>(ao::vulkan::settings::WindowWidth)),
-                                                static_cast<u32>(this->settings_->get<u64>(ao::vulkan::settings::WindowHeight)), 1),
-                                   1, 1, vk::SampleCountFlagBits::e1, vk::ImageTiling::eOptimal,
-                                   vk::ImageUsageFlagBits::eDepthStencilAttachment | vk::ImageUsageFlagBits::eTransferSrc);
-
-    vk::ImageViewCreateInfo depth_stencil_info(
-        vk::ImageViewCreateFlags(), vk::Image(), vk::ImageViewType::e2D, this->device->depth_format, vk::ComponentMapping(),
-        vk::ImageSubresourceRange(vk::ImageAspectFlagBits::eDepth | vk::ImageAspectFlagBits::eStencil, 0, 1, 0, 1));
-
-    // Create image
-    std::get<0>(this->stencil_buffer) = this->device->logical.createImage(image_info);
-
-    // Get memory requirements
-    vk::MemoryAllocateInfo alloc_info;
-    vk::MemoryRequirements mem_requirements = this->device->logical.getImageMemoryRequirements(std::get<0>(this->stencil_buffer));
-    alloc_info.setAllocationSize(mem_requirements.size);
-    alloc_info.setMemoryTypeIndex(this->device->memoryType(mem_requirements.memoryTypeBits, vk::MemoryPropertyFlagBits::eDeviceLocal));
-
-    // Allocate memory
-    std::get<1>(this->stencil_buffer) = this->device->logical.allocateMemory(alloc_info);
-    this->device->logical.bindImageMemory(std::get<0>(this->stencil_buffer), std::get<1>(this->stencil_buffer), 0);
-
-    // Create image view
-    depth_stencil_info.setImage(std::get<0>(this->stencil_buffer));
-    std::get<2>(this->stencil_buffer) = this->device->logical.createImageView(depth_stencil_info);
-}
-
 void ao::vulkan::Engine::createRenderPass() {
     this->setUpRenderPass();
 
@@ -168,11 +134,6 @@ void ao::vulkan::Engine::recreateSwapChain() {
     // Destroy framebuffers
     this->swapchain->destroyFramebuffers();
 
-    // Destroy stencil buffer
-    this->device->logical.destroyImageView(std::get<2>(this->stencil_buffer));
-    this->device->logical.destroyImage(std::get<0>(this->stencil_buffer));
-    this->device->logical.freeMemory(std::get<1>(this->stencil_buffer));
-
     // Free command buffers
     this->swapchain->freeCommandBuffers();
 
@@ -180,14 +141,12 @@ void ao::vulkan::Engine::recreateSwapChain() {
 
     // Init swap chain
     this->swapchain->init(this->settings_->get<u64>(ao::vulkan::settings::WindowWidth), this->settings_->get<u64>(ao::vulkan::settings::WindowHeight),
-                          this->settings_->get(ao::vulkan::settings::WindowVsync, std::make_optional<bool>(false)));
+                          this->settings_->get(ao::vulkan::settings::WindowVsync, std::make_optional<bool>(false)),
+                          this->settings_->get(ao::vulkan::settings::StencilBuffer, std::make_optional<bool>(false)));
 
     // Create command buffers
     this->swapchain->createCommandBuffers();
     this->createSecondaryCommandBuffers();
-
-    // Create stencil buffer
-    this->createStencilBuffer();
 
     // Create render pass
     this->createRenderPass();
@@ -196,7 +155,7 @@ void ao::vulkan::Engine::recreateSwapChain() {
     this->createPipelines();
 
     // Create framebuffers
-    this->swapchain->createFramebuffers(this->renderPass, this->stencil_buffer);
+    this->swapchain->createFramebuffers(this->renderPass);
 
     // Wait device idle
     this->device->logical.waitIdle();
@@ -252,15 +211,13 @@ void ao::vulkan::Engine::prepareVulkan() {
 
     // Init swap chain
     this->swapchain->init(this->settings_->get<u64>(ao::vulkan::settings::WindowWidth), this->settings_->get<u64>(ao::vulkan::settings::WindowHeight),
-                          this->settings_->get(ao::vulkan::settings::WindowVsync, std::make_optional<bool>(false)));
+                          this->settings_->get(ao::vulkan::settings::WindowVsync, std::make_optional<bool>(false)),
+                          this->settings_->get(ao::vulkan::settings::StencilBuffer, std::make_optional<bool>(false)));
     this->swapchain->prepare();
 
     // Create command buffers
     this->swapchain->createCommandBuffers();
     this->createSecondaryCommandBuffers();
-
-    // Create stencil buffer
-    this->createStencilBuffer();
 
     // Create render pass
     this->createRenderPass();
@@ -279,7 +236,7 @@ void ao::vulkan::Engine::prepareVulkan() {
     this->createDescriptorSets();
 
     // Create framebuffers
-    this->swapchain->createFramebuffers(this->renderPass, this->stencil_buffer);
+    this->swapchain->createFramebuffers(this->renderPass);
 }
 
 std::shared_ptr<ao::vulkan::EngineSettings> ao::vulkan::Engine::settings() const {

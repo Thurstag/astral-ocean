@@ -14,7 +14,7 @@ ao::vulkan::Device::Device(vk::PhysicalDevice const& device) : physical(device) 
 }
 
 ao::vulkan::Device::~Device() {
-    this->logical.destroyCommandPool(this->transfer_command_pool);
+    this->logical.destroyCommandPool(this->command_pool);
     this->logical.destroy();
 }
 
@@ -101,8 +101,98 @@ void ao::vulkan::Device::initLogicalDevice(std::vector<char const*> device_exten
     }
 
     // Create command pool for transfert
-    this->transfer_command_pool = this->logical.createCommandPool(
+    this->command_pool = this->logical.createCommandPool(
         vk::CommandPoolCreateInfo(vk::CommandPoolCreateFlagBits::eResetCommandBuffer, this->queues[vk::QueueFlagBits::eTransfer].index));
+}
+
+std::pair<vk::Image, vk::DeviceMemory> ao::vulkan::Device::createImage(u32 width, u32 height, vk::Format format, vk::ImageType type,
+                                                                       vk::ImageTiling tilling, vk::ImageUsageFlags usage_flags,
+                                                                       vk::MemoryPropertyFlags memory_flags) {
+    std::pair<vk::Image, vk::DeviceMemory> pair;
+
+    // Create image
+    pair.first = this->logical.createImage(vk::ImageCreateInfo(vk::ImageCreateFlags(), type, format, vk::Extent3D(vk::Extent2D(width, height), 1), 1,
+                                                               1, vk::SampleCountFlagBits::e1, tilling, usage_flags, vk::SharingMode::eExclusive, 0,
+                                                               nullptr, vk::ImageLayout::eUndefined));
+
+    // Get memory requirements
+    vk::MemoryRequirements mem_requirements = this->logical.getImageMemoryRequirements(pair.first);
+
+    // Allocate	memory
+    pair.second =
+        this->logical.allocateMemory(vk::MemoryAllocateInfo(mem_requirements.size, this->memoryType(mem_requirements.memoryTypeBits, memory_flags)));
+
+    // Bind image and memory
+    this->logical.bindImageMemory(pair.first, pair.second, 0);
+    return pair;
+}
+
+vk::ImageView ao::vulkan::Device::createImageView(vk::Image& image, vk::Format format, vk::ImageViewType view_type,
+                                                  vk::ImageAspectFlags aspect_flags) {
+    return this->logical.createImageView(vk::ImageViewCreateInfo(vk::ImageViewCreateFlags(), image, view_type, format, vk::ComponentMapping(),
+                                                                 vk::ImageSubresourceRange(aspect_flags, 0, 1, 0, 1)));
+}
+
+void ao::vulkan::Device::defineTransitionLayout(vk::Image& image, vk::Format format, vk::ImageLayout old_layout, vk::ImageLayout new_layout) {
+    // Create command buffer
+    vk::CommandBuffer cmd =
+        this->logical.allocateCommandBuffers(vk::CommandBufferAllocateInfo(this->command_pool, vk::CommandBufferLevel::ePrimary, 1)).front();
+
+    // Create barrier
+    vk::ImageMemoryBarrier barrier(
+        vk::AccessFlags(), vk::AccessFlags(), old_layout, new_layout, VK_QUEUE_FAMILY_IGNORED, VK_QUEUE_FAMILY_IGNORED, image,
+        vk::ImageSubresourceRange(
+            new_layout == vk::ImageLayout::eDepthStencilAttachmentOptimal ? vk::ImageAspectFlagBits::eDepth : vk::ImageAspectFlagBits::eColor, 0, 1,
+            0, 1));
+
+    // Add stencil
+    if (new_layout == vk::ImageLayout::eDepthStencilAttachmentOptimal &&
+        (format == vk::Format::eD32SfloatS8Uint || format == vk::Format::eD24UnormS8Uint)) {
+        barrier.subresourceRange.aspectMask |= vk::ImageAspectFlagBits::eStencil;
+    }
+
+    // Define stages
+    vk::PipelineStageFlags src_stage;
+    vk::PipelineStageFlags dst_stage;
+    if (old_layout == vk::ImageLayout::eUndefined && new_layout == vk::ImageLayout::eTransferDstOptimal) {
+        barrier.srcAccessMask = vk::AccessFlags();
+        barrier.dstAccessMask = vk::AccessFlagBits::eTransferWrite;
+
+        src_stage = vk::PipelineStageFlagBits::eTopOfPipe;
+        dst_stage = vk::PipelineStageFlagBits::eTransfer;
+    } else if (old_layout == vk::ImageLayout::eTransferDstOptimal && new_layout == vk::ImageLayout::eShaderReadOnlyOptimal) {
+        barrier.srcAccessMask = vk::AccessFlagBits::eTransferWrite;
+        barrier.dstAccessMask = vk::AccessFlagBits::eShaderRead;
+
+        src_stage = vk::PipelineStageFlagBits::eTransfer;
+        dst_stage = vk::PipelineStageFlagBits::eFragmentShader;
+    } else if (old_layout == vk::ImageLayout::eUndefined && new_layout == vk::ImageLayout::eDepthStencilAttachmentOptimal) {
+        barrier.srcAccessMask = vk::AccessFlags();
+        barrier.dstAccessMask = vk::AccessFlagBits::eDepthStencilAttachmentRead | vk::AccessFlagBits::eDepthStencilAttachmentWrite;
+
+        src_stage = vk::PipelineStageFlagBits::eTopOfPipe;
+        dst_stage = vk::PipelineStageFlagBits::eEarlyFragmentTests;
+    } else {
+        throw ao::core::Exception(fmt::format("Unsupported layout transition: {} -> {}", vk::to_string(old_layout), vk::to_string(new_layout)));
+    }
+
+    // Bind barrier
+    cmd.begin(vk::CommandBufferBeginInfo(vk::CommandBufferUsageFlagBits::eOneTimeSubmit));
+    cmd.pipelineBarrier(src_stage, dst_stage, vk::DependencyFlags(), {}, {}, barrier);
+    cmd.end();
+
+    // Create fence
+    vk::Fence fence = this->logical.createFence(vk::FenceCreateInfo(vk::FenceCreateFlagBits::eSignaled));
+
+    // Submit command
+    this->queues[vk::QueueFlagBits::eGraphics].queue.submit(vk::SubmitInfo().setCommandBufferCount(1).setPCommandBuffers(&cmd), fence);
+
+    // Wait fence
+    this->logical.waitForFences(fence, VK_TRUE, (std::numeric_limits<u64>::max)());
+
+    // Free command/fence
+    this->logical.destroyFence(fence);
+    this->logical.freeCommandBuffers(this->command_pool, cmd);
 }
 
 u32 ao::vulkan::Device::memoryType(u32 type_bits, vk::MemoryPropertyFlags const properties) const {

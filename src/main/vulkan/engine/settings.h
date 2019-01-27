@@ -24,6 +24,7 @@ namespace ao::vulkan {
         constexpr char* EngineVersion = "engine.version";
 
         constexpr char* ValidationLayers = "vulkan.validation_layers";
+        constexpr char* StencilBuffer = "vulkan.stencil_buffer";
     };  // namespace settings
 
     /// <summary>

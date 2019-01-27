@@ -57,15 +57,13 @@ namespace ao::vulkan {
         std::vector<vk::DescriptorPool> descriptorPools;
         std::vector<vk::DescriptorSet> descriptorSets;
         std::shared_ptr<Pipeline> pipeline;
-        vk::RenderPass renderPass;
-
-        std::tuple<vk::Image, vk::DeviceMemory, vk::ImageView> stencil_buffer;  // TODO: MOVE TO SWAPCHAIN (+optional)
 
         vk::DebugReportCallbackEXT debug_callBack;
         std::shared_ptr<vk::Instance> instance;
         std::shared_ptr<Swapchain> swapchain;
         std::shared_ptr<Device> device;
         SemaphoreContainer semaphores;
+        vk::RenderPass renderPass;
 
         /// <summary>
         /// Method to init vulkan
@@ -86,11 +84,6 @@ namespace ao::vulkan {
         /// Method to set-up debugging
         /// </summary>
         virtual void setUpDebugging();
-
-        /// <summary>
-        /// Method to create stencil buffer
-        /// </summary>
-        virtual void createStencilBuffer();
 
         /// <summary>
         /// Method to create render pass

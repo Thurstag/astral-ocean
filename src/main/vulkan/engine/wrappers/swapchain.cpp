@@ -31,10 +31,13 @@ ao::vulkan::Swapchain::~Swapchain() {
     for (auto& fence : this->waiting_fences) {
         _device->logical.destroyFence(fence);
     }
-    this->waiting_fences.clear();
+
+    if (this->stencil_buffer) {
+        this->destroyStencilBuffer();
+    }
 }
 
-void ao::vulkan::Swapchain::init(u64& win_width, u64& win_height, bool vsync) {
+void ao::vulkan::Swapchain::init(u64& win_width, u64& win_height, bool vsync, bool stencil_buffer) {
     // Back-up swap chain
     vk::SwapchainKHR old = this->swapchain;
 
@@ -155,6 +158,15 @@ void ao::vulkan::Swapchain::init(u64& win_width, u64& win_height, bool vsync) {
     }
 
     LOGGER << ao::core::Logger::Level::debug << fmt::format("Set-up a swap chain of {0} image{1}", buffers.size(), buffers.size() > 1 ? "s" : "");
+
+    // Create stencil buffer
+    if (stencil_buffer) {
+        // Destroy old one
+        if (this->stencil_buffer) {
+            this->destroyStencilBuffer();
+        }
+        this->createStencilBuffer();
+    }
 }
 
 void ao::vulkan::Swapchain::initSurface() {
@@ -241,18 +253,18 @@ void ao::vulkan::Swapchain::createCommandBuffers() {
     this->commands["primary"] = ao::vulkan::structs::CommandData(buffers, this->command_pool);
 }
 
-void ao::vulkan::Swapchain::createFramebuffers(vk::RenderPass& render_pass,
-                                               std::optional<std::tuple<vk::Image, vk::DeviceMemory, vk::ImageView>> const& stencil_buffer) {
+void ao::vulkan::Swapchain::createFramebuffers(vk::RenderPass& render_pass) {
     auto _device = ao::core::shared(this->device);
 
-    std::array<vk::ImageView, 2> attachments;
-
     // Depth/Stencil attachment is the same for all framebuffers
-    attachments[1] = std::get<2>(*stencil_buffer);
+    std::array<vk::ImageView, 2> attachments;
+    if (this->stencil_buffer) {
+        attachments[1] = std::get<2>(*this->stencil_buffer);
+    }
 
     // Create info
-    vk::FramebufferCreateInfo create_info(vk::FramebufferCreateFlags(), render_pass, static_cast<u32>(attachments.size()), attachments.data(),
-                                          this->current_extent.width, this->current_extent.height, 1);
+    vk::FramebufferCreateInfo create_info = vk::FramebufferCreateInfo(vk::FramebufferCreateFlags(), render_pass, static_cast<u32>(attachments.size()),
+                                                                      attachments.data(), this->current_extent.width, this->current_extent.height, 1);
 
     // Create framebuffers
     this->frames.resize(this->buffers.size());
@@ -267,6 +279,23 @@ void ao::vulkan::Swapchain::freeCommandBuffers() {
     this->commands.clear();
 }
 
+void ao::vulkan::Swapchain::createStencilBuffer() {
+    auto _device = ao::core::shared(this->device);
+
+    // Create image and it's view
+    auto image =
+        _device->createImage(this->current_extent.width, this->current_extent.height, _device->depth_format, vk::ImageType::e2D,
+                             vk::ImageTiling::eOptimal, vk::ImageUsageFlagBits::eDepthStencilAttachment, vk::MemoryPropertyFlagBits::eDeviceLocal);
+    vk::ImageView view = _device->createImageView(image.first, _device->depth_format, vk::ImageViewType::e2D, vk::ImageAspectFlagBits::eDepth);
+
+    // Assign
+    this->stencil_buffer = std::make_optional(std::make_tuple(image.first, image.second, view));
+
+    // Define transition layout
+    _device->defineTransitionLayout(std::get<0>(*this->stencil_buffer), _device->depth_format, vk::ImageLayout::eUndefined,
+                                    vk::ImageLayout::eDepthStencilAttachmentOptimal);
+}
+
 void ao::vulkan::Swapchain::destroyFramebuffers() {
     auto _device = ao::core::shared(this->device);
 
@@ -274,6 +303,14 @@ void ao::vulkan::Swapchain::destroyFramebuffers() {
         _device->logical.destroyFramebuffer(frame);
     }
     this->frames.clear();
+}
+
+void ao::vulkan::Swapchain::destroyStencilBuffer() {
+    auto _device = ao::core::shared(this->device);
+
+    _device->logical.destroyImageView(std::get<2>(*this->stencil_buffer));
+    _device->logical.destroyImage(std::get<0>(*this->stencil_buffer));
+    _device->logical.freeMemory(std::get<1>(*this->stencil_buffer));
 }
 
 vk::Fence& ao::vulkan::Swapchain::currentFence() {

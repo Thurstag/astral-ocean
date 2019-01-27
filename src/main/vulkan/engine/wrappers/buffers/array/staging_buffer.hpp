@@ -74,8 +74,8 @@ namespace ao::vulkan {
 
         auto _device = ao::core::shared(StagingBuffer::device);
         // Create command buffer
-        this->command_buffer = _device->logical.allocateCommandBuffers(
-            vk::CommandBufferAllocateInfo(_device->transfer_command_pool, vk::CommandBufferLevel::ePrimary, 1))[0];
+        this->command_buffer =
+            _device->logical.allocateCommandBuffers(vk::CommandBufferAllocateInfo(_device->command_pool, vk::CommandBufferLevel::ePrimary, 1))[0];
 
         // Create fence
         this->fence = _device->logical.createFence(vk::FenceCreateInfo(vk::FenceCreateFlagBits::eSignaled));
@@ -201,8 +201,8 @@ namespace ao::vulkan {
 
         auto _device = ao::core::shared(StagingBuffer::device);
         // Create command buffer
-        this->command_buffer = _device->logical.allocateCommandBuffers(
-            vk::CommandBufferAllocateInfo(_device->transfer_command_pool, vk::CommandBufferLevel::ePrimary, 1))[0];
+        this->command_buffer =
+            _device->logical.allocateCommandBuffers(vk::CommandBufferAllocateInfo(_device->command_pool, vk::CommandBufferLevel::ePrimary, 1))[0];
 
         // Create fence
         this->fence = _device->logical.createFence(vk::FenceCreateInfo(vk::FenceCreateFlagBits::eSignaled));

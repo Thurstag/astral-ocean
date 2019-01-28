@@ -34,7 +34,7 @@ namespace ao::vulkan {
         /// Method to get buffer
         /// </summary>
         /// <returns>vk::Buffer</returns>
-        virtual vk::Buffer const& buffer() const = 0;
+        virtual vk::Buffer buffer() = 0;
 
         /// <summary>
         /// Method to get buffer's size

@@ -26,7 +26,7 @@ namespace ao::vulkan {
             /// <param name="queue">Queue</param>
             /// <param name="index">Index</param>
             /// <param name="properties">Properties</param>
-            explicit QueueData(vk::Queue const& queue, u32 const index, vk::QueueFamilyProperties const properties)
+            explicit QueueData(vk::Queue queue, u32 index, vk::QueueFamilyProperties properties)
                 : queue(queue), index(index), properties(properties) {}
         };
     }  // namespace structs

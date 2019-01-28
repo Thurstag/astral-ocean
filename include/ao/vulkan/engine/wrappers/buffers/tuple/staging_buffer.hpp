@@ -40,7 +40,7 @@ namespace ao::vulkan {
         TupleBuffer<T...>* update(T const*... data) override;
         TupleBuffer<T...>* updateFragment(std::size_t index, void* const data) override;
         bool hasBuffer() const override;
-        vk::Buffer const& buffer() const override;
+        vk::Buffer buffer() override;
         vk::DeviceSize size() const override;
         vk::DeviceSize offset(size_t index) const override;
         Buffer* map() override;
@@ -119,7 +119,7 @@ namespace ao::vulkan {
     }
 
     template<class... T>
-    vk::Buffer const& StagingTupleBuffer<T...>::buffer() const {
+    vk::Buffer StagingTupleBuffer<T...>::buffer() {
         return StagingBuffer::buffer();
     }
 

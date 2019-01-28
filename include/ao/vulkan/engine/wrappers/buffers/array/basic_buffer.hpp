@@ -49,7 +49,7 @@ namespace ao::vulkan {
         DynamicArrayBuffer<T>* update(std::vector<T> const& data) override;
         DynamicArrayBuffer<T>* updateFragment(std::size_t index, T const* data) override;
         vk::DeviceSize offset(size_t index) const override;
-        vk::Buffer const& buffer() const override;
+        vk::Buffer buffer() override;
         vk::DeviceSize size() const override;
         DynamicArrayBuffer<T>* map() override;
 
@@ -183,7 +183,7 @@ namespace ao::vulkan {
     }
 
     template<class T>
-    vk::Buffer const& BasicDynamicArrayBuffer<T>::buffer() const {
+    vk::Buffer BasicDynamicArrayBuffer<T>::buffer() {
         return this->buffer_;
     }
 
@@ -240,7 +240,7 @@ namespace ao::vulkan {
         ArrayBuffer<T, N>* update(std::array<T, N> const& data) override;
         ArrayBuffer<T, N>* updateFragment(std::size_t index, T const* data) override;
         vk::DeviceSize offset(size_t index) const override;
-        vk::Buffer const& buffer() const override;
+        vk::Buffer buffer() override;
         vk::DeviceSize size() const override;
         ArrayBuffer<T, N>* map() override;
 
@@ -368,7 +368,7 @@ namespace ao::vulkan {
     }
 
     template<class T, size_t N>
-    vk::Buffer const& BasicArrayBuffer<T, N>::buffer() const {
+    vk::Buffer BasicArrayBuffer<T, N>::buffer() {
         return this->buffer_;
     }
 

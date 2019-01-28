@@ -4,8 +4,10 @@
 
 #include "device.h"
 
-ao::vulkan::Device::Device(vk::PhysicalDevice const& device) : physical(device) {
-    this->extensions = ao::vulkan::utilities::vkExtensionProperties(this->physical);
+#include "../../utilities/vulkan.h"
+
+ao::vulkan::Device::Device(vk::PhysicalDevice device) : physical(device) {
+    this->extensions = ao::vulkan::utilities::vkExtensionProperties(device);
 
     // Check count
     if (this->extensions.empty()) {
@@ -103,6 +105,41 @@ void ao::vulkan::Device::initLogicalDevice(std::vector<char const*> device_exten
     // Create command pool for transfert
     this->command_pool = this->logical.createCommandPool(
         vk::CommandPoolCreateInfo(vk::CommandPoolCreateFlagBits::eResetCommandBuffer, this->queues[vk::QueueFlagBits::eTransfer].index));
+
+    // Find suitable depth format
+    this->depth_format = ao::vulkan::utilities::getSupportedDepthFormat(this->physical);
+}
+
+std::vector<vk::SurfaceFormatKHR> ao::vulkan::Device::surfaceFormatKHRs(vk::SurfaceKHR surface) {
+    std::string error = "Fail to get supported surface formats";
+    std::vector<vk::SurfaceFormatKHR> formats;
+    u32 count;
+
+    // Get count
+    ao::vulkan::utilities::vkAssert(this->physical.getSurfaceFormatsKHR(surface, &count, nullptr), error);
+
+    // Adapt vector
+    formats.resize(count);
+
+    // Get vk::SurfaceFormatKHRs
+    ao::vulkan::utilities::vkAssert(this->physical.getSurfaceFormatsKHR(surface, &count, formats.data()), error);
+    return formats;
+}
+
+std::vector<vk::Image> ao::vulkan::Device::swapChainImages(vk::SwapchainKHR swapChain) {
+    std::string error = "Fail to get swap chain images";
+    std::vector<vk::Image> images;
+    u32 count;
+
+    // Get count
+    ao::vulkan::utilities::vkAssert(this->logical.getSwapchainImagesKHR(swapChain, &count, nullptr), error);
+
+    // Adapt vector
+    images.resize(count);
+
+    // Get vk::Images
+    ao::vulkan::utilities::vkAssert(this->logical.getSwapchainImagesKHR(swapChain, &count, images.data()), error);
+    return images;
 }
 
 std::pair<vk::Image, vk::DeviceMemory> ao::vulkan::Device::createImage(u32 width, u32 height, vk::Format format, vk::ImageType type,
@@ -127,13 +164,13 @@ std::pair<vk::Image, vk::DeviceMemory> ao::vulkan::Device::createImage(u32 width
     return pair;
 }
 
-vk::ImageView ao::vulkan::Device::createImageView(vk::Image& image, vk::Format format, vk::ImageViewType view_type,
+vk::ImageView ao::vulkan::Device::createImageView(vk::Image image, vk::Format format, vk::ImageViewType view_type,
                                                   vk::ImageAspectFlags aspect_flags) {
     return this->logical.createImageView(vk::ImageViewCreateInfo(vk::ImageViewCreateFlags(), image, view_type, format, vk::ComponentMapping(),
                                                                  vk::ImageSubresourceRange(aspect_flags, 0, 1, 0, 1)));
 }
 
-void ao::vulkan::Device::processImage(vk::Image& image, vk::Format format, vk::ImageLayout old_layout, vk::ImageLayout new_layout) {
+void ao::vulkan::Device::processImage(vk::Image image, vk::Format format, vk::ImageLayout old_layout, vk::ImageLayout new_layout) {
     // Create command buffer
     vk::CommandBuffer cmd =
         this->logical.allocateCommandBuffers(vk::CommandBufferAllocateInfo(this->command_pool, vk::CommandBufferLevel::ePrimary, 1)).front();
@@ -179,6 +216,31 @@ void ao::vulkan::Device::processImage(vk::Image& image, vk::Format format, vk::I
     // Bind barrier
     cmd.begin(vk::CommandBufferBeginInfo(vk::CommandBufferUsageFlagBits::eOneTimeSubmit));
     cmd.pipelineBarrier(src_stage, dst_stage, vk::DependencyFlags(), {}, {}, barrier);
+    cmd.end();
+
+    // Create fence
+    vk::Fence fence = this->logical.createFence(vk::FenceCreateInfo(vk::FenceCreateFlagBits::eSignaled));
+
+    // Submit command
+    this->queues[vk::QueueFlagBits::eGraphics].queue.submit(vk::SubmitInfo().setCommandBufferCount(1).setPCommandBuffers(&cmd), fence);
+
+    // Wait fence
+    this->logical.waitForFences(fence, VK_TRUE, (std::numeric_limits<u64>::max)());
+
+    // Free command/fence
+    this->logical.destroyFence(fence);
+    this->logical.freeCommandBuffers(this->command_pool, cmd);
+}
+
+void ao::vulkan::Device::copyBufferToImage(vk::Buffer buffer, vk::Image image, u32 width, u32 height) {
+    // Create command buffer
+    vk::CommandBuffer cmd =
+        this->logical.allocateCommandBuffers(vk::CommandBufferAllocateInfo(this->command_pool, vk::CommandBufferLevel::ePrimary, 1)).front();
+
+    cmd.begin(vk::CommandBufferBeginInfo(vk::CommandBufferUsageFlagBits::eOneTimeSubmit));
+    cmd.copyBufferToImage(buffer, image, vk::ImageLayout::eTransferDstOptimal,
+                          vk::BufferImageCopy(0, 0, 0, vk::ImageSubresourceLayers(vk::ImageAspectFlagBits::eColor, 0, 0, 1), vk::Offset3D(),
+                                              vk::Extent3D(vk::Extent2D(width, height), 1)));
     cmd.end();
 
     // Create fence

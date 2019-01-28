@@ -78,7 +78,7 @@ namespace ao::vulkan {
         /// Method to create framebuffers
         /// </summary>
         /// <param name="render_pass">Render pass</param>
-        void createFramebuffers(vk::RenderPass& render_pass);
+        void createFramebuffers(vk::RenderPass render_pass);
 
         /// <summary>
         /// Method to destroy framebuffers
@@ -116,7 +116,7 @@ namespace ao::vulkan {
         /// Method to get next image
         /// </summary>
         /// <param name="acquire">Acquire semaphore</param>
-        vk::Result nextImage(vk::Semaphore& acquire);
+        vk::Result nextImage(vk::Semaphore acquire);
 
         /// <summary>
         /// Method to enqueue an image

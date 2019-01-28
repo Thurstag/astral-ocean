@@ -44,8 +44,8 @@ namespace ao::vulkan {
         /// <summary>
         /// Constructor
         /// </summary>
-        /// <param name="_device">Device</param>
-        explicit SemaphoreContainer(std::weak_ptr<Device> _device) : device(_device) {}
+        /// <param name="device">Device</param>
+        explicit SemaphoreContainer(std::weak_ptr<Device> device) : device(device) {}
 
         /// <summary>
         /// Destructor

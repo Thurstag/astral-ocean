@@ -37,7 +37,7 @@ namespace ao::vulkan {
 
         virtual Buffer* map() override;
 
-        vk::Buffer const& buffer() const override;
+        vk::Buffer buffer() override;
         vk::DeviceSize size() const override;
         bool hasBuffer() const override;
 

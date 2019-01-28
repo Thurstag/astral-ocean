@@ -137,7 +137,7 @@ void ao::vulkan::Swapchain::init(u64& win_width, u64& win_height, bool vsync, bo
     }
 
     // Get images
-    std::vector<vk::Image> images = ao::vulkan::utilities::swapChainImages(_device->logical, this->swapchain);
+    std::vector<vk::Image> images = _device->swapChainImages(this->swapchain);
 
     // Resize buffer vector
     this->buffers.resize(images.size());
@@ -196,7 +196,7 @@ void ao::vulkan::Swapchain::initSurface() {
     this->present_queue = _device->queues[*flag].queue;
 
     // Get surface formats
-    std::vector<vk::SurfaceFormatKHR> formats = ao::vulkan::utilities::surfaceFormatKHRs(_device->physical, this->surface);
+    std::vector<vk::SurfaceFormatKHR> formats = _device->surfaceFormatKHRs(this->surface);
 
     // Check size
     if (formats.empty()) {
@@ -253,7 +253,7 @@ void ao::vulkan::Swapchain::createCommandBuffers() {
     this->commands["primary"] = ao::vulkan::structs::CommandData(buffers, this->command_pool);
 }
 
-void ao::vulkan::Swapchain::createFramebuffers(vk::RenderPass& render_pass) {
+void ao::vulkan::Swapchain::createFramebuffers(vk::RenderPass render_pass) {
     auto _device = ao::core::shared(this->device);
 
     // Depth/Stencil attachment is the same for all framebuffers
@@ -321,7 +321,7 @@ vk::Framebuffer& ao::vulkan::Swapchain::currentFrame() {
     return this->frames[this->frame_index];
 }
 
-vk::Result ao::vulkan::Swapchain::nextImage(vk::Semaphore& acquire) {
+vk::Result ao::vulkan::Swapchain::nextImage(vk::Semaphore acquire) {
     return ao::core::shared(this->device)
         ->logical.acquireNextImageKHR(this->swapchain, (std::numeric_limits<u64>::max)(), acquire, nullptr, &this->frame_index);
 }

@@ -34,7 +34,7 @@ ao::vulkan::Buffer* ao::vulkan::StagingBuffer::map() {
     return this->host_buffer->map();
 }
 
-vk::Buffer const& ao::vulkan::StagingBuffer::buffer() const {
+vk::Buffer ao::vulkan::StagingBuffer::buffer() {
     if (this->device_buffer.get() == nullptr) {
         throw ao::vulkan::BufferUninitialized();
     }

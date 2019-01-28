@@ -23,7 +23,7 @@ namespace ao::vulkan {
         /// <summary>
         /// Method to convert a	VkResult into a vk::Result
         /// </summary>
-        inline vk::Result to_result(VkResult const result) {
+        inline vk::Result to_result(VkResult result) {
             switch (result) {
                 case VK_SUCCESS:
                     return vk::Result::eSuccess;
@@ -93,7 +93,7 @@ namespace ao::vulkan {
         /// </summary>
         /// <param name="result">VkResult</param>
         /// <returns>VkResult is VK_SUCCESS</returns>
-        inline bool vkCheck(VkResult const result) {
+        inline bool vkCheck(VkResult result) {
             return result == VkResult::VK_SUCCESS;
         }
 
@@ -102,7 +102,7 @@ namespace ao::vulkan {
         /// </summary>
         /// <param name="result">VkResult</param>
         /// <param name="message">Exception's message on failure</param>
-        inline void vkAssert(VkResult const result, std::string message) {
+        inline void vkAssert(VkResult result, std::string message) {
             vk::createResultValue(to_result(result), message.c_str());
         }
 
@@ -161,7 +161,7 @@ namespace ao::vulkan {
         /// </summary>
         /// <param name="instance">vk::Instance</param>
         /// <returns>GPUs</returns>
-        inline std::vector<vk::PhysicalDevice> vkPhysicalDevices(vk::Instance const& instance) {
+        inline std::vector<vk::PhysicalDevice> vkPhysicalDevices(vk::Instance instance) {
             std::string error = "Fail to enumerate vk::PhysicalDevices";
             std::vector<vk::PhysicalDevice> devices;
             u32 count;
@@ -182,7 +182,7 @@ namespace ao::vulkan {
         /// </summary>
         /// <param name="device">vk::PhysicalDevice</param>
         /// <returns>vk::ExtensionProperties</returns>
-        inline std::vector<vk::ExtensionProperties> vkExtensionProperties(vk::PhysicalDevice const& device) {
+        inline std::vector<vk::ExtensionProperties> vkExtensionProperties(vk::PhysicalDevice device) {
             std::vector<vk::ExtensionProperties> extensions;
             u32 count;
 
@@ -203,7 +203,7 @@ namespace ao::vulkan {
         /// <param name="queueFamilyProperties">queueFamilyProperties</param>
         /// <param name="flag">Flag</param>
         /// <returns>Index or -1</returns>
-        inline u32 findQueueFamilyIndex(std::vector<vk::QueueFamilyProperties> const& queueFamilyProperties, vk::QueueFlagBits const flag) {
+        inline u32 findQueueFamilyIndex(std::vector<vk::QueueFamilyProperties> const& queueFamilyProperties, vk::QueueFlagBits flag) {
             // clang-format off
             std::vector<VkQueueFlagBits> flags = {
                 VK_QUEUE_COMPUTE_BIT, VK_QUEUE_TRANSFER_BIT, VK_QUEUE_GRAPHICS_BIT, 
@@ -242,7 +242,7 @@ namespace ao::vulkan {
         /// </summary>
         /// <param name="physicalDevice">vk::PhysicalDevice</param>
         /// <returns>vk::Format</returns>
-        inline vk::Format getSupportedDepthFormat(vk::PhysicalDevice const& physicalDevice) {
+        inline vk::Format getSupportedDepthFormat(vk::PhysicalDevice physicalDevice) {
             // clang-format off
             std::vector<vk::Format> formats = {
 				vk::Format::eD32SfloatS8Uint, vk::Format::eD32Sfloat, vk::Format::eD24UnormS8Uint,
@@ -262,34 +262,12 @@ namespace ao::vulkan {
         }
 
         /// <summary>
-        /// Method to get surface formats
-        /// </summary>
-        /// <param name="device">Device</param>
-        /// <param name="surface">Surface</param>
-        /// <returns>Surface formats</returns>
-        inline std::vector<vk::SurfaceFormatKHR> surfaceFormatKHRs(vk::PhysicalDevice const& device, vk::SurfaceKHR const& surface) {
-            std::string error = "Fail to get supported surface formats";
-            std::vector<vk::SurfaceFormatKHR> formats;
-            u32 count;
-
-            // Get count
-            vkAssert(device.getSurfaceFormatsKHR(surface, &count, nullptr), error);
-
-            // Adapt vector
-            formats.resize(count);
-
-            // Get vk::SurfaceFormatKHRs
-            vkAssert(device.getSurfaceFormatsKHR(surface, &count, formats.data()), error);
-            return formats;
-        }
-
-        /// <summary>
         /// Method to get present modes
         /// </summary>
         /// <param name="device">Device</param>
         /// <param name="surface">Surface</param>
         /// <returns>Present modes</returns>
-        inline std::vector<vk::PresentModeKHR> presentModeKHRs(vk::PhysicalDevice const& device, vk::SurfaceKHR const& surface) {
+        inline std::vector<vk::PresentModeKHR> presentModeKHRs(vk::PhysicalDevice device, vk::SurfaceKHR surface) {
             std::string error = "Fail to get present modes";
             std::vector<vk::PresentModeKHR> modes;
             u32 count;
@@ -303,28 +281,6 @@ namespace ao::vulkan {
             // Get vk::PresentModeKHR
             vkAssert(device.getSurfacePresentModesKHR(surface, &count, modes.data()), error);
             return modes;
-        }
-
-        /// <summary>
-        /// Method to get swap chain images
-        /// </summary>
-        /// <param name="device">Device</param>
-        /// <param name="swapChain">Swap chain</param>
-        /// <returns>Images</returns>
-        inline std::vector<vk::Image> swapChainImages(vk::Device const& device, vk::SwapchainKHR const& swapChain) {
-            std::string error = "Fail to get swap chain images";
-            std::vector<vk::Image> images;
-            u32 count;
-
-            // Get count
-            vkAssert(device.getSwapchainImagesKHR(swapChain, &count, nullptr), error);
-
-            // Adapt vector
-            images.resize(count);
-
-            // Get vk::Images
-            vkAssert(device.getSwapchainImagesKHR(swapChain, &count, images.data()), error);
-            return images;
         }
 
         /// <summary>

@@ -50,9 +50,6 @@ void ao::vulkan::Engine::initVulkan() {
     // Init logical device
     this->device->initLogicalDevice(this->deviceExtensions(), this->deviceFeatures(), this->queueFlags(), this->commandPoolFlags());
 
-    // Find suitable depth format
-    this->device->depth_format = ao::vulkan::utilities::getSupportedDepthFormat(this->device->physical);
-
     // Create swapChain
     this->swapchain = std::make_shared<ao::vulkan::Swapchain>(this->instance, this->device);
 }

@@ -35,11 +35,12 @@ namespace ao::vulkan {
         /// Constructor
         /// </summary>
         Device() = default;
+
         /// <summary>
         /// Constructor
         /// </summary>
         /// <param name="device"></param>
-        explicit Device(vk::PhysicalDevice const& device);
+        explicit Device(vk::PhysicalDevice device);
 
         /// <summary>
         /// Destructor
@@ -58,6 +59,21 @@ namespace ao::vulkan {
         void initLogicalDevice(std::vector<char const*> device_extensions, std::vector<vk::PhysicalDeviceFeatures> const& device_features,
                                vk::QueueFlags qflags, vk::CommandPoolCreateFlags cflags,
                                vk::QueueFlagBits default_queue = vk::QueueFlagBits::eGraphics, bool swapchain_support = true);
+
+        /// <summary>
+        /// Method to get surface formats
+        /// </summary>
+        /// <param name="surface">Surface</param>
+        /// <returns>Surface formats</returns>
+        std::vector<vk::SurfaceFormatKHR> surfaceFormatKHRs(vk::SurfaceKHR surface);
+
+        /// <summary>
+        /// Method to get swap chain images
+        /// </summary>
+        /// <param name="device">Device</param>
+        /// <param name="swapChain">Swap chain</param>
+        /// <returns>Images</returns>
+        std::vector<vk::Image> swapChainImages(vk::SwapchainKHR swapChain);
 
         /// <summary>
         /// Method to create an image
@@ -81,7 +97,7 @@ namespace ao::vulkan {
         /// <param name="view_type">View type</param>
         /// <param name="aspect_flags">Aspect flags</param>
         /// <returns>Image view</returns>
-        vk::ImageView createImageView(vk::Image& image, vk::Format format, vk::ImageViewType view_type, vk::ImageAspectFlags aspect_flags);
+        vk::ImageView createImageView(vk::Image image, vk::Format format, vk::ImageViewType view_type, vk::ImageAspectFlags aspect_flags);
 
         /// <summary>
         /// Method to process an image
@@ -90,7 +106,16 @@ namespace ao::vulkan {
         /// <param name="format">Format</param>
         /// <param name="old_layout">Old layout</param>
         /// <param name="new_layout">New layout</param>
-        void processImage(vk::Image& image, vk::Format format, vk::ImageLayout old_layout, vk::ImageLayout new_layout);
+        void processImage(vk::Image image, vk::Format format, vk::ImageLayout old_layout, vk::ImageLayout new_layout);
+
+        /// <summary>
+        /// Method to copy a buffer into an image
+        /// </summary>
+        /// <param name="buffer">Buffer</param>
+        /// <param name="image">Image</param>
+        /// <param name="width">Width</param>
+        /// <param name="height">Height</param>
+        void copyBufferToImage(vk::Buffer buffer, vk::Image image, u32 width, u32 height);
 
         /// <summary>
         /// Method to get memory type

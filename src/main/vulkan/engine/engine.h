@@ -222,7 +222,7 @@ namespace ao::vulkan {
         /// <param name="frameIndex">Current frame index</param>
         /// <param name="primaryCmd">Primary command buffer</param>
         virtual void executeSecondaryCommandBuffers(vk::CommandBufferInheritanceInfo& inheritanceInfo, int frameIndex,
-                                                    vk::CommandBuffer& primaryCmd) = 0;
+                                                    vk::CommandBuffer primaryCmd) = 0;
 
         /// <summary>
         /// Method to get vkInstance extensions

@@ -68,7 +68,7 @@ namespace ao::vulkan {
         /// <param name="device">Device</param>
         /// <param name="size">UBO's size</param>
         /// <returns>Aligment size</returns>
-        static size_t CalculateUBOAligmentSize(vk::PhysicalDevice const& device, size_t size);
+        static size_t CalculateUBOAligmentSize(vk::PhysicalDevice device, size_t size);
 
        protected:
         core::Logger LOGGER = core::Logger::GetInstance<Buffer>();

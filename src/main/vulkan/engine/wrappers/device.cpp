@@ -220,6 +220,7 @@ void ao::vulkan::Device::processImage(vk::Image image, vk::Format format, vk::Im
 
     // Create fence
     vk::Fence fence = this->logical.createFence(vk::FenceCreateInfo(vk::FenceCreateFlagBits::eSignaled));
+    this->logical.resetFences(fence);
 
     // Submit command
     this->queues[vk::QueueFlagBits::eGraphics].queue.submit(vk::SubmitInfo().setCommandBufferCount(1).setPCommandBuffers(&cmd), fence);
@@ -245,6 +246,7 @@ void ao::vulkan::Device::copyBufferToImage(vk::Buffer buffer, vk::Image image, u
 
     // Create fence
     vk::Fence fence = this->logical.createFence(vk::FenceCreateInfo(vk::FenceCreateFlagBits::eSignaled));
+    this->logical.resetFences(fence);
 
     // Submit command
     this->queues[vk::QueueFlagBits::eGraphics].queue.submit(vk::SubmitInfo().setCommandBufferCount(1).setPCommandBuffers(&cmd), fence);

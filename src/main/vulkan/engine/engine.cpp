@@ -252,7 +252,7 @@ void ao::vulkan::Engine::loop() {
 }
 
 void ao::vulkan::Engine::render() {
-    vk::Fence& fence = this->swapchain->currentFence();
+    vk::Fence fence = this->swapchain->currentFence();
 
     // Wait fence
     this->device->logical.waitForFences(fence, VK_TRUE, (std::numeric_limits<u64>::max)());
@@ -313,8 +313,8 @@ void ao::vulkan::Engine::submitFrame() {
 
 void ao::vulkan::Engine::updateCommandBuffers() {
     // Get current command buffer/frame
-    vk::CommandBuffer& command = this->swapchain->commands["primary"].buffers[this->swapchain->frame_index];
-    vk::Framebuffer& frame = this->swapchain->currentFrame();
+    vk::CommandBuffer command = this->swapchain->commands["primary"].buffers[this->swapchain->frame_index];
+    vk::Framebuffer frame = this->swapchain->currentFrame();
 
     // Create info
     vk::CommandBufferBeginInfo begin_info(vk::CommandBufferUsageFlagBits::eRenderPassContinue);

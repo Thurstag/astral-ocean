@@ -10,7 +10,7 @@ size_t ao::vulkan::Buffer::calculateUBOAligmentSize(size_t size) const {
     return ao::vulkan::Buffer::CalculateUBOAligmentSize(ao::core::shared(this->device)->physical, size);
 }
 
-size_t ao::vulkan::Buffer::CalculateUBOAligmentSize(vk::PhysicalDevice const& device, size_t size) {
+size_t ao::vulkan::Buffer::CalculateUBOAligmentSize(vk::PhysicalDevice device, size_t size) {
     size_t alignment = device.getProperties().limits.minUniformBufferOffsetAlignment;
 
     if (alignment > 0) {

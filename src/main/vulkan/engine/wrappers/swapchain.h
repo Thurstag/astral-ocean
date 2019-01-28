@@ -104,13 +104,13 @@ namespace ao::vulkan {
         /// Method to get current fence
         /// </summary>
         /// <returns>Current fence</returns>
-        vk::Fence& currentFence();
+        vk::Fence currentFence();
 
         /// <summary>
         /// Method to get current frame
         /// </summary>
         /// <returns>Current Frame</returns>
-        vk::Framebuffer& currentFrame();
+        vk::Framebuffer currentFrame();
 
         /// <summary>
         /// Method to get next image

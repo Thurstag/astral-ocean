@@ -313,11 +313,11 @@ void ao::vulkan::Swapchain::destroyStencilBuffer() {
     _device->logical.freeMemory(std::get<1>(*this->stencil_buffer));
 }
 
-vk::Fence& ao::vulkan::Swapchain::currentFence() {
+vk::Fence ao::vulkan::Swapchain::currentFence() {
     return this->waiting_fences[this->frame_index];
 }
 
-vk::Framebuffer& ao::vulkan::Swapchain::currentFrame() {
+vk::Framebuffer ao::vulkan::Swapchain::currentFrame() {
     return this->frames[this->frame_index];
 }
 

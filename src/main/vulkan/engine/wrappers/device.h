@@ -84,13 +84,13 @@ namespace ao::vulkan {
         vk::ImageView createImageView(vk::Image& image, vk::Format format, vk::ImageViewType view_type, vk::ImageAspectFlags aspect_flags);
 
         /// <summary>
-        /// Method to define a transition layout for an image
+        /// Method to process an image
         /// </summary>
         /// <param name="image">Image</param>
         /// <param name="format">Format</param>
         /// <param name="old_layout">Old layout</param>
         /// <param name="new_layout">New layout</param>
-        void defineTransitionLayout(vk::Image& image, vk::Format format, vk::ImageLayout old_layout, vk::ImageLayout new_layout);
+        void processImage(vk::Image& image, vk::Format format, vk::ImageLayout old_layout, vk::ImageLayout new_layout);
 
         /// <summary>
         /// Method to get memory type

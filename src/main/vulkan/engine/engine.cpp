@@ -229,7 +229,7 @@ void ao::vulkan::Engine::prepareVulkan() {
     this->createPipelines();
 
     // Set-up vulkan buffers
-    this->setUpVulkanBuffers();
+    this->createVulkanBuffers();
 
     // Create descriptor pools & sets
     this->createDescriptorPools();
@@ -263,8 +263,8 @@ void ao::vulkan::Engine::render() {
     // Prepare frame
     this->prepareFrame();
 
-    // Update uniform buffers
-    this->updateUniformBuffers();
+    // Call	beforeCommandBuffersUpdate()
+    this->beforeCommandBuffersUpdate();
 
     // Update command buffers
     this->updateCommandBuffers();
@@ -284,6 +284,8 @@ void ao::vulkan::Engine::render() {
 
     // Submit frame
     this->submitFrame();
+
+    this->afterFrame();
 }
 
 void ao::vulkan::Engine::prepareFrame() {

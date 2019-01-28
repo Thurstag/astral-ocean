@@ -292,8 +292,8 @@ void ao::vulkan::Swapchain::createStencilBuffer() {
     this->stencil_buffer = std::make_optional(std::make_tuple(image.first, image.second, view));
 
     // Define transition layout
-    _device->defineTransitionLayout(std::get<0>(*this->stencil_buffer), _device->depth_format, vk::ImageLayout::eUndefined,
-                                    vk::ImageLayout::eDepthStencilAttachmentOptimal);
+    _device->processImage(std::get<0>(*this->stencil_buffer), _device->depth_format, vk::ImageLayout::eUndefined,
+                          vk::ImageLayout::eDepthStencilAttachmentOptimal);
 }
 
 void ao::vulkan::Swapchain::destroyFramebuffers() {

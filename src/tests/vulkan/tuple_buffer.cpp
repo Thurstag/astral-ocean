@@ -107,7 +107,7 @@ namespace ao::test {
         Object* o = new Object(4);
 
         // Not init
-        ASSERT_EXCEPTION<core::Exception>([&]() { b.updateFragment(1, o); });
+        ASSERT_EXCEPTION<vulkan::BufferUninitialized>([&]() { b.updateFragment(1, o); });
         delete o;
     }
 
@@ -254,7 +254,7 @@ namespace ao::test {
         SecondObject* sO = new SecondObject(true);
 
         // Not init
-        ASSERT_EXCEPTION<core::Exception>([&]() { b.update(o, sO); });
+        ASSERT_EXCEPTION<vulkan::BufferUninitialized>([&]() { b.update(o, sO); });
 
         delete o;
         delete sO;
@@ -269,7 +269,7 @@ namespace ao::test {
         Object* o = new Object(4);
 
         // Not init
-        ASSERT_EXCEPTION<core::Exception>([&]() { b.updateFragment(0, o); });
+        ASSERT_EXCEPTION<vulkan::BufferUninitialized>([&]() { b.updateFragment(0, o); });
 
         delete o;
     }

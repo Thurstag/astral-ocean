@@ -4,6 +4,8 @@
 
 #include "staging_buffer.h"
 
+#include "../../exception/buffer_unitialized.h"
+
 ao::vulkan::StagingBuffer::StagingBuffer(std::weak_ptr<Device> device, vk::CommandBufferUsageFlags cmd_usage, bool memory_barrier)
     : ao::vulkan::Buffer(device), cmd_usage(cmd_usage), memory_barrier(memory_barrier) {}
 
@@ -34,14 +36,14 @@ ao::vulkan::Buffer* ao::vulkan::StagingBuffer::map() {
 
 vk::Buffer const& ao::vulkan::StagingBuffer::buffer() const {
     if (this->device_buffer.get() == nullptr) {
-        throw ao::core::Exception("Device buffer hasn't been initialized");
+        throw ao::vulkan::BufferUninitialized();
     }
     return this->device_buffer->buffer();
 }
 
 vk::DeviceSize ao::vulkan::StagingBuffer::size() const {
     if (this->device_buffer.get() == nullptr) {
-        throw ao::core::Exception("Device buffer hasn't been initialized");
+        throw ao::vulkan::BufferUninitialized();
     }
     return this->device_buffer->size();
 }

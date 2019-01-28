@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include "../../../exception/buffer_unitialized.h"
 #include "../staging_buffer.h"
 #include "basic_buffer.hpp"
 
@@ -85,7 +86,7 @@ namespace ao::vulkan {
     template<class T>
     DynamicArrayBuffer<T>* StagingDynamicArrayBuffer<T>::update(std::vector<T> const& data) {
         if (!this->hasBuffer()) {
-            throw core::Exception("Buffer hasn't been initialized");
+            throw BufferUninitialized();
         }
 
         // Update host buffer & synchronize memories
@@ -102,14 +103,14 @@ namespace ao::vulkan {
     template<class T>
     DynamicArrayBuffer<T>* StagingDynamicArrayBuffer<T>::updateFragment(std::size_t index, T const* data) {
         if (!this->hasBuffer()) {
-            throw core::Exception("Buffer hasn't been initialized");
+            throw BufferUninitialized();
         }
 
         // Update host buffer & synchronize memories
         if (auto host = static_cast<DynamicArrayBuffer<T>*>(this->host_buffer.get())) {
             host->updateFragment(index, data);
         } else {
-            throw core::Exception("Fail to update host buffer");
+            throw BufferUninitialized();
         }
         this->sync();
 
@@ -212,7 +213,7 @@ namespace ao::vulkan {
     template<class T, size_t N>
     ArrayBuffer<T, N>* StagingArrayBuffer<T, N>::update(std::array<T, N> const& data) {
         if (!this->hasBuffer()) {
-            throw core::Exception("Buffer hasn't been initialized");
+            throw BufferUninitialized();
         }
 
         // Update host buffer & synchronize memories
@@ -229,7 +230,7 @@ namespace ao::vulkan {
     template<class T, size_t N>
     ArrayBuffer<T, N>* StagingArrayBuffer<T, N>::updateFragment(std::size_t index, T const* data) {
         if (!this->hasBuffer()) {
-            throw core::Exception("Buffer hasn't been initialized");
+            throw BufferUninitialized();
         }
 
         // Update host buffer & synchronize memories

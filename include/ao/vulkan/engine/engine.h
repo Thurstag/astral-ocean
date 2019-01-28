@@ -140,7 +140,7 @@ namespace ao::vulkan {
         /// Method to set-up vulkan buffers
         /// </summary>
         /// <returns></returns>
-        virtual void setUpVulkanBuffers() = 0;
+        virtual void createVulkanBuffers() = 0;
 
         /// <summary>
         /// Method to create secondary command buffers
@@ -206,9 +206,14 @@ namespace ao::vulkan {
         virtual void updateCommandBuffers();
 
         /// <summary>
-        /// Method to update uniform buffers
+        /// Method called before command buffers update
         /// </summary>
-        virtual void updateUniformBuffers() = 0;
+        virtual void beforeCommandBuffersUpdate() = 0;
+
+        /// <summary>
+        /// Method called after frame submission
+        /// </summary>
+        virtual void afterFrame() = 0;
 
         /// <summary>
         /// Method to execute secondary command buffers

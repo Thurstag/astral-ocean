@@ -6,6 +6,7 @@
 
 #include <ao/core/exception/index_out_of_range.h>
 
+#include "../../../exception/buffer_unitialized.h"
 #include "buffer.hpp"
 
 namespace ao::vulkan {
@@ -119,7 +120,7 @@ namespace ao::vulkan {
     template<class T>
     DynamicArrayBuffer<T>* BasicDynamicArrayBuffer<T>::update(std::vector<T> const& data) {
         if (!this->hasBuffer()) {
-            throw core::Exception("Buffer hasn't been initialized");
+            throw BufferUninitialized();
         }
 
         // Map memory
@@ -148,7 +149,7 @@ namespace ao::vulkan {
     template<class T>
     DynamicArrayBuffer<T>* BasicDynamicArrayBuffer<T>::updateFragment(std::size_t index, T const* data) {
         if (!this->hasBuffer()) {
-            throw core::Exception("Buffer hasn't been initialized");
+            throw BufferUninitialized();
         }
 
         // Check index
@@ -309,7 +310,7 @@ namespace ao::vulkan {
     template<class T, size_t N>
     ArrayBuffer<T, N>* BasicArrayBuffer<T, N>::update(std::array<T, N> const& data) {
         if (!this->hasBuffer()) {
-            throw core::Exception("Buffer hasn't been initialized");
+            throw BufferUninitialized();
         }
 
         // Map memory
@@ -333,7 +334,7 @@ namespace ao::vulkan {
     template<class T, size_t N>
     ArrayBuffer<T, N>* BasicArrayBuffer<T, N>::updateFragment(std::size_t index, T const* data) {
         if (!this->hasBuffer()) {
-            throw core::Exception("Buffer hasn't been initialized");
+            throw BufferUninitialized();
         }
 
         // Check index

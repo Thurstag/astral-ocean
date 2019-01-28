@@ -9,6 +9,7 @@
 #include <ao/core/exception/index_out_of_range.h>
 #include <ao/core/utilities/pointers.h>
 
+#include "../../../exception/buffer_unitialized.h"
 #include "buffer.hpp"
 
 namespace ao::vulkan {
@@ -162,7 +163,7 @@ namespace ao::vulkan {
     template<class... T>
     TupleBuffer<T...>* BasicTupleBuffer<T...>::update(T const*... data) {
         if (!this->hasBuffer()) {
-            throw core::Exception("Buffer hasn't been initialized");
+            throw BufferUninitialized();
         }
         std::vector<void const*> _data = {data...};
 
@@ -187,7 +188,7 @@ namespace ao::vulkan {
     template<class... T>
     TupleBuffer<T...>* BasicTupleBuffer<T...>::updateFragment(std::size_t index, void* const data) {
         if (!this->hasBuffer()) {
-            throw core::Exception("Buffer hasn't been initialized");
+            throw BufferUninitialized();
         }
 
         // Check index

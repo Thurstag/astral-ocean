@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include "../../../exception/buffer_unitialized.h"
 #include "../staging_buffer.h"
 #include "basic_buffer.hpp"
 
@@ -81,7 +82,7 @@ namespace ao::vulkan {
     template<class... T>
     TupleBuffer<T...>* StagingTupleBuffer<T...>::update(T const*... data) {
         if (!this->hasBuffer()) {
-            throw core::Exception("Buffer hasn't been initialized");
+            throw BufferUninitialized();
         }
 
         // Update host buffer & synchronize memories
@@ -98,7 +99,7 @@ namespace ao::vulkan {
     template<class... T>
     TupleBuffer<T...>* StagingTupleBuffer<T...>::updateFragment(std::size_t index, void* const data) {
         if (!this->hasBuffer()) {
-            throw core::Exception("Buffer hasn't been initialized");
+            throw BufferUninitialized();
         }
 
         // Update host buffer & synchronize memories

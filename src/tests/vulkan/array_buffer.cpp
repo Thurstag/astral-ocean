@@ -87,8 +87,8 @@ namespace ao::test {
         TestBasicDynamicArrayBuffer<Object> b2 = TestBasicDynamicArrayBuffer<Object>(2, instance.device);
 
         // Not init
-        ASSERT_EXCEPTION<core::Exception>([&]() { b.update({Object(1), Object(2)}); });
-        ASSERT_EXCEPTION<core::Exception>([&]() {
+        ASSERT_EXCEPTION<vulkan::BufferUninitialized>([&]() { b.update({Object(1), Object(2)}); });
+        ASSERT_EXCEPTION<vulkan::BufferUninitialized>([&]() {
             std::vector<Object> v = {Object(1), Object(2)};
             b2.update(v);
         });
@@ -104,8 +104,8 @@ namespace ao::test {
         Object* o = new Object(4);
 
         // Not init
-        ASSERT_EXCEPTION<core::Exception>([&]() { b.updateFragment(1, o); });
-        ASSERT_EXCEPTION<core::Exception>([&]() { b2.updateFragment(1, o); });
+        ASSERT_EXCEPTION<vulkan::BufferUninitialized>([&]() { b.updateFragment(1, o); });
+        ASSERT_EXCEPTION<vulkan::BufferUninitialized>([&]() { b2.updateFragment(1, o); });
         delete o;
     }
 
@@ -282,8 +282,8 @@ namespace ao::test {
         Object* o = new Object(4);
 
         // Not init
-        ASSERT_EXCEPTION<core::Exception>([&]() { b.updateFragment(1, o); });
-        ASSERT_EXCEPTION<core::Exception>([&]() { b2.updateFragment(1, o); });
+        ASSERT_EXCEPTION<vulkan::BufferUninitialized>([&]() { b.updateFragment(1, o); });
+        ASSERT_EXCEPTION<vulkan::BufferUninitialized>([&]() { b2.updateFragment(1, o); });
         delete o;
     }
 

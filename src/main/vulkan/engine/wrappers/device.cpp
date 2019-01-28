@@ -133,7 +133,7 @@ vk::ImageView ao::vulkan::Device::createImageView(vk::Image& image, vk::Format f
                                                                  vk::ImageSubresourceRange(aspect_flags, 0, 1, 0, 1)));
 }
 
-void ao::vulkan::Device::defineTransitionLayout(vk::Image& image, vk::Format format, vk::ImageLayout old_layout, vk::ImageLayout new_layout) {
+void ao::vulkan::Device::processImage(vk::Image& image, vk::Format format, vk::ImageLayout old_layout, vk::ImageLayout new_layout) {
     // Create command buffer
     vk::CommandBuffer cmd =
         this->logical.allocateCommandBuffers(vk::CommandBufferAllocateInfo(this->command_pool, vk::CommandBufferLevel::ePrimary, 1)).front();

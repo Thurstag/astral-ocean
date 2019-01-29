@@ -16,13 +16,12 @@ ao::vulkan::Device::Device(vk::PhysicalDevice device) : physical(device) {
 }
 
 ao::vulkan::Device::~Device() {
-    this->logical.destroyCommandPool(this->command_pool);
-    this->logical.destroy();
+    this->transfer_command_pool.reset();
+    this->graphics_command_pool.reset();
 }
 
 void ao::vulkan::Device::initLogicalDevice(std::vector<char const*> device_extensions, std::vector<vk::PhysicalDeviceFeatures> const& device_features,
-                                           vk::QueueFlags const qflags, vk::CommandPoolCreateFlags const cflags,
-                                           vk::QueueFlagBits const default_queue, bool swapchain_support) {
+                                           vk::QueueFlags qflags, vk::QueueFlagBits default_queue, bool swapchain_support) {
     std::vector<vk::QueueFamilyProperties> queue_properties = this->physical.getQueueFamilyProperties();
     std::vector<vk::DeviceQueueCreateInfo> queue_infos;
     float const DEFAULT_QUEUE_PRIORITY = 0.0f;
@@ -102,9 +101,13 @@ void ao::vulkan::Device::initLogicalDevice(std::vector<char const*> device_exten
         }
     }
 
-    // Create command pool for transfert
-    this->command_pool = this->logical.createCommandPool(
-        vk::CommandPoolCreateInfo(vk::CommandPoolCreateFlagBits::eResetCommandBuffer, this->queues[vk::QueueFlagBits::eTransfer].index));
+    // Create command pools
+    this->transfer_command_pool = std::make_unique<ao::vulkan::CommandPool>(this->logical, vk::CommandPoolCreateFlagBits::eResetCommandBuffer,
+                                                                            this->queues[vk::QueueFlagBits::eTransfer].index,
+                                                                            ao::vulkan::CommandPoolAccessModeFlagBits::eConcurrent);
+    this->graphics_command_pool = std::make_unique<ao::vulkan::CommandPool>(this->logical, vk::CommandPoolCreateFlagBits::eResetCommandBuffer,
+                                                                            this->queues[vk::QueueFlagBits::eGraphics].index,
+                                                                            ao::vulkan::CommandPoolAccessModeFlagBits::eConcurrent);
 
     // Find suitable depth format
     this->depth_format = ao::vulkan::utilities::getSupportedDepthFormat(this->physical);
@@ -172,8 +175,7 @@ vk::ImageView ao::vulkan::Device::createImageView(vk::Image image, vk::Format fo
 
 void ao::vulkan::Device::processImage(vk::Image image, vk::Format format, vk::ImageLayout old_layout, vk::ImageLayout new_layout) {
     // Create command buffer
-    vk::CommandBuffer cmd =
-        this->logical.allocateCommandBuffers(vk::CommandBufferAllocateInfo(this->command_pool, vk::CommandBufferLevel::ePrimary, 1)).front();
+    vk::CommandBuffer cmd = this->graphics_command_pool->allocateCommandBuffers(vk::CommandBufferLevel::ePrimary, 1).front();
 
     // Create barrier
     vk::ImageMemoryBarrier barrier(
@@ -230,13 +232,12 @@ void ao::vulkan::Device::processImage(vk::Image image, vk::Format format, vk::Im
 
     // Free command/fence
     this->logical.destroyFence(fence);
-    this->logical.freeCommandBuffers(this->command_pool, cmd);
+    this->graphics_command_pool->freeCommandBuffers(cmd);
 }
 
 void ao::vulkan::Device::copyBufferToImage(vk::Buffer buffer, vk::Image image, u32 width, u32 height) {
     // Create command buffer
-    vk::CommandBuffer cmd =
-        this->logical.allocateCommandBuffers(vk::CommandBufferAllocateInfo(this->command_pool, vk::CommandBufferLevel::ePrimary, 1)).front();
+    vk::CommandBuffer cmd = this->transfer_command_pool->allocateCommandBuffers(vk::CommandBufferLevel::ePrimary, 1).front();
 
     cmd.begin(vk::CommandBufferBeginInfo(vk::CommandBufferUsageFlagBits::eOneTimeSubmit));
     cmd.copyBufferToImage(buffer, image, vk::ImageLayout::eTransferDstOptimal,
@@ -249,14 +250,14 @@ void ao::vulkan::Device::copyBufferToImage(vk::Buffer buffer, vk::Image image, u
     this->logical.resetFences(fence);
 
     // Submit command
-    this->queues[vk::QueueFlagBits::eGraphics].queue.submit(vk::SubmitInfo().setCommandBufferCount(1).setPCommandBuffers(&cmd), fence);
+    this->queues[vk::QueueFlagBits::eTransfer].queue.submit(vk::SubmitInfo().setCommandBufferCount(1).setPCommandBuffers(&cmd), fence);
 
     // Wait fence
     this->logical.waitForFences(fence, VK_TRUE, (std::numeric_limits<u64>::max)());
 
     // Free command/fence
     this->logical.destroyFence(fence);
-    this->logical.freeCommandBuffers(this->command_pool, cmd);
+    this->transfer_command_pool->freeCommandBuffers(cmd);
 }
 
 u32 ao::vulkan::Device::memoryType(u32 type_bits, vk::MemoryPropertyFlags const properties) const {

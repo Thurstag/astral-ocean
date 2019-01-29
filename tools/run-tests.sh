@@ -18,4 +18,4 @@ configDir="${configPath/CTestTestfile.cmake/$EMPTY_STRING}"
 cd "$configDir"
 
 # Run tests with {CPU_CORES} workers
-ctest build/ -C debug -VV -j "$CPU_CORES"
+ctest -C debug -VV -j "$CPU_CORES"

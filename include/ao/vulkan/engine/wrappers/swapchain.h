@@ -11,7 +11,7 @@
 
 #include <vulkan/vulkan.hpp>
 
-#include "../containers/commandbuffer_container.h"
+#include "command_pool.h"
 #include "device.h"
 
 namespace ao::vulkan {
@@ -31,8 +31,6 @@ namespace ao::vulkan {
         u32 frame_index;
 
         std::optional<StencilBuffer> stencil_buffer;
-        CommandBufferContainer commands;
-        vk::CommandPool command_pool;
 
         vk::ColorSpaceKHR color_space;
         vk::Extent2D current_extent;
@@ -113,6 +111,12 @@ namespace ao::vulkan {
         vk::Framebuffer currentFrame();
 
         /// <summary>
+        /// Method to get current command buffer
+        /// </summary>
+        /// <returns>Command buffer</returns>
+        vk::CommandBuffer& currentCommand();
+
+        /// <summary>
         /// Method to get next image
         /// </summary>
         /// <param name="acquire">Acquire semaphore</param>
@@ -128,6 +132,8 @@ namespace ao::vulkan {
        protected:
         core::Logger LOGGER = core::Logger::GetInstance<Swapchain>();
 
+        std::unique_ptr<CommandPool> command_pool;
+        std::vector<vk::CommandBuffer> commands;
         std::weak_ptr<vk::Instance> instance;
         std::weak_ptr<Device> device;
     };

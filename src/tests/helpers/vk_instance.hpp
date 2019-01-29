@@ -15,12 +15,19 @@ namespace ao::test {
         std::shared_ptr<vk::Instance> instance;
         std::shared_ptr<vulkan::Device> device;
 
+        ~VkInstance();
+
         /// <summary>
         /// Method to init vulkan
         /// </summary>
         /// <returns>Successfull or not</returns>
         bool init();
     };
+
+    inline VkInstance::~VkInstance() {
+        this->device.reset();
+        this->instance.reset();
+    }
 
     bool VkInstance::init() {
         std::shared_ptr<vulkan::EngineSettings> settings = std::make_shared<vulkan::EngineSettings>();
@@ -39,11 +46,10 @@ namespace ao::test {
             }
 
             // Select a vk::PhysicalDevice & wrap it
-            this->device = std::make_shared<vulkan::Device>(devices[0]);
+            this->device = std::make_shared<vulkan::Device>(devices.front());
 
             // Init logical device
-            this->device->initLogicalDevice({}, {}, vk::QueueFlagBits::eGraphics | vk::QueueFlagBits::eCompute | vk::QueueFlagBits::eTransfer,
-                                            vk::CommandPoolCreateFlagBits::eResetCommandBuffer);
+            this->device->initLogicalDevice({}, {}, vk::QueueFlagBits::eGraphics | vk::QueueFlagBits::eCompute | vk::QueueFlagBits::eTransfer);
         } catch (...) {
             return false;
         }

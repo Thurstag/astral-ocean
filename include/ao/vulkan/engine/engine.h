@@ -245,16 +245,10 @@ namespace ao::vulkan {
         virtual std::vector<vk::PhysicalDeviceFeatures> deviceFeatures() const;
 
         /// <summary>
-        /// Method to define queue flags
+        /// Method to define necessary queues
         /// </summary>
         /// <returns>Flags</returns>
         virtual vk::QueueFlags queueFlags() const;
-
-        /// <summary>
-        /// Method to define command pool flags
-        /// </summary>
-        /// <returns>Flags</returns>
-        virtual vk::CommandPoolCreateFlags commandPoolFlags() const;
 
         /// <summary>
         /// Method to define validation layers severity

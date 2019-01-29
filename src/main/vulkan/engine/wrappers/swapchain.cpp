@@ -7,7 +7,7 @@
 #include "swapchain.h"
 
 ao::vulkan::Swapchain::Swapchain(std::weak_ptr<vk::Instance> instance, std::weak_ptr<Device> device)
-    : instance(instance), device(device), commands(device), frame_index(0) {}
+    : instance(instance), device(device), frame_index(0) {}
 
 ao::vulkan::Swapchain::~Swapchain() {
     auto _device = ao::core::shared(this->device);
@@ -22,7 +22,6 @@ ao::vulkan::Swapchain::~Swapchain() {
     }
 
     this->freeCommandBuffers();
-    _device->logical.destroyCommandPool(this->command_pool);
 
     for (auto& framebuffer : this->frames) {
         _device->logical.destroyFramebuffer(framebuffer);
@@ -239,18 +238,12 @@ void ao::vulkan::Swapchain::prepare() {
 
     /* COMMAND POOL */
 
-    this->command_pool = _device->logical.createCommandPool(
-        vk::CommandPoolCreateInfo(vk::CommandPoolCreateFlagBits::eResetCommandBuffer, _device->queues[vk::QueueFlagBits::eGraphics].index));
+    this->command_pool = std::make_unique<ao::vulkan::CommandPool>(_device->logical, vk::CommandPoolCreateFlagBits::eResetCommandBuffer,
+                                                                   _device->queues[vk::QueueFlagBits::eGraphics].index);
 }
 
 void ao::vulkan::Swapchain::createCommandBuffers() {
-    // Allocate buffers
-    std::vector<vk::CommandBuffer> buffers = ao::core::shared(this->device)
-                                                 ->logical.allocateCommandBuffers(vk::CommandBufferAllocateInfo(
-                                                     this->command_pool, vk::CommandBufferLevel::ePrimary, static_cast<u32>(this->buffers.size())));
-
-    // Add to container
-    this->commands["primary"] = ao::vulkan::structs::CommandData(buffers, this->command_pool);
+    this->commands = this->command_pool->allocateCommandBuffers(vk::CommandBufferLevel::ePrimary, static_cast<u32>(this->buffers.size()));
 }
 
 void ao::vulkan::Swapchain::createFramebuffers(vk::RenderPass render_pass) {
@@ -276,7 +269,7 @@ void ao::vulkan::Swapchain::createFramebuffers(vk::RenderPass render_pass) {
 }
 
 void ao::vulkan::Swapchain::freeCommandBuffers() {
-    this->commands.clear();
+    this->command_pool.reset();
 }
 
 void ao::vulkan::Swapchain::createStencilBuffer() {
@@ -319,6 +312,10 @@ vk::Fence ao::vulkan::Swapchain::currentFence() {
 
 vk::Framebuffer ao::vulkan::Swapchain::currentFrame() {
     return this->frames[this->frame_index];
+}
+
+vk::CommandBuffer& ao::vulkan::Swapchain::currentCommand() {
+    return this->commands[this->frame_index];
 }
 
 vk::Result ao::vulkan::Swapchain::nextImage(vk::Semaphore acquire) {

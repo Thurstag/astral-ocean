@@ -74,13 +74,17 @@ namespace ao::vulkan {
                        vk::SharingMode::eExclusive, vk::MemoryPropertyFlagBits::eDeviceLocal, size));
 
         auto _device = ao::core::shared(StagingBuffer::device);
+
         // Create command buffer
-        this->command_buffer =
-            _device->logical.allocateCommandBuffers(vk::CommandBufferAllocateInfo(_device->command_pool, vk::CommandBufferLevel::ePrimary, 1))[0];
+        if (!this->command_buffer) {
+            this->command_buffer = _device->transfer_command_pool->allocateCommandBuffers(vk::CommandBufferLevel::ePrimary, 1).front();
+        }
 
         // Create fence
-        this->fence = _device->logical.createFence(vk::FenceCreateInfo(vk::FenceCreateFlagBits::eSignaled));
-        _device->logical.resetFences(fence);
+        if (!this->fence) {
+            this->fence = _device->logical.createFence(vk::FenceCreateInfo(vk::FenceCreateFlagBits::eSignaled));
+            _device->logical.resetFences(fence);
+        }
         return this;
     }
 
@@ -202,13 +206,17 @@ namespace ao::vulkan {
                        vk::SharingMode::eExclusive, vk::MemoryPropertyFlagBits::eDeviceLocal, size));
 
         auto _device = ao::core::shared(StagingBuffer::device);
+
         // Create command buffer
-        this->command_buffer =
-            _device->logical.allocateCommandBuffers(vk::CommandBufferAllocateInfo(_device->command_pool, vk::CommandBufferLevel::ePrimary, 1))[0];
+        if (!this->command_buffer) {
+            this->command_buffer = _device->transfer_command_pool->allocateCommandBuffers(vk::CommandBufferLevel::ePrimary, 1).front();
+        }
 
         // Create fence
-        this->fence = _device->logical.createFence(vk::FenceCreateInfo(vk::FenceCreateFlagBits::eSignaled));
-        _device->logical.resetFences(fence);
+        if (!this->fence) {
+            this->fence = _device->logical.createFence(vk::FenceCreateInfo(vk::FenceCreateFlagBits::eSignaled));
+            _device->logical.resetFences(fence);
+        }
         return this;
     }
 

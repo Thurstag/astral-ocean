@@ -48,7 +48,7 @@ void ao::vulkan::Engine::initVulkan() {
     LOGGER << ao::core::Logger::Level::info << fmt::format("Select physical device: {0}", this->device->physical.getProperties().deviceName);
 
     // Init logical device
-    this->device->initLogicalDevice(this->deviceExtensions(), this->deviceFeatures(), this->queueFlags(), this->commandPoolFlags());
+    this->device->initLogicalDevice(this->deviceExtensions(), this->deviceFeatures(), this->queueFlags());
 
     // Create swapChain
     this->swapchain = std::make_shared<ao::vulkan::Swapchain>(this->instance, this->device);
@@ -272,7 +272,7 @@ void ao::vulkan::Engine::render() {
     // Create submit info
     vk::SubmitInfo submitInfo(static_cast<u32>(this->semaphores["graphicQueue"].waits.size()),
                               this->semaphores["graphicQueue"].waits.empty() ? nullptr : this->semaphores["graphicQueue"].waits.data(),
-                              &this->pipeline->submit_pipeline_stages, 1, &this->swapchain->commands["primary"].buffers[this->swapchain->frame_index],
+                              &this->pipeline->submit_pipeline_stages, 1, &this->swapchain->currentCommand(),
                               static_cast<u32>(this->semaphores["graphicQueue"].signals.size()),
                               this->semaphores["graphicQueue"].signals.empty() ? nullptr : this->semaphores["graphicQueue"].signals.data());
 
@@ -316,7 +316,7 @@ void ao::vulkan::Engine::submitFrame() {
 
 void ao::vulkan::Engine::updateCommandBuffers() {
     // Get current command buffer/frame
-    vk::CommandBuffer command = this->swapchain->commands["primary"].buffers[this->swapchain->frame_index];
+    vk::CommandBuffer command = this->swapchain->currentCommand();
     vk::Framebuffer frame = this->swapchain->currentFrame();
 
     // Create info
@@ -354,11 +354,7 @@ std::vector<vk::PhysicalDeviceFeatures> ao::vulkan::Engine::deviceFeatures() con
 }
 
 vk::QueueFlags ao::vulkan::Engine::queueFlags() const {
-    return vk::QueueFlagBits::eGraphics | vk::QueueFlagBits::eCompute;
-}
-
-vk::CommandPoolCreateFlags ao::vulkan::Engine::commandPoolFlags() const {
-    return vk::CommandPoolCreateFlagBits::eResetCommandBuffer;
+    return vk::QueueFlagBits::eGraphics;
 }
 
 vk::DebugUtilsMessageSeverityFlagsEXT ao::vulkan::Engine::validationLayersSeverity() const {

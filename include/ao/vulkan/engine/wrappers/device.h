@@ -15,6 +15,7 @@
 
 #include "../../utilities/vulkan.h"
 #include "../containers/queue_container.h"
+#include "command_pool.h"
 
 namespace ao::vulkan {
     /// <summary>
@@ -22,7 +23,7 @@ namespace ao::vulkan {
     /// </summary>
     struct Device {
        public:
-        vk::CommandPool command_pool;
+        std::unique_ptr<CommandPool> transfer_command_pool;
         QueueContainer queues;
 
         std::vector<vk::ExtensionProperties> extensions;
@@ -54,11 +55,9 @@ namespace ao::vulkan {
         /// <param name="device_features">Features</param>
         /// <param name="qflags">Queue Flags</param>
         /// <param name="default_queue">Default queue for queue container</param>
-        /// <param name="cflags">CommandPool Flags</param>
         /// <param name="swapchain_support">Enable swapchain_support</param>
         void initLogicalDevice(std::vector<char const*> device_extensions, std::vector<vk::PhysicalDeviceFeatures> const& device_features,
-                               vk::QueueFlags qflags, vk::CommandPoolCreateFlags cflags,
-                               vk::QueueFlagBits default_queue = vk::QueueFlagBits::eGraphics, bool swapchain_support = true);
+                               vk::QueueFlags qflags, vk::QueueFlagBits default_queue = vk::QueueFlagBits::eGraphics, bool swapchain_support = true);
 
         /// <summary>
         /// Method to get surface formats
@@ -127,5 +126,7 @@ namespace ao::vulkan {
 
        protected:
         core::Logger LOGGER = core::Logger::GetInstance<Device>();
+
+        std::unique_ptr<CommandPool> graphics_command_pool;
     };
 }  // namespace ao::vulkan

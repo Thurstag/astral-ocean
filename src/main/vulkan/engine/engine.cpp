@@ -74,39 +74,42 @@ void ao::vulkan::Engine::freeVulkan() {
     this->device.reset();
 
     if (this->settings_->get(ao::vulkan::settings::ValidationLayers, std::make_optional<bool>(false))) {
-        PFN_vkDestroyDebugReportCallbackEXT DestroyDebugReportCallback =
-            reinterpret_cast<PFN_vkDestroyDebugReportCallbackEXT>(vkGetInstanceProcAddr(*this->instance, "vkDestroyDebugReportCallbackEXT"));
+        PFN_vkDestroyDebugUtilsMessengerEXT vkDestroyDebugUtilsMessengerEXT =
+            reinterpret_cast<PFN_vkDestroyDebugUtilsMessengerEXT>(vkGetInstanceProcAddr(*this->instance, "vkDestroyDebugUtilsMessengerEXT"));
 
         // Check function
-        if (DestroyDebugReportCallback == nullptr) {
-            throw ao::core::Exception("vkDestroyDebugReportCallbackEXT is null, fail to destroy callback");
+        if (this->debug_callBack && vkDestroyDebugUtilsMessengerEXT == nullptr) {
+            throw ao::core::Exception("vkDestroyDebugUtilsMessengerEXT is null, fail to destroy callback");
         }
 
-        DestroyDebugReportCallback(*this->instance, this->debug_callBack, nullptr);
+        vkDestroyDebugUtilsMessengerEXT(*this->instance, this->debug_callBack, nullptr);
     }
 
     this->instance->destroy();
 }
 
 void ao::vulkan::Engine::setUpDebugging() {
-    PFN_vkCreateDebugReportCallbackEXT CreateDebugReportCallback =
-        reinterpret_cast<PFN_vkCreateDebugReportCallbackEXT>(this->instance->getProcAddr("vkCreateDebugReportCallbackEXT"));
+    PFN_vkCreateDebugUtilsMessengerEXT CreateDebugUtilsMessengerEXT =
+        reinterpret_cast<PFN_vkCreateDebugUtilsMessengerEXT>(this->instance->getProcAddr("vkCreateDebugUtilsMessengerEXT"));
 
     // Check function
-    if (CreateDebugReportCallback == nullptr) {
-        this->LOGGER << ao::core::Logger::Level::warning << "Fail to retrieve function: vkCreateDebugReportCallbackEXT, cancel debug callback set-up";
+    if (CreateDebugUtilsMessengerEXT == nullptr) {
+        this->LOGGER << ao::core::Logger::Level::warning << "Fail to retrieve function: vkCreateDebugUtilsMessengerEXT, cancel debug callback set-up";
         return;
     }
 
-    VkDebugReportCallbackCreateInfoEXT create_info =
-        vk::DebugReportCallbackCreateInfoEXT(this->debugReportFlags(), ao::vulkan::Engine::DebugReportCallBack);
-    VkDebugReportCallbackEXT callback;
+    VkDebugUtilsMessengerCreateInfoEXT create_info =
+        vk::DebugUtilsMessengerCreateInfoEXT(vk::DebugUtilsMessengerCreateFlagsEXT(), this->validationLayersSeverity(),
+                                             vk::DebugUtilsMessageTypeFlagBitsEXT::eGeneral | vk::DebugUtilsMessageTypeFlagBitsEXT::ePerformance |
+                                                 vk::DebugUtilsMessageTypeFlagBitsEXT::eValidation,
+                                             ao::vulkan::Engine::DebugCallBack);
+    VkDebugUtilsMessengerEXT callback;
 
     // Create callback
-    CreateDebugReportCallback(*this->instance, &create_info, nullptr, &callback);
+    CreateDebugUtilsMessengerEXT(*this->instance, &create_info, nullptr, &callback);
 
     // Update real callback
-    this->debug_callBack = vk::DebugReportCallbackEXT(callback);
+    this->debug_callBack = vk::DebugUtilsMessengerEXT(callback);
 }
 
 void ao::vulkan::Engine::createRenderPass() {
@@ -358,62 +361,41 @@ vk::CommandPoolCreateFlags ao::vulkan::Engine::commandPoolFlags() const {
     return vk::CommandPoolCreateFlagBits::eResetCommandBuffer;
 }
 
-vk::DebugReportFlagsEXT ao::vulkan::Engine::debugReportFlags() const {
-    return vk::DebugReportFlagBitsEXT::eError | vk::DebugReportFlagBitsEXT::eWarning | vk::DebugReportFlagBitsEXT::eInformation |
-           vk::DebugReportFlagBitsEXT::eDebug | vk::DebugReportFlagBitsEXT::ePerformanceWarning;
+vk::DebugUtilsMessageSeverityFlagsEXT ao::vulkan::Engine::validationLayersSeverity() const {
+    return vk::DebugUtilsMessageSeverityFlagBitsEXT::eError | vk::DebugUtilsMessageSeverityFlagBitsEXT::eVerbose |
+           vk::DebugUtilsMessageSeverityFlagBitsEXT::eWarning | vk::DebugUtilsMessageSeverityFlagBitsEXT::eInfo;
 }
 
-VKAPI_ATTR VkBool32 VKAPI_CALL ao::vulkan::Engine::DebugReportCallBack(VkDebugReportFlagsEXT flags, VkDebugReportObjectTypeEXT type, u64 srcObject,
-                                                                       size_t location, s32 msgCode, const char* pLayerPrefix, const char* message,
-                                                                       void* pUserData) {
-    ao::core::Logger LOGGER = core::Logger::GetInstance<ao::vulkan::Engine>();
-    // clang-format off
-    std::array<vk::DebugReportFlagBitsEXT, 5> all_flags = {
-		vk::DebugReportFlagBitsEXT::eError, vk::DebugReportFlagBitsEXT::eWarning,
-        vk::DebugReportFlagBitsEXT::eDebug, vk::DebugReportFlagBitsEXT::eInformation,
-        vk::DebugReportFlagBitsEXT::ePerformanceWarning
-	};
-    // clang-format on
+VKAPI_ATTR VkBool32 VKAPI_CALL ao::vulkan::Engine::DebugCallBack(VkDebugUtilsMessageSeverityFlagBitsEXT severity,
+                                                                 VkDebugUtilsMessageTypeFlagsEXT type,
+                                                                 const VkDebugUtilsMessengerCallbackDataEXT* callback_data, void* user_data) {
+    core::Logger LOGGER = core::Logger::GetInstance<ValidationLayers>();
 
-    // Find best flag
-    vk::DebugReportFlagsEXT _flags(flags);
-    std::optional<vk::DebugReportFlagBitsEXT> flag;
-    for (auto& _flag : all_flags) {
-        if ((_flags & _flag) && (!flag || flag.value() < _flag)) {
-            flag = _flag;
-        }
-    }
+    // Format message
+    std::string message = fmt::format("[{}] {}", to_string(vk::DebugUtilsMessageTypeFlagsEXT(type)), callback_data->pMessage);
 
-    // Check flag
-    if (!flag) {
-        throw ao::core::Exception("Fail to find best vk::DebugReportFlagBitsEXT");
-    }
-
-    // Log
-    vk::DebugReportObjectTypeEXT _type = vk::DebugReportObjectTypeEXT(type);
-    switch (flag.value()) {
-        case vk::DebugReportFlagBitsEXT::eInformation:
-            LOGGER << ao::core::Logger::Level::trace << fmt::format("[{0}] [{1}] {2}", to_string(flag.value()), to_string(_type), message);
+    switch (vk::DebugUtilsMessageSeverityFlagBitsEXT(severity)) {
+        case vk::DebugUtilsMessageSeverityFlagBitsEXT::eError:
+            LOGGER << ao::core::Logger::Level::error << message;
             break;
 
-        case vk::DebugReportFlagBitsEXT::eWarning:
-        case vk::DebugReportFlagBitsEXT::ePerformanceWarning:
-            LOGGER << ao::core::Logger::Level::warning << fmt::format("[{0}] [{1}] {2}", to_string(flag.value()), to_string(_type), message);
+        case vk::DebugUtilsMessageSeverityFlagBitsEXT::eInfo:
+            LOGGER << ao::core::Logger::Level::info << message;
             break;
 
-        case vk::DebugReportFlagBitsEXT::eError:
-            LOGGER << ao::core::Logger::Level::fatal << fmt::format("[{0}] [{1}] {2}", to_string(flag.value()), to_string(_type), message);
-            return VK_TRUE;
+        case vk::DebugUtilsMessageSeverityFlagBitsEXT::eVerbose:
+            LOGGER << ao::core::Logger::Level::trace << message;
+            break;
 
-        case vk::DebugReportFlagBitsEXT::eDebug:
-            LOGGER << ao::core::Logger::Level::debug << fmt::format("[{0}] [{1}] {2}", to_string(flag.value()), to_string(_type), message);
+        case vk::DebugUtilsMessageSeverityFlagBitsEXT::eWarning:
+            LOGGER << ao::core::Logger::Level::warning << message;
             break;
 
         default:
-            throw ao::core::Exception("Unknown vk::DebugReportFlagBitsEXT");
+            throw ao::core::Exception(
+                fmt::format("Unknown vk::DebugUtilsMessageSeverityFlagBitsEXT: {}", to_string(vk::DebugUtilsMessageSeverityFlagBitsEXT(severity))));
     }
-
-    return VK_FALSE;  // Avoid to abort
+    return VK_FALSE;
 }
 
 size_t ao::vulkan::Engine::selectVkPhysicalDevice(std::vector<vk::PhysicalDevice> const& devices) const {

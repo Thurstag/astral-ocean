@@ -140,7 +140,7 @@ namespace ao::vulkan {
 
             // Add validation extension
             if (settings->get(ao::vulkan::settings::ValidationLayers, std::make_optional<bool>(false))) {
-                extensions.push_back(VK_EXT_DEBUG_REPORT_EXTENSION_NAME);
+                extensions.push_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
             }
 
             // Create instance info

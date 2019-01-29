@@ -22,6 +22,8 @@
 #include "wrappers/swapchain.h"
 
 namespace ao::vulkan {
+    struct ValidationLayers {};
+
     /// <summary>
     /// Engine class
     /// </summary>
@@ -58,7 +60,7 @@ namespace ao::vulkan {
         std::vector<vk::DescriptorSet> descriptorSets;
         std::shared_ptr<Pipeline> pipeline;
 
-        vk::DebugReportCallbackEXT debug_callBack;
+        vk::DebugUtilsMessengerEXT debug_callBack;
         std::shared_ptr<vk::Instance> instance;
         std::shared_ptr<Swapchain> swapchain;
         std::shared_ptr<Device> device;
@@ -255,26 +257,21 @@ namespace ao::vulkan {
         virtual vk::CommandPoolCreateFlags commandPoolFlags() const;
 
         /// <summary>
-        /// Method to define debug report flags
+        /// Method to define validation layers severity
         /// </summary>
         /// <returns>Flags</returns>
-        virtual vk::DebugReportFlagsEXT debugReportFlags() const;
+        virtual vk::DebugUtilsMessageSeverityFlagsEXT validationLayersSeverity() const;
 
         /// <summary>
-        /// Method to define a report callback
+        /// Method to define validation layer callback
         /// </summary>
-        /// <param name="flags">Flags</param>
+        /// <param name="severity">Severity</param>
         /// <param name="type">Type</param>
-        /// <param name="srcObject">Source object</param>
-        /// <param name="location">Location</param>
-        /// <param name="msgCode">Message code</param>
-        /// <param name="pLayerPrefix">Layer prefix</param>
-        /// <param name="pMsg">Message</param>
-        /// <param name="pUserData">Use data</param>
-        /// <returns>True or False</returns>
-        static VKAPI_ATTR VkBool32 VKAPI_CALL DebugReportCallBack(VkDebugReportFlagsEXT flags, VkDebugReportObjectTypeEXT type, u64 srcObject,
-                                                                  size_t location, s32 msgCode, const char* pLayerPrefix, const char* message,
-                                                                  void* pUserData);
+        /// <param name="callback_data">Callback's data</param>
+        /// <param name="user_data">User's data</param>
+        /// <returns>Abort</returns>
+        static VKAPI_ATTR VkBool32 VKAPI_CALL DebugCallBack(VkDebugUtilsMessageSeverityFlagBitsEXT severity, VkDebugUtilsMessageTypeFlagsEXT type,
+                                                            const VkDebugUtilsMessengerCallbackDataEXT* callback_data, void* user_data);
 
         /// <summary>
         /// Method to select a vk::PhysicalDevice

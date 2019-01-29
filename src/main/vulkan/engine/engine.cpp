@@ -203,8 +203,7 @@ void ao::vulkan::Engine::createSemaphores() {
 
 void ao::vulkan::Engine::prepareVulkan() {
     // Init surface
-    this->swapchain->surface = this->initSurface();
-    this->swapchain->initSurface();
+    this->swapchain->setSurface(this->createSurface())->initSurface();
 
     // Create semaphores
     this->createSemaphores();
@@ -328,7 +327,7 @@ void ao::vulkan::Engine::updateCommandBuffers() {
         clearValues.push_back(vk::ClearValue().setDepthStencil(vk::ClearDepthStencilValue(1)));
     }
 
-    vk::RenderPassBeginInfo render_pass_info(this->renderPass, frame, vk::Rect2D().setExtent(this->swapchain->current_extent),
+    vk::RenderPassBeginInfo render_pass_info(this->renderPass, frame, vk::Rect2D().setExtent(this->swapchain->extent()),
                                              static_cast<u32>(clearValues.size()), clearValues.data());
 
     command.begin(&begin_info);
@@ -338,7 +337,7 @@ void ao::vulkan::Engine::updateCommandBuffers() {
         vk::CommandBufferInheritanceInfo inheritance(this->renderPass, 0, frame);
 
         // Execute secondary command buffers
-        this->executeSecondaryCommandBuffers(inheritance, this->swapchain->frame_index, command);
+        this->executeSecondaryCommandBuffers(inheritance, this->swapchain->currentFrameIndex(), command);
     }
     command.endRenderPass();
     command.end();

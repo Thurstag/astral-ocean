@@ -150,10 +150,10 @@ namespace ao::vulkan {
         virtual void createSecondaryCommandBuffers() = 0;
 
         /// <summary>
-        /// Method to init surface
+        /// Method to create surface
         /// </summary>
         /// <returns>Surface</returns>
-        virtual vk::SurfaceKHR initSurface() = 0;
+        virtual vk::SurfaceKHR createSurface() = 0;
 
         /// <summary>
         /// Method to init window

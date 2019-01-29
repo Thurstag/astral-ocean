@@ -18,23 +18,9 @@ namespace ao::vulkan {
     /// <summary>
     /// Wrapper for vulkan swapchain
     /// </summary>
-    struct Swapchain {
+    class Swapchain {
        public:
         using StencilBuffer = std::tuple<vk::Image, vk::DeviceMemory, vk::ImageView>;
-
-        std::vector<std::pair<vk::Image, vk::ImageView>> buffers;
-        std::vector<vk::Fence> waiting_fences;
-        std::vector<vk::Framebuffer> frames;
-        vk::SwapchainKHR swapchain;
-        vk::Queue present_queue;
-        vk::SurfaceKHR surface;
-        u32 frame_index;
-
-        std::optional<StencilBuffer> stencil_buffer;
-
-        vk::ColorSpaceKHR color_space;
-        vk::Extent2D current_extent;
-        vk::Format color_format;
 
         /// <summary>
         /// Constructor
@@ -68,6 +54,11 @@ namespace ao::vulkan {
         void createCommandBuffers();
 
         /// <summary>
+        /// Method to free command buffers
+        /// </summary>
+        void freeCommandBuffers();
+
+        /// <summary>
         /// Method to create framebuffers
         /// </summary>
         /// <param name="render_pass">Render pass</param>
@@ -77,11 +68,6 @@ namespace ao::vulkan {
         /// Method to destroy framebuffers
         /// </summary>
         void destroyFramebuffers();
-
-        /// <summary>
-        /// Method to free command buffers
-        /// </summary>
-        void freeCommandBuffers();
 
         /// <summary>
         /// Method to create stencil buffer
@@ -112,6 +98,36 @@ namespace ao::vulkan {
         vk::CommandBuffer& currentCommand();
 
         /// <summary>
+        /// Method to get current frame index
+        /// </summary>
+        /// <returns>Frame index</returns>
+        u32 currentFrameIndex();
+
+        /// <summary>
+        /// Method to get extent
+        /// </summary>
+        /// <returns>Extent</returns>
+        vk::Extent2D extent();
+
+        /// <summary>
+        /// Method to get color space
+        /// </summary>
+        /// <returns>Color space</returns>
+        vk::ColorSpaceKHR colorSpace();
+
+        /// <summary>
+        /// Method to get color format
+        /// </summary>
+        /// <returns>Color format</returns>
+        vk::Format colorFormat();
+
+        /// <summary>
+        /// Method to get swapchain's size
+        /// </summary>
+        /// <returns>Image count</returns>
+        size_t size();
+
+        /// <summary>
         /// Method to get next image
         /// </summary>
         /// <param name="acquire">Acquire semaphore</param>
@@ -124,8 +140,29 @@ namespace ao::vulkan {
         /// <returns>Result</returns>
         vk::Result enqueueImage(std::vector<vk::Semaphore>& waiting_semaphores);
 
+        /// <summary>
+        /// Method to set surface
+        /// </summary>
+        /// <param name="surface">Surface</param>
+        /// <returns>This</returns>
+        Swapchain* setSurface(vk::SurfaceKHR surface);
+
        protected:
         core::Logger LOGGER = core::Logger::GetInstance<Swapchain>();
+
+        std::vector<std::pair<vk::Image, vk::ImageView>> buffers;
+        std::vector<vk::Fence> waiting_fences;
+        std::vector<vk::Framebuffer> frames;
+        vk::SwapchainKHR swapchain;
+        vk::Queue present_queue;
+        vk::SurfaceKHR surface;
+        u32 frame_index;
+
+        std::optional<StencilBuffer> stencil_buffer;
+
+        vk::ColorSpaceKHR color_space;
+        vk::Format color_format;
+        vk::Extent2D extent_;
 
         std::unique_ptr<CommandPool> command_pool;
         std::vector<vk::CommandBuffer> commands;

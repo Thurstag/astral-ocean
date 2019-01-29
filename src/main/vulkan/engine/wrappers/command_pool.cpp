@@ -28,24 +28,23 @@ ao::vulkan::CommandPool::~CommandPool() {
 }
 
 std::vector<vk::CommandBuffer> ao::vulkan::CommandPool::allocateCommandBuffers(vk::CommandBufferLevel level, u32 count) {
-    // Choose a command pool
-    vk::CommandPool command_pool;
-    if (this->access_mode == ao::vulkan::CommandPoolAccessModeFlagBits::eConcurrent) {
-        command_pool = this->device.createCommandPool(vk::CommandPoolCreateInfo(this->create_flags, queue_family_index));
-
-        this->command_pools.push_back(command_pool);
-    } else {
-        command_pool = this->command_pools.front();
-    }
+    std::vector<vk::CommandBuffer> buffers;
 
     // Allocate
-    auto buffers = this->device.allocateCommandBuffers(vk::CommandBufferAllocateInfo(command_pool, level, count));
+    if (this->access_mode == ao::vulkan::CommandPoolAccessModeFlagBits::eConcurrent) {
+        for (size_t i = 0; i < count; i++) {
+            this->command_pools.push_back(this->device.createCommandPool(vk::CommandPoolCreateInfo(this->create_flags, queue_family_index)));
 
-    // Add
-    for (auto& buffer : buffers) {
-        this->command_buffers[buffer] = command_pool;
+            buffers.push_back(this->device.allocateCommandBuffers(vk::CommandBufferAllocateInfo(this->command_pools.back(), level, 1)).front());
+            this->command_buffers[buffers.back()] = this->command_pools.back();
+        }
+    } else {
+        buffers = this->device.allocateCommandBuffers(vk::CommandBufferAllocateInfo(this->command_pools.front(), level, count));
+
+        for (auto& buffer : buffers) {
+            this->command_buffers[buffer] = this->command_pools.front();
+        }
     }
-
     return buffers;
 }
 

@@ -166,6 +166,16 @@ void ao::vulkan::Swapchain::init(u64& win_width, u64& win_height, bool vsync, bo
         }
         this->createStencilBuffer();
     }
+
+    // Create fences
+    this->waiting_fences.resize(this->buffers.size());
+    for (auto& fence : this->waiting_fences) {
+        fence = _device->logical.createFence(vk::FenceCreateInfo(vk::FenceCreateFlagBits::eSignaled));
+    }
+
+    // Create command pool
+    this->command_pool = std::make_unique<ao::vulkan::CommandPool>(_device->logical, vk::CommandPoolCreateFlagBits::eResetCommandBuffer,
+                                                                   _device->queues[vk::QueueFlagBits::eGraphics].index);
 }
 
 void ao::vulkan::Swapchain::initSurface() {
@@ -224,22 +234,6 @@ void ao::vulkan::Swapchain::initSurface() {
             this->color_space = formats.front().colorSpace;
         }
     }
-}
-
-void ao::vulkan::Swapchain::prepare() {
-    auto _device = ao::core::shared(this->device);
-
-    /* WAITING FENCES */
-
-    this->waiting_fences.resize(this->buffers.size());
-    for (auto& fence : this->waiting_fences) {
-        fence = _device->logical.createFence(vk::FenceCreateInfo(vk::FenceCreateFlagBits::eSignaled));
-    }
-
-    /* COMMAND POOL */
-
-    this->command_pool = std::make_unique<ao::vulkan::CommandPool>(_device->logical, vk::CommandPoolCreateFlagBits::eResetCommandBuffer,
-                                                                   _device->queues[vk::QueueFlagBits::eGraphics].index);
 }
 
 void ao::vulkan::Swapchain::createCommandBuffers() {

@@ -152,8 +152,8 @@ namespace ao::vulkan {
         /// <summary>
         /// Method to init surface
         /// </summary>
-        /// <param name="surface">Surface reference</param>
-        virtual void initSurface(vk::SurfaceKHR& surface) = 0;
+        /// <returns>Surface</returns>
+        virtual vk::SurfaceKHR initSurface() = 0;
 
         /// <summary>
         /// Method to init window
@@ -268,10 +268,10 @@ namespace ao::vulkan {
                                                             const VkDebugUtilsMessengerCallbackDataEXT* callback_data, void* user_data);
 
         /// <summary>
-        /// Method to select a vk::PhysicalDevice
+        /// Method to select a device
         /// </summary>
-        /// <param name="devices">vk::PhysicalDevice</param>
-        /// <returns>Index</returns>
-        virtual size_t selectVkPhysicalDevice(std::vector<vk::PhysicalDevice> const& devices) const;  // TODO: Optimize this, return reference
+        /// <param name="devices">devices</param>
+        /// <returns>vk::PhysicalDevice</returns>
+        virtual vk::PhysicalDevice selectVkPhysicalDevice(std::vector<vk::PhysicalDevice> const& devices) const;
     };
 }  // namespace ao::vulkan

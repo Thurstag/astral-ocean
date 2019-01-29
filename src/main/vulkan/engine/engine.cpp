@@ -43,7 +43,7 @@ void ao::vulkan::Engine::initVulkan() {
     }
 
     // Select a vk::PhysicalDevice & wrap it
-    this->device = std::make_shared<ao::vulkan::Device>(devices[this->selectVkPhysicalDevice(devices)]);
+    this->device = std::make_shared<ao::vulkan::Device>(this->selectVkPhysicalDevice(devices));
 
     LOGGER << ao::core::Logger::Level::info << fmt::format("Select physical device: {0}", this->device->physical.getProperties().deviceName);
 
@@ -203,7 +203,7 @@ void ao::vulkan::Engine::createSemaphores() {
 
 void ao::vulkan::Engine::prepareVulkan() {
     // Init surface
-    this->initSurface(this->swapchain->surface);
+    this->swapchain->surface = this->initSurface();
     this->swapchain->initSurface();
 
     // Create semaphores
@@ -213,7 +213,6 @@ void ao::vulkan::Engine::prepareVulkan() {
     this->swapchain->init(this->settings_->get<u64>(ao::vulkan::settings::WindowWidth), this->settings_->get<u64>(ao::vulkan::settings::WindowHeight),
                           this->settings_->get(ao::vulkan::settings::WindowVsync, std::make_optional<bool>(false)),
                           this->settings_->get(ao::vulkan::settings::StencilBuffer, std::make_optional<bool>(false)));
-    this->swapchain->prepare();
 
     // Create command buffers
     this->swapchain->createCommandBuffers();
@@ -394,6 +393,6 @@ VKAPI_ATTR VkBool32 VKAPI_CALL ao::vulkan::Engine::DebugCallBack(VkDebugUtilsMes
     return VK_FALSE;
 }
 
-size_t ao::vulkan::Engine::selectVkPhysicalDevice(std::vector<vk::PhysicalDevice> const& devices) const {
-    return 0;  // First device
+vk::PhysicalDevice ao::vulkan::Engine::selectVkPhysicalDevice(std::vector<vk::PhysicalDevice> const& devices) const {
+    return devices.front();  // First device
 }

@@ -63,11 +63,6 @@ namespace ao::vulkan {
         void initSurface();
 
         /// <summary>
-        /// Method to prepare swapchain
-        /// </summary>
-        void prepare();
-
-        /// <summary>
         /// Method to create command buffers
         /// </summary>
         void createCommandBuffers();

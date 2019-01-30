@@ -124,19 +124,12 @@ namespace ao::vulkan {
         inline vk::Instance createVkInstance(std::shared_ptr<EngineSettings> settings, std::vector<char const*> extensions) {
             std::vector<char const*> validationLayer{"VK_LAYER_LUNARG_standard_validation"};
 
-            if (!settings->exists(ao::vulkan::settings::AppName)) {
-                settings->get<std::string>(ao::vulkan::settings::AppName) = std::string("Undefined");
-            }
-            if (!settings->exists(ao::vulkan::settings::EngineName)) {
-                settings->get<std::string>(ao::vulkan::settings::EngineName) = std::string("Astral-Ocean");
-            }
-
             // Create app info
-            vk::ApplicationInfo appInfo(settings->get<std::string>(ao::vulkan::settings::AppName).c_str(),
-                                        settings->get<int>(ao::vulkan::settings::AppVersion, std::make_optional(VK_MAKE_VERSION(0, 0, 0))),
-                                        settings->get<std::string>(ao::vulkan::settings::EngineName).c_str(),
-                                        settings->get<int>(ao::vulkan::settings::EngineVersion, std::make_optional(VK_MAKE_VERSION(0, 0, 0))),
-                                        VK_API_VERSION_1_1);
+            vk::ApplicationInfo appInfo(
+                settings->get<std::string>(ao::vulkan::settings::AppName, std::make_optional(std::string("Undefined"))).c_str(),
+                settings->get<int>(ao::vulkan::settings::AppVersion, std::make_optional(VK_MAKE_VERSION(0, 0, 0))),
+                settings->get<std::string>(ao::vulkan::settings::EngineName, std::make_optional(std::string("Astral-Ocean"))).c_str(),
+                settings->get<int>(ao::vulkan::settings::EngineVersion, std::make_optional(VK_MAKE_VERSION(0, 0, 0))), VK_API_VERSION_1_1);
 
             // Add validation extension
             if (settings->get(ao::vulkan::settings::ValidationLayers, std::make_optional<bool>(false))) {

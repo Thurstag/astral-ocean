@@ -57,24 +57,38 @@ namespace ao::vulkan {
         /// <returns>Value</returns>
         template<class T>
         T& get(std::string const& key, std::optional<T> _default = std::nullopt) {
+            constexpr bool is_string = std::is_base_of<std::string, T>::value;
+
             if (!this->exists(key)) {
-                // Allocate
-                T* ptr = static_cast<T*>(calloc(1, sizeof(T)));
+                if constexpr (is_string) {
+                    if (_default) {
+                        this->str_values[key] = *_default;
+                    }
+                } else {
+                    // Allocate
+                    T* ptr = static_cast<T*>(calloc(1, sizeof(T)));
 
-                // Create value
-                this->values[key] = std::make_pair(std::make_pair(typeid(T*).hash_code(), typeid(T*).name()), ptr);
+                    // Create value
+                    this->values[key] = std::make_pair(std::make_pair(typeid(T*).hash_code(), typeid(T*).name()), ptr);
 
-                // Assign
-                if (_default) {
-                    *ptr = *_default;
+                    // Assign
+                    if (_default) {
+                        *ptr = *_default;
+                    }
                 }
             }
 
             // Check type
-            if (this->values[key].first.first != typeid(T*).hash_code()) {
-                this->LOGGER << core::Logger::Level::warning << fmt::format("Cast {} into {}", this->values[key].first.second, typeid(T*).name());
+            if constexpr (!is_string) {
+                if (this->values[key].first.first != typeid(T*).hash_code()) {
+                    this->LOGGER << core::Logger::Level::warning << fmt::format("Cast {} into {}", this->values[key].first.second, typeid(T*).name());
+                }
             }
 
+            // Return value
+            if constexpr (is_string) {
+                return this->str_values[key];
+            }
             return *static_cast<T*>(this->values[key].second);
         }
 
@@ -82,5 +96,6 @@ namespace ao::vulkan {
         core::Logger LOGGER = core::Logger::GetInstance<EngineSettings>();
 
         std::map<std::string, std::pair<std::pair<size_t, std::string>, void*>> values;
+        std::map<std::string, std::string> str_values;
     };
 }  // namespace ao::vulkan

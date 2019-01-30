@@ -84,7 +84,7 @@ void ao::vulkan::Swapchain::init(u64& win_width, u64& win_height, bool vsync, bo
         }
     }
 
-    LOGGER << ao::core::Logger::Level::info << fmt::format("Use present mode: {0}", ao::vulkan::utilities::to_string(present_mode));
+    LOGGER << ao::core::Logger::Level::info << fmt::format("Use present mode: {0}", vk::to_string(present_mode));
 
     // Determine surface image capacity
     u32 surface_images_count = capabilities.minImageCount + 1;
@@ -174,34 +174,34 @@ void ao::vulkan::Swapchain::init(u64& win_width, u64& win_height, bool vsync, bo
 
     // Create command pool
     this->command_pool = std::make_unique<ao::vulkan::CommandPool>(_device->logical, vk::CommandPoolCreateFlagBits::eResetCommandBuffer,
-                                                                   _device->queues[vk::QueueFlagBits::eGraphics].index);
+                                                                   _device->queues[vk::to_string(vk::QueueFlagBits::eGraphics)].family_index);
 }
 
 void ao::vulkan::Swapchain::initSurface() {
     auto _device = ao::core::shared(this->device);
 
     // Detect if a queue supports present
-    std::vector<vk::Bool32> supportsPresent(_device->physical.getQueueFamilyProperties().size());
-    for (u32 i = 0; i < supportsPresent.size(); i++) {
-        supportsPresent[i] = _device->physical.getSurfaceSupportKHR(i, this->surface);
+    std::vector<vk::Bool32> support_present(_device->physical.getQueueFamilyProperties().size());
+    for (u32 i = 0; i < support_present.size(); i++) {
+        support_present[i] = _device->physical.getSurfaceSupportKHR(i, this->surface);
     }
 
     // Try to find a queue that supports present
-    std::optional<vk::QueueFlagBits> flag;
+    std::optional<std::string> queue_name;
     for (auto& [key, value] : _device->queues) {
-        if (supportsPresent[value.index] == VK_TRUE) {
-            flag = key;
-
-            LOGGER << ao::core::Logger::Level::debug << fmt::format("Use {0} queue to present images", to_string(key));
+        if (support_present[value.family_index] == VK_TRUE) {
+            queue_name = key;
             break;
         }
     }
 
     // Check index
-    if (!flag) {
+    if (!queue_name) {
         throw core::Exception("Fail to find a queue that supports present");
     }
-    this->present_queue = _device->queues[*flag].queue;
+
+    LOGGER << ao::core::Logger::Level::debug << fmt::format("Use {0} queue to present images", *queue_name);
+    this->present_queue = _device->queues[*queue_name].queue;
 
     // Get surface formats
     std::vector<vk::SurfaceFormatKHR> formats = _device->surfaceFormatKHRs(this->surface);

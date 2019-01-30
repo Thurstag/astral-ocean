@@ -5,7 +5,7 @@
 #pragma once
 
 #include <ao/vulkan/engine/settings.h>
-#include <ao/vulkan/engine/wrappers/device.h>
+#include <ao/vulkan/engine/wrapper/device.h>
 #include <ao/vulkan/utilities/vulkan.h>
 #include <vulkan/vulkan.hpp>
 
@@ -49,7 +49,9 @@ namespace ao::test {
             this->device = std::make_shared<vulkan::Device>(devices.front());
 
             // Init logical device
-            this->device->initLogicalDevice({}, {}, vk::QueueFlagBits::eGraphics | vk::QueueFlagBits::eCompute | vk::QueueFlagBits::eTransfer);
+            this->device->initLogicalDevice({}, {},
+                                            {vulkan::QueueRequest(vk::QueueFlagBits::eGraphics), vulkan::QueueRequest(vk::QueueFlagBits::eTransfer),
+                                             vulkan::QueueRequest(vk::QueueFlagBits::eCompute)});
         } catch (...) {
             return false;
         }

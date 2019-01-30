@@ -15,11 +15,11 @@
 #include <vulkan/vulkan.hpp>
 
 #include "../utilities/vulkan.h"
-#include "containers/semaphore_container.h"
+#include "container/semaphore_container.h"
 #include "settings.h"
-#include "wrappers/device.h"
-#include "wrappers/pipeline.h"
-#include "wrappers/swapchain.h"
+#include "wrapper/device.h"
+#include "wrapper/pipeline.h"
+#include "wrapper/swapchain.h"
 
 namespace ao::vulkan {
     struct ValidationLayers {};
@@ -248,7 +248,7 @@ namespace ao::vulkan {
         /// Method to define necessary queues
         /// </summary>
         /// <returns>Flags</returns>
-        virtual vk::QueueFlags queueFlags() const;
+        virtual std::vector<QueueRequest> requestQueues() const;
 
         /// <summary>
         /// Method to define validation layers severity

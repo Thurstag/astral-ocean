@@ -73,6 +73,10 @@ namespace ao::vulkan {
 
         // Create command buffer
         if (!this->command_buffer) {
+            if (!_device->transfer_command_pool) {
+                throw ao::core::Exception("Transfer command pool is disabled, request a graphics queue to enable it");
+            }
+
             this->command_buffer = _device->transfer_command_pool->allocateCommandBuffers(vk::CommandBufferLevel::ePrimary, 1).front();
         }
 

@@ -10,31 +10,29 @@
 
 namespace ao::vulkan {
     namespace structs {
-        struct QueueData {
-            vk::QueueFamilyProperties properties;
+        struct Queue {
+           public:
+            u32 family_index;
             vk::Queue queue;
-            u32 index;
 
             /// <summary>
             /// Constructor
             /// </summary>
-            QueueData() = default;
+            Queue() : Queue(nullptr, 0) {}
 
             /// <summary>
             /// Constructor
             /// </summary>
             /// <param name="queue">Queue</param>
-            /// <param name="index">Index</param>
-            /// <param name="properties">Properties</param>
-            explicit QueueData(vk::Queue queue, u32 index, vk::QueueFamilyProperties properties)
-                : queue(queue), index(index), properties(properties) {}
+            /// <param name="family_index">Family index</param>
+            Queue(vk::Queue queue, u32 family_index) : queue(queue), family_index(family_index) {}
         };
-    }  // namespace structs
+    };  // namespace structs
 
     /// <summary>
     /// Queue container
     /// </summary>
-    class QueueContainer : public core::MapContainer<vk::QueueFlagBits, structs::QueueData> {
+    class QueueContainer : public core::MapContainer<std::string, structs::Queue> {
        public:
         /// <summary>
         /// Constructor

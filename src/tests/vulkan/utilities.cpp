@@ -50,7 +50,8 @@ namespace ao::test {
 
         // Assert function
         ASSERT_EQ(0, vulkan::utilities::findQueueFamilyIndex(queueFamilyProperties, vk::QueueFlagBits::eCompute));
-        ASSERT_EQ(-1, vulkan::utilities::findQueueFamilyIndex(queueFamilyProperties, vk::QueueFlagBits::eGraphics));
+        ASSERT_EXCEPTION<ao::core::Exception>(
+            [&queueFamilyProperties]() { vulkan::utilities::findQueueFamilyIndex(queueFamilyProperties, vk::QueueFlagBits::eGraphics); });
 
         // Assert log
         ASSERT_TRUE(ss.str().find("Found a queue that only supports: Compute") != std::string::npos);

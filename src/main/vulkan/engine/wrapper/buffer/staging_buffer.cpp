@@ -13,7 +13,7 @@ ao::vulkan::StagingBuffer::~StagingBuffer() {
     auto _device = ao::core::shared(this->device);
     this->free();
 
-    if (this->command_buffer) {
+    if (this->command_buffer && _device->transfer_command_pool) {
         _device->transfer_command_pool->freeCommandBuffers(this->command_buffer);
     }
     if (this->fence) {
@@ -68,8 +68,8 @@ void ao::vulkan::StagingBuffer::sync() {
         // Memory barrier
         if (this->memory_barrier) {
             vk::BufferMemoryBarrier barrier(vk::AccessFlagBits::eTransferWrite, vk::AccessFlags(),
-                                            _device->queues[vk::QueueFlagBits::eTransfer].index, _device->queues[vk::QueueFlagBits::eGraphics].index,
-                                            this->device_buffer->buffer());
+                                            _device->queues[vk::to_string(vk::QueueFlagBits::eTransfer)].family_index,
+                                            _device->queues[vk::to_string(vk::QueueFlagBits::eGraphics)].family_index, this->device_buffer->buffer());
             this->command_buffer.pipelineBarrier(vk::PipelineStageFlagBits::eTopOfPipe, vk::PipelineStageFlagBits::eVertexInput,
                                                  vk::DependencyFlags(), {}, barrier, {});
         }
@@ -81,8 +81,8 @@ void ao::vulkan::StagingBuffer::sync() {
     this->command_buffer.end();
 
     // Submit command
-    _device->queues[vk::QueueFlagBits::eTransfer].queue.submit(vk::SubmitInfo().setCommandBufferCount(1).setPCommandBuffers(&this->command_buffer),
-                                                               this->fence);
+    _device->queues[vk::to_string(vk::QueueFlagBits::eTransfer)].queue.submit(
+        vk::SubmitInfo().setCommandBufferCount(1).setPCommandBuffers(&this->command_buffer), this->fence);
 
     // Wait fence
     _device->logical.waitForFences(this->fence, VK_TRUE, (std::numeric_limits<u64>::max)());

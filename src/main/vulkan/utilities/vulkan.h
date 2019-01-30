@@ -202,7 +202,7 @@ namespace ao::vulkan {
         /// </summary>
         /// <param name="queueFamilyProperties">queueFamilyProperties</param>
         /// <param name="flag">Flag</param>
-        /// <returns>Index or -1</returns>
+        /// <returns>Index</returns>
         inline u32 findQueueFamilyIndex(std::vector<vk::QueueFamilyProperties> const& queueFamilyProperties, vk::QueueFlagBits flag) {
             // clang-format off
             std::vector<VkQueueFlagBits> flags = {
@@ -234,7 +234,8 @@ namespace ao::vulkan {
                     return i;
                 }
             }
-            return -1;
+
+            throw ao::core::Exception(fmt::format("Fail to find a queueFamily that supports: {0}", to_string(flag)));
         }
 
         /// <summary>
@@ -284,27 +285,21 @@ namespace ao::vulkan {
         }
 
         /// <summary>
-        /// Method to convert a vk::PresentModeKHR into a string
+        /// Method to build a report of queue families
         /// </summary>
-        /// <param name="presentMode">vk::PresentModeKHR</param>
-        /// <returns>vk::PresentModeKHR string representation</returns>
-        inline std::string to_string(vk::PresentModeKHR const presentMode) {
-            switch (presentMode) {
-                case vk::PresentModeKHR::eImmediate:
-                    return "PresentModeKHR::eImmediate";
-                case vk::PresentModeKHR::eMailbox:
-                    return "PresentModeKHR::eMailbox";
-                case vk::PresentModeKHR::eFifo:
-                    return "PresentModeKHR::eFifo";
-                case vk::PresentModeKHR::eFifoRelaxed:
-                    return "PresentModeKHR::eFifoRelaxed";
-                case vk::PresentModeKHR::eSharedDemandRefresh:
-                    return "PresentModeKHR::eSharedDemandRefresh";
-                case vk::PresentModeKHR::eSharedContinuousRefresh:
-                    return "PresentModeKHR::eSharedContinuousRefresh";
-                default:
-                    throw core::Exception(fmt::format("Unknown vk::PresentModeKHR: {0}", std::to_string(static_cast<int>(presentMode))));
+        /// <param name="queue_families">Queue families</param>
+        /// <returns>Report</returns>
+        inline std::string report(std::vector<vk::QueueFamilyProperties> const& queue_families) {
+            std::stringstream ss;
+
+            for (size_t i = 0; i < queue_families.size(); i++) {
+                ss << fmt::format("{}: flags({}), capacity({})", i, vk::to_string(queue_families[i].queueFlags), queue_families[i].queueCount);
+
+                if (i != queue_families.size() - 1) {
+                    ss << std::endl;
+                }
             }
+            return ss.str();
         }
     }  // namespace utilities
 }  // namespace ao::vulkan

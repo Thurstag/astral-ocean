@@ -9,7 +9,7 @@
 #include <ao/core/memory/map_container.hpp>
 #include <vulkan/vulkan.hpp>
 
-#include "../wrappers/device.h"
+#include "../wrapper/device.h"
 
 namespace ao::vulkan {
     namespace structs {

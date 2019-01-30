@@ -13,8 +13,9 @@
 #include <ao/core/logger/logger.h>
 #include <vulkan/vulkan.hpp>
 
+#include "../../utilities/queue.h"
 #include "../../utilities/vulkan.h"
-#include "../containers/queue_container.h"
+#include "../container/queue_container.h"
 #include "command_pool.h"
 
 namespace ao::vulkan {
@@ -24,10 +25,8 @@ namespace ao::vulkan {
     struct Device {
        public:
         std::unique_ptr<CommandPool> transfer_command_pool;
-        QueueContainer queues;
-
-        std::vector<vk::ExtensionProperties> extensions;
         vk::Format depth_format;
+        QueueContainer queues;
 
         vk::PhysicalDevice physical;
         vk::Device logical;
@@ -53,11 +52,10 @@ namespace ao::vulkan {
         /// </summary>
         /// <param name="device_extensions">Extensions</param>
         /// <param name="device_features">Features</param>
-        /// <param name="qflags">Queue Flags</param>
-        /// <param name="default_queue">Default queue for queue container</param>
-        /// <param name="swapchain_support">Enable swapchain_support</param>
+        /// <param name="requested_queues">Requested queues</param>
+        /// <param name="swapchain_support">Enable swapchain support</param>
         void initLogicalDevice(std::vector<char const*> device_extensions, std::vector<vk::PhysicalDeviceFeatures> const& device_features,
-                               vk::QueueFlags qflags, vk::QueueFlagBits default_queue = vk::QueueFlagBits::eGraphics, bool swapchain_support = true);
+                               std::vector<QueueRequest> requested_queues, bool swapchain_support = true);
 
         /// <summary>
         /// Method to get surface formats

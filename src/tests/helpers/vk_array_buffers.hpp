@@ -4,8 +4,8 @@
 
 #pragma once
 
-#include <ao/vulkan/engine/wrappers/buffers/array/basic_buffer.hpp>
-#include <ao/vulkan/engine/wrappers/buffers/array/staging_buffer.hpp>
+#include <ao/vulkan/engine/wrapper/buffer/array/basic_buffer.hpp>
+#include <ao/vulkan/engine/wrapper/buffer/array/staging_buffer.hpp>
 
 namespace ao::test {
     template<class T, size_t N>

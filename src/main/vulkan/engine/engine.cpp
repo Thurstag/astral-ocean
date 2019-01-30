@@ -48,7 +48,7 @@ void ao::vulkan::Engine::initVulkan() {
     LOGGER << ao::core::Logger::Level::info << fmt::format("Select physical device: {0}", this->device->physical.getProperties().deviceName);
 
     // Init logical device
-    this->device->initLogicalDevice(this->deviceExtensions(), this->deviceFeatures(), this->queueFlags());
+    this->device->initLogicalDevice(this->deviceExtensions(), this->deviceFeatures(), this->requestQueues());
 
     // Create swapChain
     this->swapchain = std::make_shared<ao::vulkan::Swapchain>(this->instance, this->device);
@@ -278,7 +278,7 @@ void ao::vulkan::Engine::render() {
     this->device->logical.resetFences(fence);
 
     // Submit command buffer
-    this->device->queues[vk::QueueFlagBits::eGraphics].queue.submit(submitInfo, fence);
+    this->device->queues[vk::to_string(vk::QueueFlagBits::eGraphics)].queue.submit(submitInfo, fence);
 
     // Submit frame
     this->submitFrame();
@@ -351,8 +351,8 @@ std::vector<vk::PhysicalDeviceFeatures> ao::vulkan::Engine::deviceFeatures() con
     return std::vector<vk::PhysicalDeviceFeatures>();
 }
 
-vk::QueueFlags ao::vulkan::Engine::queueFlags() const {
-    return vk::QueueFlagBits::eGraphics;
+std::vector<ao::vulkan::QueueRequest> ao::vulkan::Engine::requestQueues() const {
+    return {ao::vulkan::QueueRequest(vk::QueueFlagBits::eGraphics)};
 }
 
 vk::DebugUtilsMessageSeverityFlagsEXT ao::vulkan::Engine::validationLayersSeverity() const {

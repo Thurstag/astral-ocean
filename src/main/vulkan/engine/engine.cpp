@@ -78,42 +78,18 @@ void ao::vulkan::Engine::freeVulkan() {
     this->device.reset();
 
     if (this->settings_->get(ao::vulkan::settings::ValidationLayers, std::make_optional<bool>(false))) {
-        PFN_vkDestroyDebugUtilsMessengerEXT vkDestroyDebugUtilsMessengerEXT =
-            reinterpret_cast<PFN_vkDestroyDebugUtilsMessengerEXT>(vkGetInstanceProcAddr(*this->instance, "vkDestroyDebugUtilsMessengerEXT"));
-
-        // Check function
-        if (this->debug_callBack && vkDestroyDebugUtilsMessengerEXT == nullptr) {
-            throw ao::core::Exception("vkDestroyDebugUtilsMessengerEXT is null, fail to destroy callback");
-        }
-
-        vkDestroyDebugUtilsMessengerEXT(*this->instance, this->debug_callBack, nullptr);
+        this->instance->destroyDebugUtilsMessengerEXT(this->debug_callBack);
     }
 
     this->instance->destroy();
 }
 
 void ao::vulkan::Engine::setUpDebugging() {
-    PFN_vkCreateDebugUtilsMessengerEXT CreateDebugUtilsMessengerEXT =
-        reinterpret_cast<PFN_vkCreateDebugUtilsMessengerEXT>(this->instance->getProcAddr("vkCreateDebugUtilsMessengerEXT"));
-
-    // Check function
-    if (CreateDebugUtilsMessengerEXT == nullptr) {
-        this->LOGGER << ao::core::Logger::Level::warning << "Fail to retrieve function: vkCreateDebugUtilsMessengerEXT, cancel debug callback set-up";
-        return;
-    }
-
-    VkDebugUtilsMessengerCreateInfoEXT create_info =
+    this->debug_callBack = this->instance->createDebugUtilsMessengerEXT(
         vk::DebugUtilsMessengerCreateInfoEXT(vk::DebugUtilsMessengerCreateFlagsEXT(), this->validationLayersSeverity(),
                                              vk::DebugUtilsMessageTypeFlagBitsEXT::eGeneral | vk::DebugUtilsMessageTypeFlagBitsEXT::ePerformance |
                                                  vk::DebugUtilsMessageTypeFlagBitsEXT::eValidation,
-                                             ao::vulkan::Engine::DebugCallBack);
-    VkDebugUtilsMessengerEXT callback;
-
-    // Create callback
-    CreateDebugUtilsMessengerEXT(*this->instance, &create_info, nullptr, &callback);
-
-    // Update real callback
-    this->debug_callBack = vk::DebugUtilsMessengerEXT(callback);
+                                             ao::vulkan::Engine::DebugCallBack));
 }
 
 void ao::vulkan::Engine::createRenderPass() {

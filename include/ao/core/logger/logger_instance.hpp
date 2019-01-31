@@ -57,11 +57,6 @@ namespace ao::core {
 
     template<class T>
     void ao::core::LoggerInstance::operator<<(T const& object) const {
-        // Auto init
-        if (!ao::core::Logger::Initiated()) {
-            ao::core::Logger::Init();
-        }
-
         // To String
         std::stringstream s;
         s << object;

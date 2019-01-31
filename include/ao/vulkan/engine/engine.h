@@ -4,7 +4,6 @@
 
 #pragma once
 
-#include <execution>
 #include <functional>
 #include <mutex>
 #include <tuple>

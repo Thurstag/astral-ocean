@@ -79,7 +79,7 @@ endforeach(DEPENDENCY)
 # Add submodules
 foreach(SUBMODULE ${AO_LIB_SUBMODULES})
 	message("Include ${SUBMODULE} submodule")
-	
+
 	if(EXISTS "${AO_LIB_SUBMODULES_DIR}/${SUBMODULE}/CMakeLists.txt")
 		add_subdirectory("${AO_LIB_SUBMODULES_DIR}/${SUBMODULE}")
 	endif()

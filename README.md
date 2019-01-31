@@ -20,7 +20,7 @@ TODO
 
 | Project          |      Version      |
 | ---------------- | :---------------: |
-| Vulkan           |   **1.1.85.0**    |
+| Vulkan / Volk    |   **1.1.97.0**    |
 | Boost (All libs) |    **1.68.0**     |
 | Google Test      | **1.8.1**@88c15b5 |
 | FMT              | **5.2.1**@6c95fb3 |

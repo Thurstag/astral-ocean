@@ -34,11 +34,15 @@ namespace ao::test {
         settings->get<bool>(vulkan::settings::ValidationLayers) = true;
 
         try {
+            // Init volk
+            ao::vulkan::utilities::vkAssert(volkInitialize(), "Fail to initialize vulkan loader");
+
             // Create instance
             this->instance = std::make_shared<vk::Instance>(vulkan::utilities::createVkInstance(settings, {}));
+            volkLoadInstance(*this->instance);
 
             // Get GPUs
-            std::vector<vk::PhysicalDevice> devices = vulkan::utilities::vkPhysicalDevices(*this->instance);
+            std::vector<vk::PhysicalDevice> devices = this->instance->enumeratePhysicalDevices();
 
             // Check count
             if (devices.empty()) {

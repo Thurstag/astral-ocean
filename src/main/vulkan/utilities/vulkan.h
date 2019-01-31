@@ -150,47 +150,6 @@ namespace ao::vulkan {
         }
 
         /// <summary>
-        /// Method to get all vk::PhysicalDevices
-        /// </summary>
-        /// <param name="instance">vk::Instance</param>
-        /// <returns>GPUs</returns>
-        inline std::vector<vk::PhysicalDevice> vkPhysicalDevices(vk::Instance instance) {
-            std::string error = "Fail to enumerate vk::PhysicalDevices";
-            std::vector<vk::PhysicalDevice> devices;
-            u32 count;
-
-            // Get count
-            vkAssert(instance.enumeratePhysicalDevices(&count, nullptr), error);
-
-            // Adapt vector
-            devices.resize(count);
-
-            // Get vk::PhysicalDevices
-            vkAssert(instance.enumeratePhysicalDevices(&count, devices.data()), error);
-            return devices;
-        }
-
-        /// <summary>
-        /// Method to get vk::ExtensionProperties
-        /// </summary>
-        /// <param name="device">vk::PhysicalDevice</param>
-        /// <returns>vk::ExtensionProperties</returns>
-        inline std::vector<vk::ExtensionProperties> vkExtensionProperties(vk::PhysicalDevice device) {
-            std::vector<vk::ExtensionProperties> extensions;
-            u32 count;
-
-            // Get count
-            device.enumerateDeviceExtensionProperties(nullptr, &count, nullptr);
-
-            // Adapt vector
-            extensions.resize(count);
-
-            // Get vk::ExtensionProperties
-            device.enumerateDeviceExtensionProperties(nullptr, &count, extensions.data());
-            return extensions;
-        }
-
-        /// <summary>
         /// Method to find a queue familly index that supports flag
         /// </summary>
         /// <param name="queueFamilyProperties">queueFamilyProperties</param>
@@ -253,28 +212,6 @@ namespace ao::vulkan {
                 }
             }
             throw core::Exception("Fail to find a suitable vk::Format");
-        }
-
-        /// <summary>
-        /// Method to get present modes
-        /// </summary>
-        /// <param name="device">Device</param>
-        /// <param name="surface">Surface</param>
-        /// <returns>Present modes</returns>
-        inline std::vector<vk::PresentModeKHR> presentModeKHRs(vk::PhysicalDevice device, vk::SurfaceKHR surface) {
-            std::string error = "Fail to get present modes";
-            std::vector<vk::PresentModeKHR> modes;
-            u32 count;
-
-            // Get count
-            vkAssert(device.getSurfacePresentModesKHR(surface, &count, nullptr), error);
-
-            // Adapt vector
-            modes.resize(count);
-
-            // Get vk::PresentModeKHR
-            vkAssert(device.getSurfacePresentModesKHR(surface, &count, modes.data()), error);
-            return modes;
         }
 
         /// <summary>

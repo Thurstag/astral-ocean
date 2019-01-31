@@ -26,8 +26,12 @@ void ao::vulkan::Engine::run() {
 }
 
 void ao::vulkan::Engine::initVulkan() {
+    // Init volk
+    ao::vulkan::utilities::vkAssert(volkInitialize(), "Fail to initialize vulkan loader");
+
     // Create instance
     this->instance = std::make_shared<vk::Instance>(utilities::createVkInstance(this->settings_, this->instanceExtensions()));
+    volkLoadInstance(*this->instance);
 
     // Set-up debugging
     if (this->settings_->get(ao::vulkan::settings::ValidationLayers, std::make_optional<bool>(false))) {
@@ -35,7 +39,7 @@ void ao::vulkan::Engine::initVulkan() {
     }
 
     // Get GPUs
-    std::vector<vk::PhysicalDevice> devices = ao::vulkan::utilities::vkPhysicalDevices(*this->instance);
+    std::vector<vk::PhysicalDevice> devices = this->instance->enumeratePhysicalDevices();
 
     // Check count
     if (devices.empty()) {

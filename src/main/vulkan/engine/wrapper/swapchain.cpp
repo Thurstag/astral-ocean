@@ -66,7 +66,7 @@ void ao::vulkan::Swapchain::init(u64& win_width, u64& win_height, bool vsync, bo
         present_mode = vk::PresentModeKHR::eFifo;
     } else {
         // Get present modes
-        std::vector<vk::PresentModeKHR> present_modes = ao::vulkan::utilities::presentModeKHRs(_device->physical, this->surface);
+        std::vector<vk::PresentModeKHR> present_modes = _device->physical.getSurfacePresentModesKHR(surface);
 
         // Check size
         if (present_modes.empty()) {

@@ -80,6 +80,7 @@ void ao::vulkan::Device::initLogicalDevice(std::vector<char const*> device_exten
 
     // Create device
     this->logical = this->physical.createDevice(device_info);
+    volkLoadDevice(this->logical);
 
     // Build queue container
     for (auto& create_info : _queue_create_info) {
@@ -109,35 +110,11 @@ void ao::vulkan::Device::initLogicalDevice(std::vector<char const*> device_exten
 }
 
 std::vector<vk::SurfaceFormatKHR> ao::vulkan::Device::surfaceFormatKHRs(vk::SurfaceKHR surface) {
-    std::string error = "Fail to get supported surface formats";
-    std::vector<vk::SurfaceFormatKHR> formats;
-    u32 count;
-
-    // Get count
-    ao::vulkan::utilities::vkAssert(this->physical.getSurfaceFormatsKHR(surface, &count, nullptr), error);
-
-    // Adapt vector
-    formats.resize(count);
-
-    // Get vk::SurfaceFormatKHRs
-    ao::vulkan::utilities::vkAssert(this->physical.getSurfaceFormatsKHR(surface, &count, formats.data()), error);
-    return formats;
+    return this->physical.getSurfaceFormatsKHR(surface);
 }
 
 std::vector<vk::Image> ao::vulkan::Device::swapChainImages(vk::SwapchainKHR swapChain) {
-    std::string error = "Fail to get swap chain images";
-    std::vector<vk::Image> images;
-    u32 count;
-
-    // Get count
-    ao::vulkan::utilities::vkAssert(this->logical.getSwapchainImagesKHR(swapChain, &count, nullptr), error);
-
-    // Adapt vector
-    images.resize(count);
-
-    // Get vk::Images
-    ao::vulkan::utilities::vkAssert(this->logical.getSwapchainImagesKHR(swapChain, &count, images.data()), error);
-    return images;
+    return this->logical.getSwapchainImagesKHR(swapChain);
 }
 
 std::pair<vk::Image, vk::DeviceMemory> ao::vulkan::Device::createImage(u32 width, u32 height, vk::Format format, vk::ImageType type,

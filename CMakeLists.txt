@@ -10,18 +10,20 @@ set(AO_LIB_PROJECT_NAME "astral-ocean")
 set(AO_LIB_PROJECT_VERSION "0.0.0")
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 set(AO_LIB_SUBMODULES_DIR "${CMAKE_CURRENT_SOURCE_DIR}/submodules")
-set(googletest_INCLUDE_DIR "${AO_LIB_SUBMODULES_DIR}/googletest/include" "${AO_LIB_SUBMODULES_DIR}/googlemock/include")
+set(googletest_INCLUDE_DIR "${AO_LIB_SUBMODULES_DIR}/googletest/include;${AO_LIB_SUBMODULES_DIR}/googlemock/include")
 
 # Define dependencies
-set(DEPENDENCIES Vulkan Threads)
-set(SUBMODULES fmt)
+set(DEPENDENCIES Threads)
+set(AO_LIB_SUBMODULES fmt vulkan volk)
 
 # Define includes
 set(fmt_INCLUDE_DIR "${AO_LIB_SUBMODULES_DIR}/fmt/include")
+set(vulkan_INCLUDE_DIR "${AO_LIB_SUBMODULES_DIR}")
+set(volk_INCLUDE_DIR "${AO_LIB_SUBMODULES_DIR}")
 set(AO_INCLUDE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/include")
 
 if(AO_BUILD_TESTS)
-	set(SUBMODULES ${SUBMODULES} googletest)
+	set(AO_LIB_SUBMODULES ${AO_LIB_SUBMODULES} googletest)
 endif()
 
 # Disable FMT unwanted builds
@@ -75,11 +77,23 @@ foreach(DEPENDENCY ${DEPENDENCIES})
 endforeach(DEPENDENCY)
 
 # Add submodules
-foreach(SUBMODULE ${SUBMODULES})
+foreach(SUBMODULE ${AO_LIB_SUBMODULES})
 	message("Include ${SUBMODULE} submodule")
 	
-	add_subdirectory("${AO_LIB_SUBMODULES_DIR}/${SUBMODULE}")
-	include_directories(${${SUBMODULE}_INCLUDE_DIR})
+	if(EXISTS "${AO_LIB_SUBMODULES_DIR}/${SUBMODULE}/CMakeLists.txt")
+		add_subdirectory("${AO_LIB_SUBMODULES_DIR}/${SUBMODULE}")
+	endif()
+
+	# Check if include is a list
+	list(LENGTH ${SUBMODULE}_INCLUDE_DIR LIST_LENGTH)
+
+	if(LIST_LENGTH GREATER 1)
+		include_directories(${${SUBMODULE}_INCLUDE_DIR})
+	elseif(EXISTS ${${SUBMODULE}_INCLUDE_DIR})
+		include_directories(${${SUBMODULE}_INCLUDE_DIR})
+	else()
+		message(WARNING "Unable to include ${SUBMODULE} headers (path: ${${SUBMODULE}_INCLUDE_DIR})")
+	endif()
 endforeach(SUBMODULE)
 
 # Include lib headers
@@ -94,6 +108,7 @@ endif()
 
 # Force folder creation
 set_target_properties(fmt PROPERTIES FOLDER "FMT")
+set_target_properties(volk PROPERTIES FOLDER "VOLK")
 if(AO_BUILD_TESTS)
 	set_target_properties(gmock gmock_main gtest gtest_main PROPERTIES FOLDER "GOOGLE-TEST")
 endif()

@@ -1,0 +1,24 @@
+sudo: true
+language: cpp
+os:
+  - linux
+
+# Boost + Cmake
+addons: 
+  apt: 
+    packages: libboost-all-dev cmake
+
+before_install:
+  # C++17
+  - sudo add-apt-repository -y ppa:ubuntu-toolchain-r/test
+
+install: 
+  # C++17
+  - sudo apt-get install g++-7
+  - sudo update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-7 90
+
+script:
+  - mkdir build # Build project
+  - cd build
+  - cmake ../
+  - cmake --build ../

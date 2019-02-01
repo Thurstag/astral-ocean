@@ -10,4 +10,5 @@ cmake ../
 # Build
 cmake --build .
 
-# TODO: ADD TESTS
+# Run tests
+ctest -C debug -VV -j 4

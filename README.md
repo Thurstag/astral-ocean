@@ -1,6 +1,6 @@
 ![Project logo](https://raw.githubusercontent.com/Thurstag/astral-ocean/res/images/logo/logo(banner).png)
 
-# Astral Ocean
+# Astral Ocean [![Build Status](https://travis-ci.com/Thurstag/astral-ocean.svg?branch=master)](https://travis-ci.com/Thurstag/astral-ocean)
 This project is a basic implementation of Vulkan API in C++.
 
 ## Sub-projects

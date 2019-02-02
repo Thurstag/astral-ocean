@@ -36,10 +36,10 @@ namespace ao::vulkan {
         /// <summary>
         /// Method to load a shader
         /// </summary>
-        /// <param name="filename">Filename</param>
         /// <param name="flag">Flag</param>
+        /// <param name="filename">Filename</param>
         /// <returns>ShaderModule</returns>
-        ShaderModule& loadShader(std::string const& filename, vk::ShaderStageFlagBits flag);
+        ShaderModule& loadShader(vk::ShaderStageFlagBits flag, std::string const& filename);
 
         /// <summary>
         /// Method to get shaderStages
@@ -48,7 +48,7 @@ namespace ao::vulkan {
         std::vector<vk::PipelineShaderStageCreateInfo> shaderStages() const;
 
        protected:
-        std::map<vk::ShaderStageFlagBits, vk::PipelineShaderStageCreateInfo*> shaders;
+        std::map<vk::ShaderStageFlagBits, vk::PipelineShaderStageCreateInfo> shaders;
         std::weak_ptr<Device> device;
 
         /// <summary>

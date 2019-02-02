@@ -71,7 +71,7 @@ void ao::vulkan::Engine::freeVulkan() {
         this->device->logical.destroyDescriptorSetLayout(layout);
     }
 
-    this->device->logical.destroyRenderPass(this->renderPass);
+    this->device->logical.destroyRenderPass(this->render_pass);
 
     this->semaphores.clear();
 
@@ -92,24 +92,17 @@ void ao::vulkan::Engine::setUpDebugging() {
                                              ao::vulkan::Engine::DebugCallBack));
 }
 
-void ao::vulkan::Engine::createRenderPass() {
-    this->setUpRenderPass();
-
-    // Check render pass
-    if (!this->renderPass) {
-        throw ao::core::Exception("Fail to create render pass");
-    }
-}
-
 void ao::vulkan::Engine::recreateSwapChain() {
     // Ensure all operations on the device have been finished
     this->device->logical.waitIdle();
+
+    // TODO: Remove render pass and pipelines destruction ???
 
     // Destroy pipeline
     this->pipeline.reset();
 
     // Destroy render pass
-    this->device->logical.destroyRenderPass(this->renderPass);
+    this->device->logical.destroyRenderPass(this->render_pass);
 
     // Destroy framebuffers
     this->swapchain->destroyFramebuffers();
@@ -128,14 +121,18 @@ void ao::vulkan::Engine::recreateSwapChain() {
     this->swapchain->createCommandBuffers();
     this->createSecondaryCommandBuffers();
 
+    // TODO: Remove render pass and pipelines ???
+
     // Create render pass
-    this->createRenderPass();
+    if (!(this->render_pass = this->createRenderPass())) {
+        throw ao::core::Exception("Render pass isn't initialized");
+    }
 
     // Create pipelines
     this->createPipelines();
 
     // Create framebuffers
-    this->swapchain->createFramebuffers(this->renderPass);
+    this->swapchain->createFramebuffers(this->render_pass);
 
     // Wait device idle
     this->device->logical.waitIdle();
@@ -198,7 +195,9 @@ void ao::vulkan::Engine::prepareVulkan() {
     this->createSecondaryCommandBuffers();
 
     // Create render pass
-    this->createRenderPass();
+    if (!(this->render_pass = this->createRenderPass())) {
+        throw ao::core::Exception("Render pass isn't initialized");
+    }
 
     // Create descriptor set layouts
     this->createDescriptorSetLayouts();
@@ -214,7 +213,7 @@ void ao::vulkan::Engine::prepareVulkan() {
     this->createDescriptorSets();
 
     // Create framebuffers
-    this->swapchain->createFramebuffers(this->renderPass);
+    this->swapchain->createFramebuffers(this->render_pass);
 }
 
 std::shared_ptr<ao::vulkan::EngineSettings> ao::vulkan::Engine::settings() const {
@@ -307,14 +306,14 @@ void ao::vulkan::Engine::updateCommandBuffers() {
         clearValues.push_back(vk::ClearValue().setDepthStencil(vk::ClearDepthStencilValue(1)));
     }
 
-    vk::RenderPassBeginInfo render_pass_info(this->renderPass, frame, vk::Rect2D().setExtent(this->swapchain->extent()),
+    vk::RenderPassBeginInfo render_pass_info(this->render_pass, frame, vk::Rect2D().setExtent(this->swapchain->extent()),
                                              static_cast<u32>(clearValues.size()), clearValues.data());
 
     command.begin(&begin_info);
     command.beginRenderPass(render_pass_info, vk::SubpassContents::eSecondaryCommandBuffers);
     {
         // Create inheritance info for the secondary command buffers
-        vk::CommandBufferInheritanceInfo inheritance(this->renderPass, 0, frame);
+        vk::CommandBufferInheritanceInfo inheritance(this->render_pass, 0, frame);
 
         // Execute secondary command buffers
         this->executeSecondaryCommandBuffers(inheritance, this->swapchain->currentFrameIndex(), command);

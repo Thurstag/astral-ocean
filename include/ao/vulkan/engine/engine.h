@@ -64,7 +64,7 @@ namespace ao::vulkan {
         std::shared_ptr<Swapchain> swapchain;
         std::shared_ptr<Device> device;
         SemaphoreContainer semaphores;
-        vk::RenderPass renderPass;
+        vk::RenderPass render_pass;
 
         /// <summary>
         /// Method to init vulkan
@@ -89,7 +89,8 @@ namespace ao::vulkan {
         /// <summary>
         /// Method to create render pass
         /// </summary>
-        virtual void createRenderPass();
+        /// <returns>Render pass</returns>
+        virtual vk::RenderPass createRenderPass() = 0;
 
         /// <summary>
         /// Method to re-create swap chain
@@ -131,11 +132,6 @@ namespace ao::vulkan {
         /// </summary>
         /// <returns></returns>
         virtual void setUpPipelines() = 0;
-
-        /// <summary>
-        /// Method to set-up render pass
-        /// </summary>
-        virtual void setUpRenderPass() = 0;
 
         /// <summary>
         /// Method to set-up vulkan buffers

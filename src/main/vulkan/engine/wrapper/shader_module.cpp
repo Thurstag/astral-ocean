@@ -9,8 +9,7 @@ ao::vulkan::ShaderModule::ShaderModule(std::weak_ptr<Device> device) : device(de
 ao::vulkan::ShaderModule::~ShaderModule() {
     if (auto _device = ao::core::shared(this->device)) {
         for (auto& [key, value] : this->shaders) {
-            _device->logical.destroyShaderModule(value->module);
-            delete value;
+            _device->logical.destroyShaderModule(value.module);
         }
         this->shaders.clear();
     }
@@ -53,7 +52,7 @@ vk::ShaderModule ao::vulkan::ShaderModule::createModule(const std::vector<char>&
             vk::ShaderModuleCreateInfo(vk::ShaderModuleCreateFlags(), code.size(), reinterpret_cast<const u32*>(code.data())));
 }
 
-ao::vulkan::ShaderModule& ao::vulkan::ShaderModule::loadShader(std::string const& filename, vk::ShaderStageFlagBits flag) {
+ao::vulkan::ShaderModule& ao::vulkan::ShaderModule::loadShader(vk::ShaderStageFlagBits flag, std::string const& filename) {
     auto _device = ao::core::shared(this->device);
 
     // Create module
@@ -63,14 +62,13 @@ ao::vulkan::ShaderModule& ao::vulkan::ShaderModule::loadShader(std::string const
     // Destroy old one
     auto it = this->shaders.find(flag);
     if (it != this->shaders.end()) {
-        _device->logical.destroyShaderModule(this->shaders[flag]->module);
-        delete this->shaders[flag];
+        _device->logical.destroyShaderModule(this->shaders[flag].module);
 
         this->shaders.erase(it);
     }
 
     // Add to map
-    this->shaders[flag] = new vk::PipelineShaderStageCreateInfo(vk::PipelineShaderStageCreateFlags(), flag, module, "main");
+    this->shaders[flag] = vk::PipelineShaderStageCreateInfo(vk::PipelineShaderStageCreateFlags(), flag, module, "main");
     return *this;
 }
 
@@ -78,9 +76,9 @@ std::vector<vk::PipelineShaderStageCreateInfo> ao::vulkan::ShaderModule::shaderS
     std::vector<vk::PipelineShaderStageCreateInfo> vector(this->shaders.size());
 
     // Copy into vector
-    auto it = this->shaders.begin();
-    for (size_t i = 0; i < vector.size(); i++) {
-        vector[i] = *(it++)->second;
+    size_t i = 0;
+    for (auto [key, value] : this->shaders) {
+        vector[i++] = value;
     }
 
     return vector;

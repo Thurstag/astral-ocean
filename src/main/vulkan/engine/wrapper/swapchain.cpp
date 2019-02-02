@@ -7,7 +7,7 @@
 #include "swapchain.h"
 
 ao::vulkan::Swapchain::Swapchain(std::weak_ptr<vk::Instance> instance, std::weak_ptr<Device> device)
-    : instance(instance), device(device), frame_index(0) {}
+    : instance(instance), device(device), frame_index(0), surface_images_count(0) {}
 
 ao::vulkan::Swapchain::~Swapchain() {
     auto _device = ao::core::shared(this->device);
@@ -87,9 +87,11 @@ void ao::vulkan::Swapchain::init(u64& win_width, u64& win_height, bool vsync, bo
     LOGGER << ao::core::Logger::Level::info << fmt::format("Use present mode: {0}", vk::to_string(present_mode));
 
     // Determine surface image capacity
-    u32 surface_images_count = capabilities.minImageCount + 1;
-    if (capabilities.maxImageCount > 0 && surface_images_count > capabilities.maxImageCount) {
-        surface_images_count = capabilities.maxImageCount;
+    if (this->surface_images_count == 0) {
+        this->surface_images_count = capabilities.minImageCount + 1;
+        if (capabilities.maxImageCount > 0 && this->surface_images_count > capabilities.maxImageCount) {
+            this->surface_images_count = capabilities.maxImageCount;
+        }
     }
 
     // Find the transformation of the surface
@@ -109,7 +111,7 @@ void ao::vulkan::Swapchain::init(u64& win_width, u64& win_height, bool vsync, bo
     }
 
     // Create info
-    vk::SwapchainCreateInfoKHR create_info(vk::SwapchainCreateFlagsKHR(), surface, surface_images_count, color_format, color_space,
+    vk::SwapchainCreateInfoKHR create_info(vk::SwapchainCreateFlagsKHR(), surface, this->surface_images_count, color_format, color_space,
                                            vk::Extent2D(this->extent_.width, this->extent_.height), 1, vk::ImageUsageFlagBits::eColorAttachment,
                                            vk::SharingMode::eExclusive, 0, nullptr, transform, composite_alpha, present_mode, true, old);
 

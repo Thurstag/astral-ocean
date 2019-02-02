@@ -96,43 +96,19 @@ void ao::vulkan::Engine::recreateSwapChain() {
     // Ensure all operations on the device have been finished
     this->device->logical.waitIdle();
 
-    // TODO: Remove render pass and pipelines destruction ???
-
-    // Destroy pipeline
-    this->pipeline.reset();
-
-    // Destroy render pass
-    this->device->logical.destroyRenderPass(this->render_pass);
-
     // Destroy framebuffers
     this->swapchain->destroyFramebuffers();
 
-    // Free command buffers
-    this->swapchain->freeCommandBuffers();
-
-    /* RE-CREATION PART */
-
-    // Init swap chain
+    // Recreate swap chain
     this->swapchain->init(this->settings_->get<u64>(ao::vulkan::settings::WindowWidth), this->settings_->get<u64>(ao::vulkan::settings::WindowHeight),
                           this->settings_->get(ao::vulkan::settings::WindowVsync, std::make_optional<bool>(false)),
                           this->settings_->get(ao::vulkan::settings::StencilBuffer, std::make_optional<bool>(false)));
 
-    // Create command buffers
-    this->swapchain->createCommandBuffers();
-    this->createSecondaryCommandBuffers();
-
-    // TODO: Remove render pass and pipelines ???
-
-    // Create render pass
-    if (!(this->render_pass = this->createRenderPass())) {
-        throw ao::core::Exception("Render pass isn't initialized");
-    }
-
-    // Create pipelines
-    this->createPipelines();
-
     // Create framebuffers
     this->swapchain->createFramebuffers(this->render_pass);
+
+    // Call onSwapchainRecreation()
+    this->onSwapchainRecreation();
 
     // Wait device idle
     this->device->logical.waitIdle();

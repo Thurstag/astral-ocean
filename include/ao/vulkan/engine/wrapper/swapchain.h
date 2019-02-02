@@ -154,6 +154,7 @@ namespace ao::vulkan {
         std::vector<vk::Fence> waiting_fences;
         std::vector<vk::Framebuffer> frames;
         vk::SwapchainKHR swapchain;
+        u32 surface_images_count;
         vk::Queue present_queue;
         vk::SurfaceKHR surface;
         u32 frame_index;

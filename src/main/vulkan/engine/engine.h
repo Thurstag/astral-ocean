@@ -213,6 +213,11 @@ namespace ao::vulkan {
         virtual void afterFrame() = 0;
 
         /// <summary>
+        /// Method called when swapchain is recreated
+        /// </summary>
+        virtual void onSwapchainRecreation(){};
+
+        /// <summary>
         /// Method to execute secondary command buffers
         /// </summary>
         /// <param name="inheritanceInfo">Inheritance info</param>

@@ -4,7 +4,7 @@
 
 #include "engine.h"
 
-ao::vulkan::Engine::Engine(std::shared_ptr<EngineSettings> settings) : settings_(settings) {}
+ao::vulkan::Engine::Engine(std::shared_ptr<EngineSettings> settings) : settings_(settings), enforce_resize(false) {}
 
 ao::vulkan::Engine::~Engine() {
     this->freeVulkan();
@@ -166,8 +166,7 @@ void ao::vulkan::Engine::prepareVulkan() {
                           this->settings_->get(ao::vulkan::settings::WindowVsync, std::make_optional<bool>(false)),
                           this->settings_->get(ao::vulkan::settings::StencilBuffer, std::make_optional<bool>(false)));
 
-    // Create command buffers
-    this->swapchain->createCommandBuffers();
+    // Create secondary commands
     this->createSecondaryCommandBuffers();
 
     // Create render pass
@@ -245,11 +244,11 @@ void ao::vulkan::Engine::prepareFrame() {
     vk::Result result = this->swapchain->nextImage(this->semaphores["acquireNextImage"].signals.front());
 
     // Check result
-    if (result == vk::Result::eErrorOutOfDateKHR || result == vk::Result::eSuboptimalKHR) {
+    if (result == vk::Result::eErrorOutOfDateKHR || result == vk::Result::eSuboptimalKHR || this->enforce_resize) {
         LOGGER << ao::core::Logger::Level::warning << "Swap chain is no longer compatible, re-create it";
 
-        this->recreateSwapChain();
-        return;
+        this->enforce_resize = false;
+        return this->recreateSwapChain();
     }
     ao::vulkan::utilities::vkAssert(result, "Fail to get next image from swap chain");
 }
@@ -258,11 +257,11 @@ void ao::vulkan::Engine::submitFrame() {
     vk::Result result = this->swapchain->enqueueImage(this->semaphores["presentQueue"].waits);
 
     // Check result
-    if (result == vk::Result::eErrorOutOfDateKHR) {
+    if (result == vk::Result::eErrorOutOfDateKHR || this->enforce_resize) {
         LOGGER << ao::core::Logger::Level::warning << "Swap chain is no longer compatible, re-create it";
 
-        this->recreateSwapChain();
-        return;
+        this->enforce_resize = false;
+        return this->recreateSwapChain();
     }
     ao::vulkan::utilities::vkAssert(result, "Fail to enqueue image");
 }

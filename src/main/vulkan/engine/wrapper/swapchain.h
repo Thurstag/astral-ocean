@@ -49,16 +49,6 @@ namespace ao::vulkan {
         void initSurface();
 
         /// <summary>
-        /// Method to create command buffers
-        /// </summary>
-        void createCommandBuffers();
-
-        /// <summary>
-        /// Method to free command buffers
-        /// </summary>
-        void freeCommandBuffers();
-
-        /// <summary>
         /// Method to create framebuffers
         /// </summary>
         /// <param name="render_pass">Render pass</param>

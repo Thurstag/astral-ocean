@@ -21,7 +21,7 @@ ao::vulkan::Swapchain::~Swapchain() {
         _instance->destroySurfaceKHR(this->surface);
     }
 
-    this->freeCommandBuffers();
+    this->command_pool.reset();
 
     for (auto& framebuffer : this->frames) {
         _device->logical.destroyFramebuffer(framebuffer);
@@ -41,6 +41,7 @@ void ao::vulkan::Swapchain::init(u64& win_width, u64& win_height, bool vsync, bo
     vk::SwapchainKHR old = this->swapchain;
 
     auto _device = ao::core::shared(this->device);
+    bool firstInit = !old;
 
     // Get physical device surface properties and formats
     vk::SurfaceCapabilitiesKHR capabilities = _device->physical.getSurfaceCapabilitiesKHR(this->surface);
@@ -87,7 +88,7 @@ void ao::vulkan::Swapchain::init(u64& win_width, u64& win_height, bool vsync, bo
     LOGGER << ao::core::Logger::Level::info << fmt::format("Use present mode: {0}", vk::to_string(present_mode));
 
     // Determine surface image capacity
-    if (this->surface_images_count == 0) {
+    if (firstInit) {
         this->surface_images_count = capabilities.minImageCount + 1;
         if (capabilities.maxImageCount > 0 && this->surface_images_count > capabilities.maxImageCount) {
             this->surface_images_count = capabilities.maxImageCount;
@@ -165,18 +166,24 @@ void ao::vulkan::Swapchain::init(u64& win_width, u64& win_height, bool vsync, bo
         if (this->stencil_buffer) {
             this->destroyStencilBuffer();
         }
+
         this->createStencilBuffer();
     }
 
-    // Create fences
-    this->waiting_fences.resize(this->buffers.size());
-    for (auto& fence : this->waiting_fences) {
-        fence = _device->logical.createFence(vk::FenceCreateInfo(vk::FenceCreateFlagBits::eSignaled));
-    }
+    if (firstInit) {
+        // Create fences
+        this->waiting_fences.resize(this->buffers.size());
+        for (auto& fence : this->waiting_fences) {
+            fence = _device->logical.createFence(vk::FenceCreateInfo(vk::FenceCreateFlagBits::eSignaled));
+        }
 
-    // Create command pool
-    this->command_pool = std::make_unique<ao::vulkan::CommandPool>(_device->logical, vk::CommandPoolCreateFlagBits::eResetCommandBuffer,
-                                                                   _device->queues[vk::to_string(vk::QueueFlagBits::eGraphics)].family_index);
+        // Create command pool
+        this->command_pool = std::make_unique<ao::vulkan::CommandPool>(_device->logical, vk::CommandPoolCreateFlagBits::eResetCommandBuffer,
+                                                                       _device->queues[vk::to_string(vk::QueueFlagBits::eGraphics)].family_index);
+
+        // Create commands
+        this->commands = this->command_pool->allocateCommandBuffers(vk::CommandBufferLevel::ePrimary, static_cast<u32>(this->buffers.size()));
+    }
 }
 
 void ao::vulkan::Swapchain::initSurface() {
@@ -237,10 +244,6 @@ void ao::vulkan::Swapchain::initSurface() {
     }
 }
 
-void ao::vulkan::Swapchain::createCommandBuffers() {
-    this->commands = this->command_pool->allocateCommandBuffers(vk::CommandBufferLevel::ePrimary, static_cast<u32>(this->buffers.size()));
-}
-
 void ao::vulkan::Swapchain::createFramebuffers(vk::RenderPass render_pass) {
     auto _device = ao::core::shared(this->device);
 
@@ -261,10 +264,6 @@ void ao::vulkan::Swapchain::createFramebuffers(vk::RenderPass render_pass) {
 
         this->frames[i] = _device->logical.createFramebuffer(create_info);
     }
-}
-
-void ao::vulkan::Swapchain::freeCommandBuffers() {
-    this->command_pool.reset();
 }
 
 void ao::vulkan::Swapchain::createStencilBuffer() {

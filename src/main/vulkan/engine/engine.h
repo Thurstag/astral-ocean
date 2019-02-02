@@ -52,6 +52,7 @@ namespace ao::vulkan {
        protected:
         core::Logger LOGGER = core::Logger::GetInstance<Engine>();
         std::shared_ptr<EngineSettings> settings_;
+        std::atomic_bool enforce_resize;
 
         // TODO: Refactor
         std::vector<vk::DescriptorSetLayout> descriptorSetLayouts;

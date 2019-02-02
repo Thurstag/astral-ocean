@@ -13,7 +13,6 @@ matrix:
       compiler: gcc
       before_install: 
         - sudo add-apt-repository -y ppa:ubuntu-toolchain-r/test
-        - sudo add-apt-repository -y ppa:mhier/libboost-latest
         - sudo apt-get update
         - sudo chmod +x tools/travis/linux/install.sh
       install: travis_wait 40 "./tools/travis/linux/install.sh"

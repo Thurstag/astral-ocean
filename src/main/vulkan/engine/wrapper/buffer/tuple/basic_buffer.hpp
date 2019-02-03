@@ -39,7 +39,7 @@ namespace ao::vulkan {
         /// Method to map memory
         /// </summary>
         /// <returns>This</returns>
-        BasicTupleBuffer<T...>* map();
+        BasicTupleBuffer<T...>* map() override;
 
         /// <summary>
         /// Method to init buffer

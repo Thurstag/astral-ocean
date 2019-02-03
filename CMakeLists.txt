@@ -26,6 +26,14 @@ if(AO_BUILD_TESTS)
 	set(AO_LIB_SUBMODULES ${AO_LIB_SUBMODULES} googletest)
 endif()
 
+# Define compile definitions
+if(APPLE)
+add_compile_definitions(_GNU_SOURCE BOOST_LOG_DYN_LINK)
+elseif(UNIX)
+add_compile_definitions(_GNU_SOURCE BOOST_LOG_DYN_LINK)
+elseif(WIN32)
+endif()
+
 # Disable FMT unwanted builds
 set(FMT_DOC OFF CACHE BOOL "" FORCE)
 set(FMT_TEST OFF CACHE BOOL "" FORCE)

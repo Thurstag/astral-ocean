@@ -33,7 +33,7 @@ namespace ao::vulkan {
         /// </summary>
         /// <param name="index">Fragment index</param>
         /// <returns>Offset</returns>
-        virtual vk::DeviceSize offset(size_t index) const;
+        virtual vk::DeviceSize offset(size_t index) const override;
 
         virtual Buffer* map() override;
 

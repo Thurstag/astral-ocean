@@ -70,7 +70,7 @@ namespace ao::vulkan {
         // Init buffer in device's memory
         this->device_buffer = std::shared_ptr<DynamicArrayBuffer<T>>(
             (new BasicDynamicArrayBuffer<T>(this->count, StagingBuffer::device))
-                ->init(usage_flags ? vk::BufferUsageFlagBits::eTransferDst | usage_flags.value() : vk::BufferUsageFlagBits::eTransferDst,
+                ->init(usage_flags ? vk::BufferUsageFlagBits::eTransferDst | *usage_flags : vk::BufferUsageFlagBits::eTransferDst,
                        vk::SharingMode::eExclusive, vk::MemoryPropertyFlagBits::eDeviceLocal, size));
 
         auto _device = ao::core::shared(StagingBuffer::device);
@@ -206,7 +206,7 @@ namespace ao::vulkan {
         // Init buffer in device's memory
         this->device_buffer = std::shared_ptr<ArrayBuffer<T, N>>(
             (new BasicArrayBuffer<T, N>(StagingBuffer::device))
-                ->init(usage_flags ? vk::BufferUsageFlagBits::eTransferDst | usage_flags.value() : vk::BufferUsageFlagBits::eTransferDst,
+                ->init(usage_flags ? vk::BufferUsageFlagBits::eTransferDst | *usage_flags : vk::BufferUsageFlagBits::eTransferDst,
                        vk::SharingMode::eExclusive, vk::MemoryPropertyFlagBits::eDeviceLocal, size));
 
         auto _device = ao::core::shared(StagingBuffer::device);

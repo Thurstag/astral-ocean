@@ -5,8 +5,8 @@
 #pragma once
 
 #include <functional>
-#include <optional>
 
+#include <ao/core/utilities/optional.h>
 #include <gtest/gtest.h>
 
 namespace ao::test {

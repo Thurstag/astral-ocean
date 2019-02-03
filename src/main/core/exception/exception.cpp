@@ -28,7 +28,7 @@ std::string ao::core::Exception::str() const {
     // Display stack trace
     if (this->stacktrace) {
         std::stringstream stack;
-        stack << this->stacktrace.value();
+        stack << *this->stacktrace;
         std::string _stack = stack.str();
 
         ss << std::endl << _stack.substr(0, _stack.size() - 1);  // Remove \n

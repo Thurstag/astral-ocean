@@ -66,7 +66,7 @@ namespace ao::vulkan {
         // Init buffer in device's memory
         this->device_buffer = std::shared_ptr<TupleBuffer<T...>>(
             (new BasicTupleBuffer<T...>(StagingBuffer::device))
-                ->init(usage_flags ? vk::BufferUsageFlagBits::eTransferDst | usage_flags.value() : vk::BufferUsageFlagBits::eTransferDst,
+                ->init(usage_flags ? vk::BufferUsageFlagBits::eTransferDst | *usage_flags : vk::BufferUsageFlagBits::eTransferDst,
                        vk::SharingMode::eExclusive, vk::MemoryPropertyFlagBits::eDeviceLocal, sizes));
 
         auto _device = ao::core::shared(StagingBuffer::device);

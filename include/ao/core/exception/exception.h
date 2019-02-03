@@ -5,7 +5,8 @@
 #pragma once
 
 #include <boost/stacktrace.hpp>
-#include <optional>
+
+#include "../utilities/optional.h"
 
 namespace ao::core {
     /// <summary>

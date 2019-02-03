@@ -4,9 +4,9 @@
 
 #pragma once
 
-#include <optional>
 #include <tuple>
 
+#include "../utilities/optional.h"
 #include "../utilities/types.h"
 #include "exception.h"
 

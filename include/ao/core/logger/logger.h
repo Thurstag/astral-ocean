@@ -4,10 +4,6 @@
 
 #pragma once
 
-#ifdef __linux__
-#define BOOST_LOG_DYN_LINK 1
-#endif
-
 #include "logger_instance.hpp"
 
 namespace ao::core {

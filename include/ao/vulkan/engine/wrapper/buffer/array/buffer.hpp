@@ -97,13 +97,6 @@ namespace ao::vulkan {
         /// <returns>This</returns>
         virtual ArrayBuffer<T, N>* updateFragment(std::size_t index, T const* data) = 0;
 
-        /// <summary>
-        /// Method to get offset of fragment at index
-        /// </summary>
-        /// <param name="index">Fragment index</param>
-        /// <returns>Offset</returns>
-        virtual vk::DeviceSize offset(size_t index) const = 0;
-
         virtual bool hasBuffer() const override;
 
        protected:

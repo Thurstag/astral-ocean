@@ -5,10 +5,10 @@
 #pragma once
 
 #include <map>
-#include <optional>
 
 #include <ao/core/exception/exception.h>
 #include <ao/core/logger/logger.h>
+#include <ao/core/utilities/optional.h>
 #include <fmt/format.h>
 
 namespace ao::vulkan {

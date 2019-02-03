@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 2.8 FATAL_ERROR)
+cmake_minimum_required(VERSION 3.12.3 FATAL_ERROR)
 cmake_policy(SET CMP0048 NEW)
 
 # Define build variables
@@ -30,7 +30,7 @@ endif()
 if(APPLE)
 add_compile_definitions(_GNU_SOURCE BOOST_LOG_DYN_LINK)
 elseif(UNIX)
-add_compile_definitions(_GNU_SOURCE BOOST_LOG_DYN_LINK)
+add_compile_definitions(BOOST_LOG_DYN_LINK)
 elseif(WIN32)
 endif()
 

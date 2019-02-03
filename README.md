@@ -25,7 +25,7 @@ TODO
 | Google Test      | **1.8.1**@88c15b5 |
 | FMT              | **5.2.1**@6c95fb3 |
 
-## Credits
+## Thanks
 
 Thanks to the authors of these works:
 

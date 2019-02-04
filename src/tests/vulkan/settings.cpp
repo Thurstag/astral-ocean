@@ -13,6 +13,20 @@
 #include "../helpers/tests.h"
 
 namespace ao::test {
+    class _EngineSettings : public vulkan::EngineSettings {
+       public:
+        _EngineSettings() = default;
+        virtual ~_EngineSettings() = default;
+
+        std::map<std::string, std::pair<std::pair<size_t, std::string>, void*>>& Values() {
+            return this->values;
+        }
+
+        std::map<std::string, std::string>& StrValues() {
+            return this->str_values;
+        }
+    };
+
     TEST(EngineSettings, Default) {
         vulkan::EngineSettings s;
 
@@ -55,5 +69,35 @@ namespace ao::test {
 
         // Assert log
         ASSERT_TRUE(ss.str().find("Cast") != std::string::npos);
+    }
+
+    TEST(EngineSettings, EmplaceString) {
+        _EngineSettings s;
+
+        ASSERT_TRUE(s.Values().empty());
+        ASSERT_TRUE(s.StrValues().empty());
+
+        s.get<std::string>("key") = std::string("value");
+
+        ASSERT_TRUE(s.Values().empty());
+        ASSERT_TRUE(s.exists("key"));
+        ASSERT_FALSE(s.StrValues().empty());
+    }
+
+    TEST(EngineSettings, SameKey) {
+        _EngineSettings s;
+
+        ASSERT_TRUE(s.Values().empty());
+        ASSERT_TRUE(s.StrValues().empty());
+
+        s.get<std::string>("key") = std::string("value");
+        s.get<int>("key") = 1;
+
+        ASSERT_FALSE(s.Values().empty());
+        ASSERT_FALSE(s.StrValues().empty());
+        ASSERT_TRUE(s.exists("key"));
+
+        ASSERT_STREQ("value", s.get<std::string>("key").c_str());
+        ASSERT_EQ(1, s.get<int>("key"));
     }
 }  // namespace ao::test

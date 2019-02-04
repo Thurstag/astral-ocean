@@ -59,12 +59,12 @@ namespace ao::vulkan {
         T& get(std::string const& key, std::optional<T> _default = std::nullopt) {
             constexpr bool is_string = std::is_base_of<std::string, T>::value;
 
-            if (!this->exists(key)) {
-                if constexpr (is_string) {
-                    if (_default) {
-                        this->str_values[key] = *_default;
-                    }
-                } else {
+            if constexpr (is_string) {
+                if (!this->str_exists(key) && _default) {
+                    this->str_values[key] = *_default;
+                }
+            } else {
+                if (!this->value_exists(key)) {
                     // Allocate
                     T* ptr = static_cast<T*>(calloc(1, sizeof(T)));
 
@@ -97,5 +97,19 @@ namespace ao::vulkan {
 
         std::map<std::string, std::pair<std::pair<size_t, std::string>, void*>> values;
         std::map<std::string, std::string> str_values;
+
+        /// <summary>
+        /// Method to know if a string exists with specified key
+        /// </summary>
+        /// <param name="key">Key</param>
+        /// <returns>Exist</returns>
+        bool str_exists(std::string const& key) const;
+
+        /// <summary>
+        /// Method to know if a value exists with specified key
+        /// </summary>
+        /// <param name="key">Key</param>
+        /// <returns>Exist</returns>
+        bool value_exists(std::string const& key) const;
     };
 }  // namespace ao::vulkan

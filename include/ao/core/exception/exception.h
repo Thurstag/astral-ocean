@@ -9,42 +9,48 @@
 #include "../utilities/optional.h"
 
 namespace ao::core {
-    /// <summary>
-    /// Exception with a stack trace
-    /// </summary>
+    /**
+     * @brief Exeption class with stack trace
+     *
+     */
     class Exception : public std::runtime_error {
        public:
-        /// <summary>
-        /// Constructor
-        /// </summary>
-        /// <param name="message">Messagge</param>
-        /// <param name="stacktrace">Enable stack trace</param>
+        /**
+         * @brief Construct a new Exception object
+         *
+         * @param message Message
+         * @param stacktrace Enable stack trace
+         */
         Exception(std::string const& message, bool const stacktrace = true);
 
-        /// <summary>
-        /// Constructor
-        /// </summary>
-        /// <param name="message">Messagge</param>
-        /// <param name="stacktrace">Enable stack trace</param>
+        /**
+         * @brief Construct a new Exception object
+         *
+         * @param message Message
+         * @param stacktrace Enable stack trace
+         */
         Exception(char const* const message, bool const stacktrace = true);
 
-        /// <summary>
-        /// Destructor
-        /// </summary>
+        /**
+         * @brief Destroy the Exception object
+         *
+         */
         virtual ~Exception() = default;
 
-        /// <summary>
-        /// Method to string
-        /// </summary>
-        /// <returns>String representation</returns>
+        /**
+         * @brief String representation
+         *
+         * @return std::string String
+         */
         std::string str() const;
 
-        /// <summary>
-        /// Method to define << operator
-        /// </summary>
-        /// <param name="os">Stream</param>
-        /// <param name="e">Exception</param>
-        /// <returns>Stream</returns>
+        /**
+         * @brief Operator <<
+         *
+         * @param os Stream
+         * @param e Exception
+         * @return std::ostream& Stream
+         */
         friend std::ostream& operator<<(std::ostream& os, const Exception& e) {
             return os << e.str();
         }

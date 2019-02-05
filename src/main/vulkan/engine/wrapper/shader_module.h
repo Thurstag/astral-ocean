@@ -17,52 +17,59 @@
 #include "device.h"
 
 namespace ao::vulkan {
-    /// <summary>
-    /// Wrapper for vulkan shaders
-    /// </summary>
+    /**
+     * @brief vk::ShaderModule wrapper
+     *
+     */
     class ShaderModule {
        public:
-        /// <summary>
-        /// Constructor
-        /// </summary>
-        /// <param name="device">Device</param>
+        /**
+         * @brief Construct a new ShaderModule object
+         *
+         * @param device Device
+         */
         explicit ShaderModule(std::weak_ptr<Device> device);
 
-        /// <summary>
-        /// Destructor
-        /// </summary>
+        /**
+         * @brief Destroy the ShaderModule object
+         *
+         */
         ~ShaderModule();
 
-        /// <summary>
-        /// Method to load a shader
-        /// </summary>
-        /// <param name="flag">Flag</param>
-        /// <param name="filename">Filename</param>
-        /// <returns>ShaderModule</returns>
+        /**
+         * @brief Load a shader
+         *
+         * @param flag Flag
+         * @param filename File's name
+         * @return ShaderModule& ShaderModule
+         */
         ShaderModule& loadShader(vk::ShaderStageFlagBits flag, std::string const& filename);
 
-        /// <summary>
-        /// Method to get shaderStages
-        /// </summary>
-        /// <returns>shaderStages</returns>
+        /**
+         * @brief Shader stages
+         *
+         * @return std::vector<vk::PipelineShaderStageCreateInfo> Shader stages
+         */
         std::vector<vk::PipelineShaderStageCreateInfo> shaderStages() const;
 
        protected:
         std::map<vk::ShaderStageFlagBits, vk::PipelineShaderStageCreateInfo> shaders;
         std::weak_ptr<Device> device;
 
-        /// <summary>
-        /// Method to read a shader file
-        /// </summary>
-        /// <param name="filename">File's name</param>
-        /// <returns>Vector</returns>
+        /**
+         * @brief Read a file
+         *
+         * @param filename File's name
+         * @return std::vector<char> File's content
+         */
         std::vector<char> read(std::string const& filename);
 
-        /// <summary>
-        /// Method to create a shader module
-        /// </summary>
-        /// <param name="code">Code</param>
-        /// <returns>vk::ShaderModule</returns>
+        /**
+         * @brief Create a ShaderModule
+         *
+         * @param code Code
+         * @return vk::ShaderModule ShaderModule
+         */
         vk::ShaderModule createModule(std::vector<char> const& code);
     };
 }  // namespace ao::vulkan

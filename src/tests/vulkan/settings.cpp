@@ -31,7 +31,7 @@ namespace ao::test {
         vulkan::EngineSettings s;
 
         ASSERT_FALSE(s.exists("test"));
-        ASSERT_TRUE(s.get<bool>("test", std::make_optional<bool>(true)));
+        ASSERT_TRUE(s.get<bool>("test", std::make_optional(true)));
         ASSERT_TRUE(s.exists("test"));
     }
 

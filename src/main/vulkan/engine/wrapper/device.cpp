@@ -113,8 +113,8 @@ std::vector<vk::SurfaceFormatKHR> ao::vulkan::Device::surfaceFormatKHRs(vk::Surf
     return this->physical.getSurfaceFormatsKHR(surface);
 }
 
-std::vector<vk::Image> ao::vulkan::Device::swapChainImages(vk::SwapchainKHR swapChain) {
-    return this->logical.getSwapchainImagesKHR(swapChain);
+std::vector<vk::Image> ao::vulkan::Device::swapChainImages(vk::SwapchainKHR swapchain) {
+    return this->logical.getSwapchainImagesKHR(swapchain);
 }
 
 std::pair<vk::Image, vk::DeviceMemory> ao::vulkan::Device::createImage(u32 width, u32 height, vk::Format format, vk::ImageType type,

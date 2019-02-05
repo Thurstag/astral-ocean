@@ -17,10 +17,12 @@ namespace ao::test {
 
         ~VkInstance();
 
-        /// <summary>
-        /// Method to init vulkan
-        /// </summary>
-        /// <returns>Successfull or not</returns>
+        /**
+         * @brief Init vulkan
+         *
+         * @return true Vulkan initialized
+         * @return false Fail to initialize vulkan
+         */
         bool init();
     };
 

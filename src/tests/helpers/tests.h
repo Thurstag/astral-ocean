@@ -10,9 +10,13 @@
 #include <gtest/gtest.h>
 
 namespace ao::test {
-/// <summary>
-/// Macro to skip a test if condition is true
-/// </summary>
+/**
+ * @brief Macro to skip a text
+ *
+ * @param condition Condition
+ * @param message Message displayed if condition is true
+ *
+ */
 #define SKIP_TEST(condition, message)                                    \
     {                                                                    \
         if (condition) {                                                 \
@@ -21,11 +25,13 @@ namespace ao::test {
         }                                                                \
     }
 
-    /// <summary>
-    /// Method to assert an exception
-    /// </summary>
-    /// <param name="code">Code that will throw an exception</param>
-    /// <param name="assert">Function to assert exception catched</param>
+    /**
+     * @brief Assert an exception
+     *
+     * @tparam T Exception type
+     * @param code Code to execute
+     * @param assert Assert on exception
+     */
     template<class T>
     inline void ASSERT_EXCEPTION(std::function<void()> code, std::function<void(T)> assert = [](T e) {}) {
         try {

@@ -34,7 +34,7 @@ void ao::vulkan::Engine::initVulkan() {
     volkLoadInstance(*this->instance);
 
     // Set-up debugging
-    if (this->settings_->get(ao::vulkan::settings::ValidationLayers, std::make_optional<bool>(false))) {
+    if (this->settings_->get(ao::vulkan::settings::ValidationLayers, std::make_optional(false))) {
         this->setUpDebugging();
     }
 
@@ -77,7 +77,7 @@ void ao::vulkan::Engine::freeVulkan() {
 
     this->device.reset();
 
-    if (this->settings_->get(ao::vulkan::settings::ValidationLayers, std::make_optional<bool>(false))) {
+    if (this->settings_->get(ao::vulkan::settings::ValidationLayers, std::make_optional(false))) {
         this->instance->destroyDebugUtilsMessengerEXT(this->debug_callBack);
     }
 
@@ -101,8 +101,8 @@ void ao::vulkan::Engine::recreateSwapChain() {
 
     // Recreate swap chain
     this->swapchain->init(this->settings_->get<u64>(ao::vulkan::settings::WindowWidth), this->settings_->get<u64>(ao::vulkan::settings::WindowHeight),
-                          this->settings_->get(ao::vulkan::settings::WindowVsync, std::make_optional<bool>(false)),
-                          this->settings_->get(ao::vulkan::settings::StencilBuffer, std::make_optional<bool>(false)));
+                          this->settings_->get(ao::vulkan::settings::WindowVsync, std::make_optional(false)),
+                          this->settings_->get(ao::vulkan::settings::StencilBuffer, std::make_optional(false)));
 
     // Create framebuffers
     this->swapchain->createFramebuffers(this->render_pass);
@@ -163,8 +163,8 @@ void ao::vulkan::Engine::prepareVulkan() {
 
     // Init swap chain
     this->swapchain->init(this->settings_->get<u64>(ao::vulkan::settings::WindowWidth), this->settings_->get<u64>(ao::vulkan::settings::WindowHeight),
-                          this->settings_->get(ao::vulkan::settings::WindowVsync, std::make_optional<bool>(false)),
-                          this->settings_->get(ao::vulkan::settings::StencilBuffer, std::make_optional<bool>(false)));
+                          this->settings_->get(ao::vulkan::settings::WindowVsync, std::make_optional(false)),
+                          this->settings_->get(ao::vulkan::settings::StencilBuffer, std::make_optional(false)));
 
     // Create secondary commands
     this->createSecondaryCommandBuffers();

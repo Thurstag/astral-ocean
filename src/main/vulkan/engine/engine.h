@@ -23,30 +23,36 @@
 namespace ao::vulkan {
     struct ValidationLayers {};
 
-    /// <summary>
-    /// Engine class
-    /// </summary>
+    /**
+     * @brief Engine class
+     *
+     */
     class Engine {
        public:
-        /// <summary>
-        /// Constructor
-        /// </summary>
-        /// <param name="settings">Settings</param>
+        /**
+         * @brief Construct a new Engine object
+         *
+         * @param settings Settings
+         */
         explicit Engine(std::shared_ptr<EngineSettings> settings);
-        /// <summary>
-        /// Destructor
-        /// </summary>
+
+        /**
+         * @brief Destroy the Engine object
+         *
+         */
         virtual ~Engine();
 
-        /// <summary>
-        /// Methdo to run engine
-        /// </summary>
+        /**
+         * @brief Run engine
+         *
+         */
         virtual void run();
 
-        /// <summary>
-        /// Method to get settings
-        /// </summary>
-        /// <returns>Settings</returns>
+        /**
+         * @brief Get settings
+         *
+         * @return std::shared_ptr<EngineSettings> Settings
+         */
         std::shared_ptr<EngineSettings> settings() const;
 
        protected:
@@ -67,212 +73,226 @@ namespace ao::vulkan {
         SemaphoreContainer semaphores;
         vk::RenderPass render_pass;
 
-        /// <summary>
-        /// Method to init vulkan
-        /// </summary>
+        /**
+         * @brief Init vulkan objects
+         *
+         */
         virtual void initVulkan();
 
-        /// <summary>
-        /// Method to prepare vulkan before running
-        /// </summary>
+        /**
+         * @brief Prepare vulkan before running
+         *
+         */
         virtual void prepareVulkan();
 
-        /// <summary>
-        /// Method to clean-up vulkan
-        /// </summary>
+        /**
+         * @brief Clean-up vulkan
+         *
+         */
         virtual void freeVulkan();
 
-        /// <summary>
-        /// Method to set-up debugging
-        /// </summary>
+        /**
+         * @brief Set-up debugging (validation layers...)
+         *
+         */
         virtual void setUpDebugging();
 
-        /// <summary>
-        /// Method to create render pass
-        /// </summary>
-        /// <returns>Render pass</returns>
+        /**
+         * @brief Create a Render Pass object
+         *
+         * @return vk::RenderPass Render pass
+         */
         virtual vk::RenderPass createRenderPass() = 0;
 
-        /// <summary>
-        /// Method to re-create swap chain
-        /// </summary>
+        /**
+         * @brief Re-create swapchain object
+         *
+         */
         virtual void recreateSwapChain();
 
-        /// <summary>
-        /// Method to create pipelines
-        /// </summary>
+        /**
+         * @brief Create pipeline objects
+         *
+         */
         virtual void createPipelines();
 
-        /// <summary>
-        /// Method to create semaphores
-        /// </summary>
+        /**
+         * @brief Create semaphores
+         *
+         */
         virtual void createSemaphores();
 
-        /// <summary>
-        /// Method to create descriptor set layouts
-        /// </summary>
         virtual void createDescriptorSetLayouts() = 0;
-
-        /// <summary>
-        /// Method to create descriptor pools
-        /// </summary>
         virtual void createDescriptorPools() = 0;
-
-        /// <summary>
-        /// Method to create descriptor sets
-        /// </summary>
         virtual void createDescriptorSets() = 0;
-
-        /// <summary>
-        /// Method to create pipeline layouts
-        /// </summary>
         virtual void createPipelineLayouts() = 0;
-
-        /// <summary>
-        /// Method to set-up pipelines
-        /// </summary>
-        /// <returns></returns>
         virtual void setUpPipelines() = 0;
 
-        /// <summary>
-        /// Method to set-up vulkan buffers
-        /// </summary>
-        /// <returns></returns>
+        /**
+         * @brief Create vulkan buffers (UBO, vertex buffer...)
+         *
+         */
         virtual void createVulkanBuffers() = 0;
 
-        /// <summary>
-        /// Method to create secondary command buffers
-        /// </summary>
+        /**
+         * @brief Create secondary command buffers
+         *
+         */
         virtual void createSecondaryCommandBuffers() = 0;
 
-        /// <summary>
-        /// Method to create surface
-        /// </summary>
-        /// <returns>Surface</returns>
+        /**
+         * @brief Create a Surface object
+         *
+         * @return vk::SurfaceKHR Surface
+         */
         virtual vk::SurfaceKHR createSurface() = 0;
 
-        /// <summary>
-        /// Method to init window
-        /// </summary>
+        /**
+         * @brief Init window
+         *
+         */
         virtual void initWindow() = 0;
 
-        /// <summary>
-        /// Method to clean-up window
-        /// </summary>
+        /**
+         * @brief Clean-up window
+         *
+         */
         virtual void freeWindow() = 0;
 
-        /// <summary>
-        /// Method to know if window is iconified
-        /// </summary>
-        /// <returns></returns>
+        /**
+         * @brief Window is iconified
+         *
+         * @return true Window is minimized
+         * @return false Windows isn't minimized
+         */
         virtual bool isIconified() const = 0;
 
-        /// <summary>
-        /// Method to define main loop
-        /// </summary>
+        /**
+         * @brief Run engine loop
+         *
+         */
         virtual void loop();
 
-        /// <summary>
-        /// Method to define a loop condition
-        /// </summary>
-        /// <returns>True = continue to loop & False = stop looping</returns>
+        /**
+         * @brief Define looping condition
+         *
+         * @return true Continue to loop
+         * @return false Stop loping
+         */
         virtual bool loopingCondition() const = 0;
 
-        /// <summary>
-        /// Method to wait until window is maximized
-        /// </summary>
+        /**
+         * @brief Wait until window is maximized
+         *
+         */
         virtual void waitMaximized() = 0;
 
-        /// <summary>
-        /// Method to render a frame
-        /// </summary>
+        /**
+         * @brief Render a frame (prepare, process, submit)
+         *
+         */
         virtual void render();
 
-        /// <summary>
-        /// Method to prepare frame
-        /// </summary>
+        /**
+         * @brief Prepare a frame
+         *
+         */
         virtual void prepareFrame();
 
-        /// <summary>
-        /// Method to submit frame
-        /// </summary>
+        /**
+         * @brief Submit a frame
+         *
+         */
         virtual void submitFrame();
 
-        /// <summary>
-        /// Method to update command buffers
-        /// </summary>
+        /**
+         * @brief Update command buffers
+         *
+         */
         virtual void updateCommandBuffers();
 
-        /// <summary>
-        /// Method called before command buffers update
-        /// </summary>
+        /**
+         * @brief Called before command buffers update
+         *
+         */
         virtual void beforeCommandBuffersUpdate() = 0;
 
-        /// <summary>
-        /// Method called after frame submission
-        /// </summary>
+        /**
+         * @brief Called after frame submission
+         *
+         */
         virtual void afterFrame() = 0;
 
-        /// <summary>
-        /// Method called when swapchain is recreated
-        /// </summary>
+        /**
+         * @brief Called when swapchain is re-created
+         *
+         */
         virtual void onSwapchainRecreation(){};
 
-        /// <summary>
-        /// Method to execute secondary command buffers
-        /// </summary>
-        /// <param name="inheritanceInfo">Inheritance info</param>
-        /// <param name="frameIndex">Current frame index</param>
-        /// <param name="primaryCmd">Primary command buffer</param>
+        /**
+         * @brief Execute secondary command buffers
+         *
+         * @param inheritanceInfo Inheritance info
+         * @param frameIndex Current frame index
+         * @param primaryCmd Primary command buffer
+         */
         virtual void executeSecondaryCommandBuffers(vk::CommandBufferInheritanceInfo& inheritanceInfo, int frameIndex,
                                                     vk::CommandBuffer primaryCmd) = 0;
 
-        /// <summary>
-        /// Method to get vkInstance extensions
-        /// </summary>
-        /// <returns>Extensions</returns>
+        /**
+         * @brief Define instance's extensions to enable
+         *
+         * @return std::vector<char const*> Extensions
+         */
         virtual std::vector<char const*> instanceExtensions() const = 0;
 
-        /// <summary>
-        /// Method to get device extensions that must be enabled
-        /// </summary>
-        /// <returns>Extensions</returns>
+        /**
+         * @brief Define device's extensions to enable
+         *
+         * @return std::vector<char const*> Extensions
+         */
         virtual std::vector<char const*> deviceExtensions() const;
 
-        /// <summary>
-        /// Method to get device features that must be enabled
-        /// </summary>
-        /// <returns>Features</returns>
+        /**
+         * @brief Define device features to enable
+         *
+         * @return std::vector<vk::PhysicalDeviceFeatures> Features
+         */
         virtual std::vector<vk::PhysicalDeviceFeatures> deviceFeatures() const;
 
-        /// <summary>
-        /// Method to define necessary queues
-        /// </summary>
-        /// <returns>Flags</returns>
+        /**
+         * @brief Define queue requests
+         *
+         * @return std::vector<QueueRequest> Requests
+         */
         virtual std::vector<QueueRequest> requestQueues() const;
 
-        /// <summary>
-        /// Method to define validation layers severity
-        /// </summary>
-        /// <returns>Flags</returns>
+        /**
+         * @brief Define validation layers severity
+         *
+         * @return vk::DebugUtilsMessageSeverityFlagsEXT
+         */
         virtual vk::DebugUtilsMessageSeverityFlagsEXT validationLayersSeverity() const;
 
-        /// <summary>
-        /// Method to define validation layer callback
-        /// </summary>
-        /// <param name="severity">Severity</param>
-        /// <param name="type">Type</param>
-        /// <param name="callback_data">Callback's data</param>
-        /// <param name="user_data">User's data</param>
-        /// <returns>Abort</returns>
+        /**
+         * @brief Validation layers callback
+         *
+         * @param severity Severity
+         * @param type Message type
+         * @param callback_data Data
+         * @param user_data User's data
+         * @return Exit
+         *
+         */
         static VKAPI_ATTR VkBool32 VKAPI_CALL DebugCallBack(VkDebugUtilsMessageSeverityFlagBitsEXT severity, VkDebugUtilsMessageTypeFlagsEXT type,
                                                             const VkDebugUtilsMessengerCallbackDataEXT* callback_data, void* user_data);
 
-        /// <summary>
-        /// Method to select a device
-        /// </summary>
-        /// <param name="devices">devices</param>
-        /// <returns>vk::PhysicalDevice</returns>
+        /**
+         * @brief Select a physical device (GPU)
+         *
+         * @param devices Devices
+         * @return vk::PhysicalDevice Selected device
+         */
         virtual vk::PhysicalDevice selectVkPhysicalDevice(std::vector<vk::PhysicalDevice> const& devices) const;
     };
 }  // namespace ao::vulkan

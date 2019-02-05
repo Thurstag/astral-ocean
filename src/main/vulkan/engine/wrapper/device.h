@@ -19,9 +19,10 @@
 #include "command_pool.h"
 
 namespace ao::vulkan {
-    /// <summary>
-    /// Wrapper for vulkan devices
-    /// </summary>
+    /**
+     * @brief vk::Device wrapper
+     *
+     */
     struct Device {
        public:
         std::unique_ptr<CommandPool> transfer_command_pool;
@@ -31,95 +32,105 @@ namespace ao::vulkan {
         vk::PhysicalDevice physical;
         vk::Device logical;
 
-        /// <summary>
-        /// Constructor
-        /// </summary>
+        /**
+         * @brief Construct a new Device object
+         *
+         */
         Device() = default;
 
-        /// <summary>
-        /// Constructor
-        /// </summary>
-        /// <param name="device"></param>
+        /**
+         * @brief Construct a new Device object
+         *
+         * @param device Device
+         */
         explicit Device(vk::PhysicalDevice device);
 
-        /// <summary>
-        /// Destructor
-        /// </summary>
+        /**
+         * @brief Destroy the Device object
+         *
+         */
         virtual ~Device();
 
-        /// <summary>
-        ///	Method to init logical device
-        /// </summary>
-        /// <param name="device_extensions">Extensions</param>
-        /// <param name="device_features">Features</param>
-        /// <param name="requested_queues">Requested queues</param>
-        /// <param name="swapchain_support">Enable swapchain support</param>
+        /**
+         * @brief Initialize logical device
+         *
+         * @param device_extensions Device's extensions to enable
+         * @param device_features Device's features to enable
+         * @param requested_queues Requested queues
+         * @param swapchain_support Swapchain support
+         */
         void initLogicalDevice(std::vector<char const*> device_extensions, std::vector<vk::PhysicalDeviceFeatures> const& device_features,
                                std::vector<QueueRequest> requested_queues, bool swapchain_support = true);
 
-        /// <summary>
-        /// Method to get surface formats
-        /// </summary>
-        /// <param name="surface">Surface</param>
-        /// <returns>Surface formats</returns>
+        /**
+         * @brief Surface formats
+         *
+         * @param surface Surface
+         * @return std::vector<vk::SurfaceFormatKHR> Formats
+         */
         std::vector<vk::SurfaceFormatKHR> surfaceFormatKHRs(vk::SurfaceKHR surface);
 
-        /// <summary>
-        /// Method to get swap chain images
-        /// </summary>
-        /// <param name="device">Device</param>
-        /// <param name="swapChain">Swap chain</param>
-        /// <returns>Images</returns>
-        std::vector<vk::Image> swapChainImages(vk::SwapchainKHR swapChain);
+        /**
+         * @brief Swapchain's images
+         *
+         * @param swapchain Swapchain
+         * @return std::vector<vk::Image> Images
+         */
+        std::vector<vk::Image> swapChainImages(vk::SwapchainKHR swapchain);
 
-        /// <summary>
-        /// Method to create an image
-        /// </summary>
-        /// <param name="width">Width</param>
-        /// <param name="height">Height</param>
-        /// <param name="format">Format</param>
-        /// <param name="type">Type</param>
-        /// <param name="tilling">Tilling</param>
-        /// <param name="usage_flags">Usage flags</param>
-        /// <param name="memory_flags">Memory flags</param>
-        /// <returns>Image and it's memory</returns>
+        /**
+         * @brief Create an Image
+         *
+         * @param width Width
+         * @param height height
+         * @param format Format
+         * @param type Type
+         * @param tilling Tilling
+         * @param usage_flags Usage flags
+         * @param memory_flags Memory flags
+         * @return std::pair<vk::Image, vk::DeviceMemory> Image
+         */
         std::pair<vk::Image, vk::DeviceMemory> createImage(u32 width, u32 height, vk::Format format, vk::ImageType type, vk::ImageTiling tilling,
                                                            vk::ImageUsageFlags usage_flags, vk::MemoryPropertyFlags memory_flags);
 
-        /// <summary>
-        /// Method to create an image view
-        /// </summary>
-        /// <param name="image">Image</param>
-        /// <param name="format">Format</param>
-        /// <param name="view_type">View type</param>
-        /// <param name="aspect_flags">Aspect flags</param>
-        /// <returns>Image view</returns>
+        /**
+         * @brief Create an ImageView
+         *
+         * @param image Image
+         * @param format Format
+         * @param view_type View type
+         * @param aspect_flags Aspect flags
+         * @return vk::ImageView ImageView
+         */
         vk::ImageView createImageView(vk::Image image, vk::Format format, vk::ImageViewType view_type, vk::ImageAspectFlags aspect_flags);
 
-        /// <summary>
-        /// Method to process an image
-        /// </summary>
-        /// <param name="image">Image</param>
-        /// <param name="format">Format</param>
-        /// <param name="old_layout">Old layout</param>
-        /// <param name="new_layout">New layout</param>
+        /**
+         * @brief Process an image
+         *
+         * @param image Image
+         * @param format Format
+         * @param old_layout Old layout
+         * @param new_layout New layout
+         */
         void processImage(vk::Image image, vk::Format format, vk::ImageLayout old_layout, vk::ImageLayout new_layout);
 
-        /// <summary>
-        /// Method to copy a buffer into an image
-        /// </summary>
-        /// <param name="buffer">Buffer</param>
-        /// <param name="image">Image</param>
-        /// <param name="width">Width</param>
-        /// <param name="height">Height</param>
+        /**
+         * @brief Copy vk::Buffer into an vk::Image
+         *
+         * @param buffer Buffer
+         * @param image Image
+         * @param width Width
+         * @param height Height
+         */
         void copyBufferToImage(vk::Buffer buffer, vk::Image image, u32 width, u32 height);
 
-        /// <summary>
-        /// Method to get memory type
-        /// </summary>
-        /// <param name="type_bits">Type bits</param>
-        /// <param name="properties">Properties</param>
-        /// <returns>Index</returns>
+        /**
+         * @brief Memory type
+         *
+         * @param type_bits Type bits
+         * @param properties Properties
+         * @return u32 Index
+         */
         u32 memoryType(u32 type_bits, vk::MemoryPropertyFlags properties) const;
 
        protected:

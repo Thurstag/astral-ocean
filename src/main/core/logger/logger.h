@@ -11,61 +11,73 @@ namespace ao::core {
         constexpr char const* DefaultFormat = "[%TimeStamp%] [Thread-%ThreadID%] [%Severity%] %Message%";
     }
 
-    /// <summary>
-    /// Wrapper for Boost::log
-    /// </summary>
+    /**
+     * @brief Wrapper for Boost::log
+     *
+     */
     class Logger {
         friend std::function<void(Logger&)>;
 
        public:
         using Level = boost::log::trivial::severity_level;
 
-        /// <summary>
-        /// Constructor
-        /// </summary>
+        /**
+         * @brief Construct a new Logger object
+         *
+         */
         Logger() = default;
 
-        /// <summary>
-        /// Constructor
-        /// </summary>
-        /// <param name="_class">Class</param>
+        /**
+         * @brief Construct a new Logger object
+         *
+         * @param _class Class
+         */
         explicit Logger(std::type_info const& _class);
 
-        /// <summary>
-        /// Destructor
-        /// </summary>
+        /**
+         * @brief Destroy the Logger object
+         *
+         */
         virtual ~Logger() = default;
 
-        /// <summary>
-        /// Method to get a logger instance
-        /// </summary>
+        /**
+         * @brief Generate a logger instance
+         *
+         * @tparam T Class where logger is instantiated
+         * @return Logger Logger
+         */
         template<class T>
         inline static Logger GetInstance() {
             return Logger(typeid(T));
         };
 
-        /// <summary>
-        /// Operator <<
-        /// </summary>
-        /// <param name="level">Level</param>
-        /// <returns>LoggerInstance</returns>
+        /**
+         * @brief Operator <<
+         *
+         * @param level Level
+         * @return LoggerInstance LoggerInstance object
+         */
         LoggerInstance operator<<(Level const level) const;
 
-        /// <summary>
-        /// Method to init logger
-        /// </summary>
+        /**
+         * @brief Init logger
+         *
+         */
         static void Init();
 
-        /// <summary>
-        /// Method to know if logger is initiated
-        /// </summary>
-        /// <returns>Initiated</returns>
+        /**
+         * @brief Logger is initiated
+         *
+         * @return true Logger is initiated
+         * @return false Logger isn't initiated
+         */
         static bool Initiated();
 
-        /// <summary>
-        /// Method to set minimum level
-        /// </summary>
-        /// <param name="level">Level</param>
+        /**
+         * @brief Set the minimum level
+         *
+         * @param level
+         */
         static void SetMinLevel(Level const level);
 
        protected:

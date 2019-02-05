@@ -13,9 +13,10 @@
 #include "swapchain.h"
 
 namespace ao::vulkan {
-    /// <summary>
-    /// Wrapper for vulkan pipelines (TODO: Refactor me)
-    /// </summary>
+    /**
+     * @brief Wrapper for vulkan pipelines (TODO: Refactor me)
+     *
+     */
     struct Pipeline {
        public:
         vk::PipelineStageFlags submit_pipeline_stages;
@@ -24,20 +25,23 @@ namespace ao::vulkan {
 
         vk::PipelineCache cache;
 
-        /// <summary>
-        /// Constructor
-        /// </summary>
+        /**
+         * @brief Construct a new Pipeline object
+         *
+         */
         Pipeline() = default;
 
-        /// <summary>
-        /// Constructor
-        /// </summary>
-        /// <param name="device">Device</param>
+        /**
+         * @brief Construct a new Pipeline object
+         *
+         * @param device Device
+         */
         explicit Pipeline(std::weak_ptr<Device> device);
 
-        /// <summary>
-        /// Destructor
-        /// </summary>
+        /**
+         * @brief Destroy the Pipeline object
+         *
+         */
         virtual ~Pipeline();
 
        protected:

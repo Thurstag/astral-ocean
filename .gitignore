@@ -97,3 +97,9 @@ ipch/
 # Doxygen
 docs/xml/
 docs/html/
+
+# Jetbrains
+.idea/
+
+# VS Code
+.vscode/

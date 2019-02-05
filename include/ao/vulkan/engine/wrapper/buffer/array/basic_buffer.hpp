@@ -10,39 +10,43 @@
 #include "buffer.hpp"
 
 namespace ao::vulkan {
-    /// <summary>
-    /// BasicDynamicArrayBuffer class
-    /// </summary>
+    /**
+     * @brief Basic implementation of DynamicArrayBuffer
+     *
+     * @tparam T Buffer type
+     */
     template<class T>
     class BasicDynamicArrayBuffer : public DynamicArrayBuffer<T> {
        public:
-        /// <summary>
-        /// Constructor
-        /// </summary>
-        /// <param name="count">Count</param>
-        /// <param name="device">Device</param>
+        /**
+         * @brief Construct a new BasicDynamicArrayBuffer object
+         *
+         * @param count Count
+         * @param device Device
+         */
         BasicDynamicArrayBuffer(size_t count, std::weak_ptr<Device> device);
 
-        /// <summary>
-        /// Destructor
-        /// </summary>
+        /**
+         * @brief Destroy the BasicDynamicArrayBuffer object
+         *
+         */
         virtual ~BasicDynamicArrayBuffer();
 
-        /// <summary>
-        /// Method to free buffer
-        /// </summary>
+        /**
+         * @brief Free buffer
+         *
+         */
         void free();
 
-        /// <summary>
-        /// Method to init buffer
-        ///
-        /// If object already stores a buffer, it will free the old one
-        /// </summary>
-        /// <param name="usage_flags">Usage flags</param>
-        /// <param name="sharing_mode">Sharing mode</param>
-        /// <param name="memory_flags">Memory flags</param>
-        /// <param name="size">Fragment size</param>
-        /// <returns>This</returns>
+        /**
+         * @brief Initialize buffer
+         *
+         * @param usage_flags Usage flags
+         * @param sharing_mode Sharing mode
+         * @param memory_flags Memory flags
+         * @param size Size
+         * @return BasicArrayBuffer<T, N>* Buffer
+         */
         BasicDynamicArrayBuffer<T>* init(vk::BufferUsageFlags usage_flags, vk::SharingMode sharing_mode, vk::MemoryPropertyFlags memory_flags,
                                          vk::DeviceSize size);
 
@@ -205,35 +209,43 @@ namespace ao::vulkan {
         return this;
     }
 
+    /**
+     * @brief Basic implementation of ArrayBuffer
+     *
+     * @tparam T Buffer type
+     * @tparam N Array's size
+     */
     template<class T, size_t N>
     class BasicArrayBuffer : public ArrayBuffer<T, N> {
        public:
-        /// <summary>
-        /// Constructor
-        /// </summary>
-        /// <param name="device">Device</param>
+        /**
+         * @brief Construct a new BasicArrayBuffer object
+         *
+         * @param device Device
+         */
         BasicArrayBuffer(std::weak_ptr<Device> device);
 
-        /// <summary>
-        /// Destructor
-        /// </summary>
+        /**
+         * @brief Destroy the BasicArrayBuffer object
+         *
+         */
         virtual ~BasicArrayBuffer();
 
-        /// <summary>
-        /// Method to free buffer
-        /// </summary>
+        /**
+         * @brief Free buffer
+         *
+         */
         void free();
 
-        /// <summary>
-        /// Method to init buffer
-        ///
-        /// If object already stores a buffer, it will free the old one
-        /// </summary>
-        /// <param name="usage_flags">Usage flags</param>
-        /// <param name="sharing_mode">Sharing mode</param>
-        /// <param name="memory_flags">Memory flags</param>
-        /// <param name="size">Fragment size</param>
-        /// <returns>This</returns>
+        /**
+         * @brief Initialize buffer
+         *
+         * @param usage_flags Usage flags
+         * @param sharing_mode Sharing mode
+         * @param memory_flags Memory flags
+         * @param size Size
+         * @return BasicArrayBuffer<T, N>* Buffer
+         */
         BasicArrayBuffer<T, N>* init(vk::BufferUsageFlags usage_flags, vk::SharingMode sharing_mode, vk::MemoryPropertyFlags memory_flags,
                                      vk::DeviceSize size);
 

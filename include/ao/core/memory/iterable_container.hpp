@@ -9,32 +9,40 @@
 #include "container.hpp"
 
 namespace ao::core {
-    /// <summary>
-    /// Container with iterable features
-    /// </summary>
+    /**
+     * @brief Container with iterable features
+     *
+     * @tparam Key Key
+     * @tparam Value Value
+     * @tparam Iterator Iterator
+     */
     template<class Key, class Value, class Iterator>
     class IterableContainer : public Container<Key, Value> {
        public:
-        /// <summary>
-        /// Constructor
-        /// </summary>
+        /**
+         * @brief Construct a new IterableContainer object
+         *
+         */
         IterableContainer() = default;
 
-        /// <summary>
-        /// Destructor
-        /// </summary>
+        /**
+         * @brief Destroy the IterableContainer object
+         *
+         */
         virtual ~IterableContainer() = default;
 
-        /// <summary>
-        /// Method to get begin iterator
-        /// </summary>
-        /// <returns></returns>
+        /**
+         * @brief Begin iterator
+         *
+         * @return Iterator Iterator
+         */
         virtual Iterator begin() = 0;
 
-        /// <summary>
-        /// Method to get end iterator
-        /// </summary>
-        /// <returns></returns>
+        /**
+         * @brief End iterator
+         *
+         * @return Iterator Iterator
+         */
         virtual Iterator end() = 0;
     };
 }  // namespace ao::core

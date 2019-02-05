@@ -10,43 +10,49 @@
 #include <vulkan/vulkan.hpp>
 
 namespace ao::vulkan {
-    /// <summary>
-    /// Access mode to command pool
-    /// </summary>
+    /**
+     * @brief Access mode to command pool
+     *
+     */
     enum class CommandPoolAccessModeFlagBits { eSequential, eConcurrent };
 
-    /// <summary>
-    /// vk::CommanPool wrapper
-    /// </summary>
+    /**
+     * @brief vk::CommanPool wrapper
+     *
+     */
     class CommandPool {
        public:
-        /// <summary>
-        /// Constructor
-        /// </summary>
-        /// <param name="device">Device</param>
-        /// <param name="flags">Create flags</param>
-        /// <param name="queue_family_index">Queue family index</param>
-        /// <param name="access_mode">Access mode</param>
+        /**
+         * @brief Construct a new CommandPool object
+         *
+         * @param device Device
+         * @param flags Flags
+         * @param queue_family_index Queue family index
+         * @param access_mode Access mode
+         */
         CommandPool(vk::Device device, vk::CommandPoolCreateFlags flags = vk::CommandPoolCreateFlags(), u32 queue_family_index = 0,
                     CommandPoolAccessModeFlagBits access_mode = CommandPoolAccessModeFlagBits::eSequential);
 
-        /// <summary>
-        /// Destructor
-        /// </summary>
+        /**
+         * @brief Destroy the CommandPool object
+         *
+         */
         ~CommandPool();
 
-        /// <summary>
-        /// Method to allocate command buffers
-        /// </summary>
-        /// <param name="level">Level</param>
-        /// <param name="count">Count</param>
-        /// <returns>Command buffers</returns>
+        /**
+         * @brief Allocate {count} command buffers
+         *
+         * @param level Level
+         * @param count Count
+         * @return std::vector<vk::CommandBuffer> Command buffers
+         */
         std::vector<vk::CommandBuffer> allocateCommandBuffers(vk::CommandBufferLevel level, u32 count);
 
-        /// <summary>
-        /// Method to free a command buffer
-        /// </summary>
-        /// <param name="buffer">Buffer</param>
+        /**
+         * @brief Free a command buffer
+         *
+         * @param buffer Buffer
+         */
         void freeCommandBuffers(vk::CommandBuffer buffer);
 
        protected:

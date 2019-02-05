@@ -9,43 +9,50 @@
 #include "../buffer.h"
 
 namespace ao::vulkan {
-    /// <summary>
-    /// DynamicArrayBuffer class
-    /// </summary>
+    /**
+     * @brief Array of buffers
+     *
+     * @tparam T Buffer type
+     */
     template<class T>
     class DynamicArrayBuffer : public Buffer {
        public:
-        /// <summary>
-        /// Constructor
-        /// </summary>
-        /// <param name="count">Count</param>
-        /// <param name="device">Device</param>
+        /**
+         * @brief Construct a new DynamicArrayBuffer object
+         *
+         * @param count Count
+         * @param device Device
+         */
         explicit DynamicArrayBuffer(size_t count, std::weak_ptr<Device> device);
 
-        /// <summary>
-        /// Destructor
-        /// </summary>
+        /**
+         * @brief Destroy the DynamicArrayBuffer object
+         *
+         */
         virtual ~DynamicArrayBuffer() = default;
 
-        /// <summary>
-        /// Method to update entire buffer
-        /// </summary>
-        /// <param name="data">Data</param>
-        /// <returns>This</returns>
+        /**
+         * @brief Update buffers
+         *
+         * @param data Data
+         * @return DynamicArrayBuffer<T>* Buffer
+         */
         virtual DynamicArrayBuffer<T>* update(std::vector<T> const& data) = 0;
 
-        /// <summary>
-        /// Method to update a fragment of buffer
-        /// </summary>
-        /// <param name="index">Index</param>
-        /// <param name="data">Data</param>
-        /// <returns>This</returns>
+        /**
+         * @brief Update a fragment of the array
+         *
+         * @param index Fragment's index
+         * @param data Data
+         * @return DynamicArrayBuffer<T>* Buffer
+         */
         virtual DynamicArrayBuffer<T>* updateFragment(std::size_t index, T const* data) = 0;
 
-        /// <summary>
-        /// Method to get capacity
-        /// </summary>
-        /// <returns>Capacity</returns>
+        /**
+         * @brief Capacity
+         *
+         * @return size_t Capacity
+         */
         size_t capacity() const;
 
         virtual bool hasBuffer() const override;
@@ -68,33 +75,43 @@ namespace ao::vulkan {
         return this->has_buffer;
     }
 
+    /**
+     * @brief Array of buffers
+     *
+     * @tparam T Buffer type
+     * @tparam N Array's size
+     */
     template<class T, size_t N>
     class ArrayBuffer : public Buffer {
        public:
-        /// <summary>
-        /// Constructor
-        /// </summary>
-        /// <param name="device">Device</param>
+        /**
+         * @brief Construct a new ArrayBuffer object
+         *
+         * @param device Device
+         */
         ArrayBuffer(std::weak_ptr<Device> device);
 
-        /// <summary>
-        /// Destructor
-        /// </summary>
+        /**
+         * @brief Destroy the ArrayBuffer object
+         *
+         */
         virtual ~ArrayBuffer() = default;
 
-        /// <summary>
-        /// Method to update entire buffer
-        /// </summary>
-        /// <param name="data">Data</param>
-        /// <returns>This</returns>
+        /**
+         * @brief Update buffers
+         *
+         * @param data Data
+         * @return ArrayBuffer<T, N>* Buffer
+         */
         virtual ArrayBuffer<T, N>* update(std::array<T, N> const& data) = 0;
 
-        /// <summary>
-        /// Method to update a fragment of buffer
-        /// </summary>
-        /// <param name="index">Index</param>
-        /// <param name="data">Data</param>
-        /// <returns>This</returns>
+        /**
+         * @brief Update a fragment of the array
+         *
+         * @param index Fragment's index
+         * @param data Data
+         * @return DynamicArrayBuffer<T>* Buffer
+         */
         virtual ArrayBuffer<T, N>* updateFragment(std::size_t index, T const* data) = 0;
 
         virtual bool hasBuffer() const override;

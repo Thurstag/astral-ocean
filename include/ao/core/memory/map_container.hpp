@@ -9,25 +9,30 @@
 #include "iterable_container.hpp"
 
 namespace ao::core {
-    /// <summary>
-    /// MapContainer class
-    /// </summary>
+    /**
+     * @brief Container with a map implementation
+     *
+     * @tparam Key Key
+     * @tparam Value Value
+     */
     template<class Key, class Value>
     class MapContainer : public IterableContainer<Key, Value, typename std::map<Key, Value>::iterator> {
        public:
-        /// <summary>
-        /// Constructor
-        /// </summary>
+        /**
+         * @brief Construct a new MapContainer object
+         *
+         */
         MapContainer() = default;
 
-        /// <summary>
-        /// Destructor
-        /// </summary>
+        /**
+         * @brief Destroy the MapContainer object
+         *
+         */
         virtual ~MapContainer() = default;
 
-        virtual Value& operator[](Key const& index) override;
-        virtual bool remove(Key const& index) override;
-        virtual bool exists(Key const& index) const override;
+        virtual Value& operator[](Key const& key) override;
+        virtual bool remove(Key const& key) override;
+        virtual bool exists(Key const& key) const override;
         virtual void clear() override;
         virtual size_t size() const override;
         typename std::map<Key, Value>::iterator begin() override;
@@ -38,22 +43,22 @@ namespace ao::core {
     };
 
     template<class Key, class Value>
-    inline Value& MapContainer<Key, Value>::operator[](Key const& index) {
-        return this->map[index];
+    inline Value& MapContainer<Key, Value>::operator[](Key const& key) {
+        return this->map[key];
     }
 
     template<class Key, class Value>
-    inline bool MapContainer<Key, Value>::remove(Key const& index) {
-        if (!this->exists(index)) {
+    inline bool MapContainer<Key, Value>::remove(Key const& key) {
+        if (!this->exists(key)) {
             return false;
         }
-        this->map.erase(this->map.find(index));
+        this->map.erase(this->map.find(key));
         return true;
     }
 
     template<class Key, class Value>
-    inline bool MapContainer<Key, Value>::exists(Key const& index) const {
-        return this->map.find(index) != this->map.end();
+    inline bool MapContainer<Key, Value>::exists(Key const& key) const {
+        return this->map.find(key) != this->map.end();
     }
 
     template<class Key, class Value>

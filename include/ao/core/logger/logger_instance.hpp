@@ -13,40 +13,47 @@
 #include "../exception/exception.h"
 
 namespace ao::core {
-    /// <summary>
-    /// LoggerInstance class
-    /// </summary>
+    /**
+     * @brief Logger instance
+     *
+     */
     class LoggerInstance {
        public:
-        /// <summary>
-        /// Data class
-        /// </summary>
+        /**
+         * @brief Data structure
+         *
+         */
         struct Data {
             std::string class_;
 
-            /// <summary>
-            /// Constructor
-            /// </summary>
-            /// <param name="_class">Class</param>
+            /**
+             * @brief Construct a new Data object
+             *
+             * @param _class Class
+             */
             explicit Data(std::string const& _class) : class_(_class) {}
         };
 
-        /// <summary>
-        /// Constructor
-        /// </summary>
-        /// <param name="level">Level</param>
-        /// <param name="data">Data</param>
+        /**
+         * @brief Construct a new LoggerInstance object
+         *
+         * @param level Level
+         * @param data Data
+         */
         LoggerInstance(boost::log::trivial::severity_level const& level, Data const& data) : level(level), data(data) {}
 
-        /// <summary>
-        /// Destructor
-        /// </summary>
+        /**
+         * @brief Destroy the LoggerInstance object
+         *
+         */
         ~LoggerInstance() = default;
 
-        /// <summary>
-        /// Operator <<
-        /// </summary>
-        /// <param name="object">Object</param>
+        /**
+         * @brief Operator <<
+         *
+         * @tparam T Object type
+         * @param object Object
+         */
         template<class T>
         void operator<<(T const& object) const;
 

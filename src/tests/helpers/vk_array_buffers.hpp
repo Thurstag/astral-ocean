@@ -11,16 +11,18 @@ namespace ao::test {
     template<class T, size_t N>
     class TestBasicArrayBuffer : public vulkan::BasicArrayBuffer<T, N> {
        public:
-        /// <summary>
-        /// Constructor
-        /// </summary>
-        /// <param name="device">Device</param>
+        /**
+         * @brief Construct a new TestBasicArrayBuffer object
+         *
+         * @param device Device
+         */
         explicit TestBasicArrayBuffer(std::weak_ptr<vulkan::Device> device);
 
-        /// <summary>
-        /// Method to get mapper
-        /// </summary>
-        /// <returns>Mapper</returns>
+        /**
+         * @brief Expose mapper member
+         *
+         * @return void* Mapper
+         */
         void* getMapper();
     };
 
@@ -35,17 +37,19 @@ namespace ao::test {
     template<class T>
     class TestBasicDynamicArrayBuffer : public vulkan::BasicDynamicArrayBuffer<T> {
        public:
-        /// <summary>
-        /// Constructor
-        /// </summary>
-        /// <param name="count">Count</param>
-        /// <param name="device">Device</param>
+        /**
+         * @brief Construct a new TestBasicDynamicArrayBuffer object
+         *
+         * @param count Count
+         * @param device Device
+         */
         TestBasicDynamicArrayBuffer(size_t count, std::weak_ptr<vulkan::Device> device);
 
-        /// <summary>
-        /// Method to get mapper
-        /// </summary>
-        /// <returns>Mapper</returns>
+        /**
+         * @brief Expose mapper member
+         *
+         * @return void* Mapper
+         */
         void* getMapper();
     };
 
@@ -61,17 +65,19 @@ namespace ao::test {
     template<class T>
     class TestStagingDynamicArrayBuffer : public vulkan::StagingDynamicArrayBuffer<T> {
        public:
-        /// <summary>
-        /// Constructor
-        /// </summary>
-        /// <param name="count">Count</param>
-        /// <param name="device">Device</param>
+        /**
+         * @brief Construct a new TestStagingDynamicArrayBuffer object
+         *
+         * @param count
+         * @param device
+         */
         TestStagingDynamicArrayBuffer(size_t count, std::weak_ptr<vulkan::Device> device);
 
-        /// <summary>
-        /// Method to get mapper
-        /// </summary>
-        /// <returns>Mapper</returns>
+        /**
+         * @brief Expose mapper member
+         *
+         * @return void* Mapper
+         */
         void* getMapper();
     };
 
@@ -92,16 +98,18 @@ namespace ao::test {
     template<class T, size_t N>
     class TestStagingArrayBuffer : public vulkan::StagingArrayBuffer<T, N> {
        public:
-        /// <summary>
-        /// Constructor
-        /// </summary>
-        /// <param name="device">Device</param>
+        /**
+         * @brief Construct a new TestStagingArrayBuffer object
+         *
+         * @param device Device
+         */
         explicit TestStagingArrayBuffer(std::weak_ptr<vulkan::Device> device);
 
-        /// <summary>
-        /// Method to get mapper
-        /// </summary>
-        /// <returns>Mapper</returns>
+        /**
+         * @brief Expose mapper member
+         *
+         * @return void* Mapper
+         */
         void* getMapper();
     };
 

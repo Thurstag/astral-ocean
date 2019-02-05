@@ -9,31 +9,37 @@
 #include "basic_buffer.hpp"
 
 namespace ao::vulkan {
+    /**
+     * @brief Staging TupleBuffer
+     *
+     * @tparam T
+     */
     template<class... T>
     class StagingTupleBuffer : public virtual TupleBuffer<T...>, public virtual StagingBuffer {
        public:
-        /// <summary>
-        /// Constructor
-        /// </summary>
-        /// <param name="device">Device</param>
-        /// <param name="usage_flags">Usage</param>
-        /// <param name="memory_barrier">Bind memory barrier on transfer</param>
+        /**
+         * @brief Construct a new StagingTupleBuffer object
+         *
+         * @param device Device
+         * @param usage_flags Usage flags
+         * @param memory_barrier Enable memory barrier
+         */
         StagingTupleBuffer(std::weak_ptr<Device> device, vk::CommandBufferUsageFlags usage_flags = vk::CommandBufferUsageFlagBits::eSimultaneousUse,
                            bool memory_barrier = false);
 
-        /// <summary>
-        /// Destructor
-        /// </summary>
+        /**
+         * @brief Destroy the StagingTupleBuffer object
+         *
+         */
         virtual ~StagingTupleBuffer() = default;
 
-        /// <summary>
-        /// Method to init buffer
-        ///
-        /// If object already stores a buffer, it will free the old one
-        /// </summary>
-        /// <param name="sizes">Fragment sizes</param>
-        /// <param name="usage_flags">Usage flags</param>
-        /// <returns>This</returns>
+        /**
+         * @brief Initialize buffer
+         *
+         * @param sizes Sizes
+         * @param usage_flags usage flags
+         * @return StagingTupleBuffer<T...>* Buffer
+         */
         StagingTupleBuffer<T...>* init(std::initializer_list<vk::DeviceSize> const& sizes,
                                        std::optional<vk::BufferUsageFlags> usage_flags = std::nullopt);
 

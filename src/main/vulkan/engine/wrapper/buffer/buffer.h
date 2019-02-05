@@ -12,62 +12,77 @@
 #include "../device.h"
 
 namespace ao::vulkan {
+    /**
+     * @brief vk::Buffer wrapper
+     *
+     */
     class Buffer {
        public:
-        /// <summary>
-        /// Constructor
-        /// </summary>
-        explicit Buffer(std::weak_ptr<Device> _device);
+        /**
+         * @brief Construct a new Buffer object
+         *
+         * @param device Device
+         */
+        explicit Buffer(std::weak_ptr<Device> device);
 
-        /// <summary>
-        /// Destructor
-        /// </summary>
+        /**
+         * @brief Destroy the Buffer object
+         *
+         */
         ~Buffer() = default;
 
-        /// <summary>
-        /// Method to know if object has a buffer
-        /// </summary>
-        /// <returns>True or False</returns>
+        /**
+         * @brief Has buffer
+         *
+         * @return true Buffer has a buffer
+         * @return false Buffer hasn't a buffer
+         */
         virtual bool hasBuffer() const = 0;
 
-        /// <summary>
-        /// Method to get buffer
-        /// </summary>
-        /// <returns>vk::Buffer</returns>
+        /**
+         * @brief Buffer
+         *
+         * @return vk::Buffer Buffer
+         */
         virtual vk::Buffer buffer() = 0;
 
-        /// <summary>
-        /// Method to get buffer's size
-        /// </summary>
-        /// <returns>Size</returns>
+        /**
+         * @brief Buffer's size
+         *
+         * @return vk::DeviceSize Size
+         */
         virtual vk::DeviceSize size() const = 0;
 
-        /// <summary>
-        /// Method to get offset of fragment at index
-        /// </summary>
-        /// <param name="index">Fragment index</param>
-        /// <returns>Offset</returns>
+        /**
+         * @brief Buffer's offset at index {index}
+         *
+         * @param index Index
+         * @return vk::DeviceSize Offset
+         */
         virtual vk::DeviceSize offset(size_t index) const = 0;
 
-        /// <summary>
-        /// Method to map buffer
-        /// </summary>
-        /// <returns></returns>
+        /**
+         * @brief Map buffer
+         *
+         * @return Buffer* Buffer
+         */
         virtual Buffer* map() = 0;
 
-        /// <summary>
-        /// Method to calculate ubo size with aligment
-        /// </summary>
-        /// <param name="size">UBO's size</param>
-        /// <returns>Aligment size</returns>
+        /**
+         * @brief Calculate UBO size with aligment
+         *
+         * @param size Size
+         * @return size_t Size with aligment
+         */
         size_t calculateUBOAligmentSize(size_t size) const;
 
-        /// <summary>
-        /// Method to calculate ubo size with aligment
-        /// </summary>
-        /// <param name="device">Device</param>
-        /// <param name="size">UBO's size</param>
-        /// <returns>Aligment size</returns>
+        /**
+         * @brief Calculate UBO size with aligment
+         *
+         * @param device Device
+         * @param size Size
+         * @return size_t Size with aligment
+         */
         static size_t CalculateUBOAligmentSize(vk::PhysicalDevice device, size_t size);
 
        protected:

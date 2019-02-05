@@ -15,12 +15,6 @@
 #include "../helpers/tests.h"
 
 namespace ao::test {
-    TEST(VulkanUtils, ToResult) {
-        ASSERT_EQ(vk::Result::eSuccess, vulkan::utilities::to_result(VkResult::VK_SUCCESS));
-
-        ASSERT_EXCEPTION<core::Exception>([]() { vulkan::utilities::to_result(VkResult(-20)); });
-    }
-
     TEST(VulkanUtils, VkCheck) {
         ASSERT_TRUE(vulkan::utilities::vkCheck(VkResult::VK_SUCCESS));
         ASSERT_FALSE(vulkan::utilities::vkCheck(VkResult::VK_ERROR_DEVICE_LOST));

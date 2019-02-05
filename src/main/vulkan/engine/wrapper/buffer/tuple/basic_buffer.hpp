@@ -13,47 +13,46 @@
 #include "buffer.hpp"
 
 namespace ao::vulkan {
-    /// <summary>
-    /// BasicTupleBuffer class
-    /// </summary>
+    /**
+     * @brief Basic implementation of TupleBuffer
+     *
+     * @tparam T Buffer types
+     */
     template<class... T>
     class BasicTupleBuffer : public TupleBuffer<T...> {
        public:
-        /// <summary>
-        /// Constructor
-        /// </summary>
-        /// <param name="device">Device</param>
+        /**
+         * @brief Construct a new BasicTupleBuffer object
+         *
+         * @param device Device
+         */
         explicit BasicTupleBuffer(std::weak_ptr<Device> device);
 
-        /// <summary>
-        /// Destructor
-        /// </summary>
+        /**
+         * @brief Destroy the BasicTupleBuffer object
+         *
+         */
         virtual ~BasicTupleBuffer();
 
-        /// <summary>
-        /// Method to free buffer
-        /// </summary>
+        /**
+         * @brief Free buffer
+         *
+         */
         void free();
 
-        /// <summary>
-        /// Method to map memory
-        /// </summary>
-        /// <returns>This</returns>
-        BasicTupleBuffer<T...>* map() override;
-
-        /// <summary>
-        /// Method to init buffer
-        ///
-        /// If object already stores a buffer, it will free the old one
-        /// </summary>
-        /// <param name="usage_flags">Usage flags</param>
-        /// <param name="sharing_mode">Sharing mode</param>
-        /// <param name="memory_flags">Memory flags</param>
-        /// <param name="sizes">Fragment sizes</param>
-        /// <returns>This</returns>
+        /**
+         * @brief Initialize buffer
+         *
+         * @param usage_flags Usage flags
+         * @param sharing_mode Sharing mode
+         * @param memory_flags Memory flags
+         * @param sizes Sizes
+         * @return BasicTupleBuffer<T...>* Buffer
+         */
         BasicTupleBuffer<T...>* init(vk::BufferUsageFlags usage_flags, vk::SharingMode sharing_mode, vk::MemoryPropertyFlags memory_flags,
                                      std::initializer_list<vk::DeviceSize> const& sizes);
 
+        BasicTupleBuffer<T...>* map() override;
         TupleBuffer<T...>* update(T const*... data) override;
         TupleBuffer<T...>* updateFragment(std::size_t index, void* const data) override;
         vk::Buffer buffer() override;

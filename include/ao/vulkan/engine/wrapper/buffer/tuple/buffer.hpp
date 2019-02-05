@@ -7,36 +7,42 @@
 #include "../buffer.h"
 
 namespace ao::vulkan {
-    /// <summary>
-    /// TupleBuffer class
-    /// </summary>
+    /**
+     * @brief Tuple buffer
+     *
+     * @tparam T Buffer types
+     */
     template<class... T>
     class TupleBuffer : public Buffer {
        public:
-        /// <summary>
-        /// Constructor
-        /// </summary>
-        /// <param name="device">Device</param>
+        /**
+         * @brief Construct a new TupleBuffer object
+         *
+         * @param device Device
+         */
         explicit TupleBuffer(std::weak_ptr<Device> device);
 
-        /// <summary>
-        /// Destructor
-        /// </summary>
+        /**
+         * @brief Destroy the TupleBuffer object
+         *
+         */
         virtual ~TupleBuffer() = default;
 
-        /// <summary>
-        /// Method to update entire buffer
-        /// </summary>
-        /// <param name="data">Data</param>
-        /// <returns>This</returns>
+        /**
+         * @brief Update buffer
+         *
+         * @param data Data
+         * @return TupleBuffer<T...>* Buffer
+         */
         virtual TupleBuffer<T...>* update(T const*... data) = 0;
 
-        /// <summary>
-        /// Method to update a fragment of buffer
-        /// </summary>
-        /// <param name="index">Index</param>
-        /// <param name="data">Data</param>
-        /// <returns>This</returns>
+        /**
+         * @brief Update a fragment of the buffer
+         *
+         * @param index Index
+         * @param data Data
+         * @return TupleBuffer<T...>* Buffer
+         */
         virtual TupleBuffer<T...>* updateFragment(std::size_t index, void* const data) = 0;
 
         virtual bool hasBuffer() const override;

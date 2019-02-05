@@ -27,34 +27,41 @@ namespace ao::vulkan {
         constexpr char const* StencilBuffer = "vulkan.stencil_buffer";
     };  // namespace settings
 
-    /// <summary>
-    /// EngineSettings class
-    /// </summary>
+    /**
+     * @brief Engine settings
+     *
+     */
     class EngineSettings {
        public:
-        /// <summary>
-        /// Constructor
-        /// </summary>
+        /**
+         * @brief Construct a new EngineSettings object
+         *
+         */
         EngineSettings() = default;
 
-        /// <summary>
-        /// Destructor
-        /// </summary>
+        /**
+         * @brief Destroy the EngineSettings object
+         *
+         */
         virtual ~EngineSettings();
 
-        /// <summary>
-        /// Method to know if existing value with specified key
-        /// </summary>
-        /// <param name="key">Key</param>
-        /// <returns>Exist</returns>
+        /**
+         * @brief Value exists
+         *
+         * @param key Key
+         * @return true Value exists
+         * @return false Value doesn't exist
+         */
         bool exists(std::string const& key) const;
 
-        /// <summary>
-        ///  Method to get value with a specified key
-        /// </summary>
-        /// <param name="key">Key</param>
-        /// <param name="_default">Default value returned</param>
-        /// <returns>Value</returns>
+        /**
+         * @brief Get value with a specified key
+         *
+         * @tparam T Value type
+         * @param key Key
+         * @param _default Default value
+         * @return T& Value
+         */
         template<class T>
         T& get(std::string const& key, std::optional<T> _default = std::nullopt) {
             constexpr bool is_string = std::is_base_of<std::string, T>::value;
@@ -98,18 +105,22 @@ namespace ao::vulkan {
         std::map<std::string, std::pair<std::pair<size_t, std::string>, void*>> values;
         std::map<std::string, std::string> str_values;
 
-        /// <summary>
-        /// Method to know if a string exists with specified key
-        /// </summary>
-        /// <param name="key">Key</param>
-        /// <returns>Exist</returns>
+        /**
+         * @brief Value exists in str_values
+         *
+         * @param key Key
+         * @return true Value exists
+         * @return false Value doesn't exist
+         */
         bool str_exists(std::string const& key) const;
 
-        /// <summary>
-        /// Method to know if a value exists with specified key
-        /// </summary>
-        /// <param name="key">Key</param>
-        /// <returns>Exist</returns>
+        /**
+         * @brief Value exists in values
+         *
+         * @param key Key
+         * @return true Value exists
+         * @return false Value doesn't exist
+         */
         bool value_exists(std::string const& key) const;
     };
 }  // namespace ao::vulkan

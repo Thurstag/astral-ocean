@@ -11,17 +11,23 @@
 #include "exception.h"
 
 namespace ao::core {
+    /**
+     * @brief Index out of range exception
+     *
+     */
     class IndexOutOfRangeException : public Exception {
        public:
-        /// <summary>
-        /// Constructor
-        /// </summary>
-        /// <param name="range">Range</param>
+        /**
+         * @brief Construct a new IndexOutOfRangeException object
+         *
+         * @param range Range
+         */
         explicit IndexOutOfRangeException(std::optional<std::pair<u64, u64>> const& range = std::nullopt);
 
-        /// <summary>
-        /// Destructor
-        /// </summary>
+        /**
+         * @brief Destroy the IndexOutOfRangeException object
+         *
+         */
         virtual ~IndexOutOfRangeException() = default;
     };
 }  // namespace ao::core

@@ -12,17 +12,19 @@ namespace ao::test {
     template<class... T>
     class TestBasicTupleBuffer : public vulkan::BasicTupleBuffer<T...> {
        public:
-        /// <summary>
-        /// Constructor
-        /// </summary>
-        /// <param name="device">Device</param>
+        /**
+         * @brief Construct a new TestBasicTupleBuffer object
+         *
+         * @param device
+         */
         explicit TestBasicTupleBuffer(std::weak_ptr<vulkan::Device> device);
 
-        /// <summary>
-        /// Method to get mapper
-        /// </summary>
-        /// <param name="index">Index</param>
-        /// <returns>Mapper</returns>
+        /**
+         * @brief Expose mapper member
+         *
+         * @param index Index
+         * @return void* Mapper
+         */
         void* mapper(size_t index);
     };
 
@@ -37,17 +39,19 @@ namespace ao::test {
     template<class... T>
     class TestStagingTupleBuffer : public vulkan::StagingTupleBuffer<T...> {
        public:
-        /// <summary>
-        /// Constructor
-        /// </summary>
-        /// <param name="device">Device</param>
+        /**
+         * @brief Construct a new TestStagingTupleBuffer object
+         *
+         * @param device
+         */
         explicit TestStagingTupleBuffer(std::weak_ptr<vulkan::Device> device);
 
-        /// <summary>
-        /// Method to get mapper
-        /// </summary>
-        /// <param name="index">Index</param>
-        /// <returns>Mapper</returns>
+        /**
+         * @brief Expose mapper member
+         *
+         * @param index Index
+         * @return void* Mapper
+         */
         void* mapper(size_t index);
     };
 

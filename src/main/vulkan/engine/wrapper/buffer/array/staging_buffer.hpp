@@ -9,36 +9,39 @@
 #include "basic_buffer.hpp"
 
 namespace ao::vulkan {
-    /// <summary>
-    /// StagingDynamicArrayBuffer class
-    /// </summary>
+    /**
+     * @brief Staging array of buffers
+     *
+     * @tparam T Buffer type
+     */
     template<class T>
     class StagingDynamicArrayBuffer : public virtual DynamicArrayBuffer<T>, public virtual StagingBuffer {
        public:
-        /// <summary>
-        /// Constructor
-        /// </summary>
-        /// <param name="count">Count</param>
-        /// <param name="device">Device</param>
-        /// <param name="usage_flags">Usage</param>
-        /// <param name="memory_barrier">Bind memory barrier on transfer</param>
+        /**
+         * @brief Construct a new StagingDynamicArrayBuffer object
+         *
+         * @param count Count
+         * @param device Device
+         * @param usage_flags usage flags
+         * @param memory_barrier Enable memory barrier
+         */
         StagingDynamicArrayBuffer(size_t count, std::weak_ptr<Device> device,
                                   vk::CommandBufferUsageFlags usage_flags = vk::CommandBufferUsageFlagBits::eSimultaneousUse,
                                   bool memory_barrier = false);
 
-        /// <summary>
-        /// Destructor
-        /// </summary>
+        /**
+         * @brief Destroy the StagingDynamicArrayBuffer object
+         *
+         */
         virtual ~StagingDynamicArrayBuffer() = default;
 
-        /// <summary>
-        /// Method to init buffer
-        ///
-        /// If object already stores a buffer, it will free the old one
-        /// </summary>
-        /// <param name="size">Fragment size</param>
-        /// <param name="usage_flags">Usage flags</param>
-        /// <returns>This</returns>
+        /**
+         * @brief Initialize buffer
+         *
+         * @param size Size
+         * @param usage_flags Usage flags
+         * @return StagingDynamicArrayBuffer<T>* Buffer
+         */
         StagingDynamicArrayBuffer<T>* init(vk::DeviceSize size, std::optional<vk::BufferUsageFlags> usage_flags = std::nullopt);
 
         DynamicArrayBuffer<T>* update(std::vector<T> const& data) override;
@@ -151,31 +154,38 @@ namespace ao::vulkan {
         return StagingBuffer::map();
     }
 
+    /**
+     * @brief Staging array of buffers
+     *
+     * @tparam T Buffer type
+     * @tparam N Array's size
+     */
     template<class T, size_t N>
     class StagingArrayBuffer : public virtual ArrayBuffer<T, N>, public StagingBuffer {
        public:
-        /// <summary>
-        /// Constructor
-        /// </summary>
-        /// <param name="device">Device</param>
-        /// <param name="usage_flags">Usage</param>
-        /// <param name="memory_barrier">Bind memory barrier on transfer</param>
+        /**
+         * @brief Construct a new StagingArrayBuffer object
+         *
+         * @param device Device
+         * @param usage_flags Usage flags
+         * @param memory_barrier Enable memory barrier
+         */
         StagingArrayBuffer(std::weak_ptr<Device> device, vk::CommandBufferUsageFlags usage_flags = vk::CommandBufferUsageFlagBits::eSimultaneousUse,
                            bool memory_barrier = false);
 
-        /// <summary>
-        /// Destructor
-        /// </summary>
+        /**
+         * @brief Destroy the StagingArrayBuffer object
+         *
+         */
         virtual ~StagingArrayBuffer() = default;
 
-        /// <summary>
-        /// Method to init buffer
-        ///
-        /// If object already stores a buffer, it will free the old one
-        /// </summary>
-        /// <param name="size">Fragment size</param>
-        /// <param name="usage_flags">Usage flags</param>
-        /// <returns>This</returns>
+        /**
+         * @brief Initialize buffer
+         *
+         * @param size Size
+         * @param usage_flags Usage flags
+         * @return StagingArrayBuffer<T, N>* Buffer
+         */
         StagingArrayBuffer<T, N>* init(vk::DeviceSize size, std::optional<vk::BufferUsageFlags> usage_flags = std::nullopt);
 
         ArrayBuffer<T, N>* update(std::array<T, N> const& data) override;

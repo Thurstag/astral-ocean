@@ -10,20 +10,25 @@
 #include "exception.h"
 
 namespace ao::core {
-    /// <summary>
-    /// Exception for weak_ptr expiration
-    /// </summary>
+    /**
+     * @brief Weak pointer expiration exception
+     *
+     * @tparam T weak_ptr template type
+     */
     template<class T>
     class ExpirationException : public Exception {
        public:
-        /// <summary>
-        /// Constructor
-        /// </summary>
+        /**
+         * @brief Construct a new Expiration Exception object
+         *
+         * @param pointer Pointer
+         */
         explicit ExpirationException(std::weak_ptr<T> const& pointer);
 
-        /// <summary>
-        /// Destructor
-        /// </summary>
+        /**
+         * @brief Destroy the Expiration Exception object
+         *
+         */
         virtual ~ExpirationException() = default;
     };
 

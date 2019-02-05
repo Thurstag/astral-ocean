@@ -5,52 +5,64 @@
 #pragma once
 
 namespace ao::core {
-    /// <summary>
-    /// Container class
-    /// </summary>
+    /**
+     * @brief Container
+     *
+     * @tparam Key Key type
+     * @tparam Value Value type
+     */
     template<class Key, class Value>
     class Container {
        public:
-        /// <summary>
-        /// Constructor
-        /// </summary>
+        /**
+         * @brief Construct a new Container object
+         *
+         */
         Container() = default;
 
-        /// <summary>
-        /// Destructor
-        /// </summary>
+        /**
+         * @brief Destroy the Container object
+         *
+         */
         virtual ~Container() = default;
 
-        /// <summary>
-        /// [] operator. Throws an execption if object doesn't exist
-        /// </summary>
-        /// <param name="index">Index</param>
-        /// <returns>U object</returns>
-        virtual Value& operator[](Key const& index) = 0;
+        /**
+         * @brief Operator[] (Throws an execption if object doesn't exist)
+         *
+         * @param key Key
+         * @return Value& Value
+         */
+        virtual Value& operator[](Key const& key) = 0;
 
-        /// <summary>
-        /// Method to remove an object
-        /// </summary>
-        /// <param name="index">Index</param>
-        /// <returns>Removed or not</returns>
-        virtual bool remove(Key const& index) = 0;
+        /**
+         * @brief Remove an object
+         *
+         * @param key Key
+         * @return true Object is removed
+         * @return false Object isn't removed
+         */
+        virtual bool remove(Key const& key) = 0;
 
-        /// <summary>
-        /// Method to know if an object exists
-        /// </summary>
-        /// <param name="index">Index</param>
-        /// <returns>True or False</returns>
-        virtual bool exists(Key const& index) const = 0;
+        /**
+         * @brief Object exists
+         *
+         * @param key Key
+         * @return true Object exists
+         * @return false Object doesn't exist
+         */
+        virtual bool exists(Key const& key) const = 0;
 
-        /// <summary>
-        /// Method to clear container
-        /// </summary>
+        /**
+         * @brief Clear container
+         *
+         */
         virtual void clear() = 0;
 
-        /// <summary>
-        /// Method to get container's size
-        /// </summary>
-        /// <returns>Size</returns>
+        /**
+         * @brief Container's size
+         *
+         * @return size_t Size
+         */
         virtual size_t size() const = 0;
     };
 }  // namespace ao::core

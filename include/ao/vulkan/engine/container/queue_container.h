@@ -10,38 +10,47 @@
 
 namespace ao::vulkan {
     namespace structs {
+        /**
+         * @brief Queue structure
+         *
+         */
         struct Queue {
            public:
             u32 family_index;
             vk::Queue queue;
 
-            /// <summary>
-            /// Constructor
-            /// </summary>
+            /**
+             * @brief Construct a new Queue object
+             *
+             */
             Queue() : Queue(nullptr, 0) {}
 
-            /// <summary>
-            /// Constructor
-            /// </summary>
-            /// <param name="queue">Queue</param>
-            /// <param name="family_index">Family index</param>
-            Queue(vk::Queue queue, u32 family_index) : queue(queue), family_index(family_index) {}
+            /**
+             * @brief Construct a new Queue object
+             *
+             * @param queue Vulkan queue
+             * @param family_index Family index
+             */
+            explicit Queue(vk::Queue queue, u32 family_index) : queue(queue), family_index(family_index) {}
         };
     };  // namespace structs
 
-    /// <summary>
-    /// Queue container
-    /// </summary>
+    /**
+     * @brief Queue container
+     *
+     */
     class QueueContainer : public core::MapContainer<std::string, structs::Queue> {
        public:
-        /// <summary>
-        /// Constructor
-        /// </summary>
+        /**
+         * @brief Construct a new QueueContainer object
+         *
+         */
         QueueContainer() = default;
 
-        /// <summary>
-        /// Destructor
-        /// </summary>
+        /**
+         * @brief Destroy the QueueContainer object
+         *
+         */
         virtual ~QueueContainer() = default;
     };
 }  // namespace ao::vulkan

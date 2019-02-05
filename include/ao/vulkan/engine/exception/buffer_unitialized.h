@@ -7,16 +7,22 @@
 #include <ao/core/exception/exception.h>
 
 namespace ao::vulkan {
+    /**
+     * @brief Vulkan buffer uninitialized exception
+     *
+     */
     class BufferUninitialized : public core::Exception {
        public:
-        /// <summary>
-        /// Constructor
-        /// </summary>
+        /**
+         * @brief Construct a new BufferUninitialized object
+         *
+         */
         BufferUninitialized() : core::Exception("Buffer hasn't been initialized"){};
 
-        /// <summary>
-        /// Destructor
-        /// </summary>
+        /**
+         * @brief Destroy the BufferUninitialized object
+         *
+         */
         virtual ~BufferUninitialized() = default;
     };
 }  // namespace ao::vulkan

@@ -13,43 +13,53 @@
 
 namespace ao::vulkan {
     namespace structs {
+        /**
+         * @brief Semaphores container
+         *
+         */
         struct Semaphores {
             std::vector<vk::Semaphore> signals;
             std::vector<vk::Semaphore> waits;
 
-            /// <summary>
-            /// Constructor
-            /// </summary>
+            /**
+             * @brief Construct a new Semaphores object
+             *
+             */
             Semaphores() = default;
 
-            /// <summary>
-            /// Constructor
-            /// </summary>
-            /// <param name="waits">Waiting semaphores</param>
-            /// <param name="signals">Signal semaphores</param>
+            /**
+             * @brief Construct a new Semaphores object
+             *
+             * @param waits Waiting semaphores
+             * @param signals Signal semaphores
+             */
             explicit Semaphores(std::vector<vk::Semaphore> waits, std::vector<vk::Semaphore> signals) : waits(waits), signals(signals) {}
         };
     }  // namespace structs
 
-    /// <summary>
-    /// SemaphoreContainer class
-    /// </summary>
+    /**
+     * @brief Semaphore container
+     *
+     */
     class SemaphoreContainer : public core::MapContainer<std::string, structs::Semaphores> {
        public:
-        /// <summary>
-        /// Constructor
-        /// </summary>
+        /**
+         * @brief Construct a new SemaphoreContainer object
+         *
+         */
         SemaphoreContainer() = default;
 
-        /// <summary>
-        /// Constructor
-        /// </summary>
-        /// <param name="device">Device</param>
+        /**
+         * @brief Construct a new SemaphoreContainer object
+         *
+         * @param device Device
+         */
         explicit SemaphoreContainer(std::weak_ptr<Device> device) : device(device) {}
 
-        /// <summary>
-        /// Destructor
-        /// </summary>
+        /**
+         * @brief Destroy the SemaphoreContainer object
+         *
+         */
         virtual ~SemaphoreContainer();
 
         virtual void clear() override;

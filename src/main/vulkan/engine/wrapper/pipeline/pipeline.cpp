@@ -10,7 +10,10 @@ ao::vulkan::Pipeline::Pipeline(std::weak_ptr<Device> device, std::shared_ptr<Pip
     : device(device), layout_(layout), pipeline(pipeline) {}
 
 ao::vulkan::Pipeline::~Pipeline() {
-    ao::core::shared(this->device)->logical.destroyPipeline(this->pipeline);
+    if (this->pipeline) {
+        ao::core::shared(this->device)->logical.destroyPipeline(this->pipeline);
+    }
+
     this->layout_.reset();
 }
 
@@ -20,4 +23,8 @@ std::vector<ao::vulkan::DescriptorPool>& ao::vulkan::Pipeline::pools() {
 
 std::shared_ptr<ao::vulkan::PipelineLayout> ao::vulkan::Pipeline::layout() {
     return this->layout_;
+}
+
+vk::Pipeline ao::vulkan::Pipeline::value() {
+    return this->pipeline;
 }

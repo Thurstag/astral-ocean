@@ -7,11 +7,11 @@
 #include <ao/core/utilities/pointers.h>
 
 ao::vulkan::PipelineLayout::PipelineLayout(std::weak_ptr<Device> device, std::vector<vk::DescriptorSetLayout> descriptor_layouts,
-                                           std::vector<vk::PushConstantRange> pushconstants)
-    : descriptor_layouts(descriptor_layouts), pushconstants(pushconstants) {
+                                           std::vector<vk::PushConstantRange> push_constants)
+    : descriptor_layouts(descriptor_layouts), push_constants(push_constants) {
     this->layout = ao::core::shared(device)->logical.createPipelineLayout(
         vk::PipelineLayoutCreateInfo(vk::PipelineLayoutCreateFlags(), static_cast<u32>(descriptor_layouts.size()), descriptor_layouts.data(),
-                                     static_cast<u32>(pushconstants.size()), pushconstants.data()));
+                                     static_cast<u32>(push_constants.size()), push_constants.data()));
 }
 
 ao::vulkan::PipelineLayout::~PipelineLayout() {
@@ -22,7 +22,9 @@ ao::vulkan::PipelineLayout::~PipelineLayout() {
         _device->logical.destroyDescriptorSetLayout(layout);
     }
 
-    _device->logical.destroyPipelineLayout(this->layout);
+    if (this->layout) {
+        _device->logical.destroyPipelineLayout(this->layout);
+    }
 }
 
 vk::PipelineLayout ao::vulkan::PipelineLayout::value() {
@@ -31,4 +33,8 @@ vk::PipelineLayout ao::vulkan::PipelineLayout::value() {
 
 std::vector<vk::DescriptorSetLayout> const& ao::vulkan::PipelineLayout::descriptorLayouts() {
     return this->descriptor_layouts;
+}
+
+std::vector<vk::PushConstantRange> const& ao::vulkan::PipelineLayout::pushConstants() {
+    return this->push_constants;
 }

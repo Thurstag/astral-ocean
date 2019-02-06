@@ -20,10 +20,10 @@ namespace ao::vulkan {
          *
          * @param device Device
          * @param descriptor_layouts Descriptor layouts
-         * @param pushconstants PushConstants
+         * @param push_constants Push Constants
          */
         PipelineLayout(std::weak_ptr<Device> device, std::vector<vk::DescriptorSetLayout> descriptor_layouts = {},
-                       std::vector<vk::PushConstantRange> pushconstants = {});
+                       std::vector<vk::PushConstantRange> push_constants = {});
 
         /**
          * @brief Destroy the PipelineLayout object
@@ -45,11 +45,18 @@ namespace ao::vulkan {
          */
         std::vector<vk::DescriptorSetLayout> const& descriptorLayouts();
 
+        /**
+         * @brief Get push constants
+         *
+         * @return std::vector<vk::PushConstantRange> const& Push constants
+         */
+        std::vector<vk::PushConstantRange> const& pushConstants();
+
        protected:
         std::weak_ptr<Device> device;
 
         std::vector<vk::DescriptorSetLayout> descriptor_layouts;
-        std::vector<vk::PushConstantRange> pushconstants;
+        std::vector<vk::PushConstantRange> push_constants;
         vk::PipelineLayout layout;
     };
 

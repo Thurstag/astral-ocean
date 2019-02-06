@@ -12,23 +12,27 @@ ao::vulkan::DescriptorPool::~DescriptorPool() {
     auto _device = ao::core::shared(this->device);
 
     // Free descriptor sets
-    _device->logical.freeDescriptorSets(this->pool, this->descriptor_sets);
+    if (!this->descriptor_sets.empty()) {
+        _device->logical.freeDescriptorSets(this->pool, this->descriptor_sets);
+    }
 
     // Destroy pool
-    _device->logical.destroyDescriptorPool(this->pool);
+    if (this->pool) {
+        _device->logical.destroyDescriptorPool(this->pool);
+    }
 }
 
 std::vector<vk::DescriptorSet> ao::vulkan::DescriptorPool::allocateDescriptorSets(u32 count,
                                                                                   std::vector<vk::DescriptorSetLayout> descriptor_layouts) {
-    auto sets =
+    auto descriptors =
         ao::core::shared(this->device)->logical.allocateDescriptorSets(vk::DescriptorSetAllocateInfo(this->pool, count, descriptor_layouts.data()));
 
     // Add descriptor sets
-    for (auto& set : sets) {
-        this->descriptor_sets.push_back(set);
+    for (auto& descriptor : descriptors) {
+        this->descriptor_sets.push_back(descriptor);
     }
 
-    return sets;
+    return descriptors;
 }
 
 std::vector<vk::DescriptorSet> const& ao::vulkan::DescriptorPool::descriptorSets() {

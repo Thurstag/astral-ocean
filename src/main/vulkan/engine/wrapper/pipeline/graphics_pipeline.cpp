@@ -31,7 +31,9 @@ ao::vulkan::GraphicsPipeline::GraphicsPipeline(
 }
 
 ao::vulkan::GraphicsPipeline::~GraphicsPipeline() {
-    ao::core::shared(this->device)->logical.destroyPipelineCache(this->cache);
+    if (this->cache) {
+        ao::core::shared(this->device)->logical.destroyPipelineCache(this->cache);
+    }
 
     // TODO: Create callback to save cache
 }

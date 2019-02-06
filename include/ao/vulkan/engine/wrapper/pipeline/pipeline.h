@@ -49,6 +49,13 @@ namespace ao::vulkan {
          */
         std::shared_ptr<PipelineLayout> layout();
 
+        /**
+         * @brief Get pipeline
+         *
+         * @return vk::Pipeline Pipeline
+         */
+        vk::Pipeline value();
+
        protected:
         std::weak_ptr<Device> device;
 

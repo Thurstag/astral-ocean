@@ -13,7 +13,19 @@ namespace ao::vulkan {
      */
     class DescriptorPool {
        public:
-        DescriptorPool(std::weak_ptr<Device> device, vk::DescriptorPool pool);
+        /**
+         * @brief Construct a new DescriptorPool object
+         *
+         */
+        DescriptorPool() = default;
+
+        /**
+         * @brief Construct a new DescriptorPool object
+         *
+         * @param device Device
+         * @param pool Pool
+         */
+        DescriptorPool(std::weak_ptr<Device> device, std::shared_ptr<vk::DescriptorPool> pool);
 
         /**
          * @brief Destroy the DescriptorPool object
@@ -41,7 +53,7 @@ namespace ao::vulkan {
         std::weak_ptr<Device> device;
 
         std::vector<vk::DescriptorSet> descriptor_sets;
-        vk::DescriptorPool pool;
+        std::shared_ptr<vk::DescriptorPool> pool;
     };
 
 }  // namespace ao::vulkan

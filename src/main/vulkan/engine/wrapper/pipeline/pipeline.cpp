@@ -10,11 +10,13 @@ ao::vulkan::Pipeline::Pipeline(std::weak_ptr<Device> device, std::shared_ptr<Pip
     : device(device), layout_(layout), pipeline(pipeline) {}
 
 ao::vulkan::Pipeline::~Pipeline() {
+    this->layout_.reset();
+
     if (this->pipeline) {
         ao::core::shared(this->device)->logical.destroyPipeline(this->pipeline);
     }
 
-    this->layout_.reset();
+    this->pools_.clear();
 }
 
 std::vector<ao::vulkan::DescriptorPool>& ao::vulkan::Pipeline::pools() {

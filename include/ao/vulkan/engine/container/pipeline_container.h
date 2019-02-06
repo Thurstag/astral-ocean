@@ -13,7 +13,7 @@ namespace ao::vulkan {
      * @brief Pipelines container
      *
      */
-    class PipelineContainer : public core::MapContainer<std::string, Pipeline> {
+    class PipelineContainer : public core::MapContainer<std::string, Pipeline*> {
        public:
         /**
          * @brief Construct a new PipelineContainer object
@@ -25,7 +25,9 @@ namespace ao::vulkan {
          * @brief Destroy the PipelineContainer object
          *
          */
-        virtual ~PipelineContainer() = default;
+        virtual ~PipelineContainer();
+
+        virtual void clear() override;
     };
 
 }  // namespace ao::vulkan

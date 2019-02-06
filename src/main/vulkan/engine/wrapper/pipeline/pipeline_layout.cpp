@@ -8,7 +8,7 @@
 
 ao::vulkan::PipelineLayout::PipelineLayout(std::weak_ptr<Device> device, std::vector<vk::DescriptorSetLayout> descriptor_layouts,
                                            std::vector<vk::PushConstantRange> push_constants)
-    : descriptor_layouts(descriptor_layouts), push_constants(push_constants) {
+    : device(device), descriptor_layouts(descriptor_layouts), push_constants(push_constants) {
     this->layout = ao::core::shared(device)->logical.createPipelineLayout(
         vk::PipelineLayoutCreateInfo(vk::PipelineLayoutCreateFlags(), static_cast<u32>(descriptor_layouts.size()), descriptor_layouts.data(),
                                      static_cast<u32>(push_constants.size()), push_constants.data()));

@@ -6,26 +6,19 @@
 
 #include <ao/core/utilities/pointers.h>
 
-ao::vulkan::DescriptorPool::DescriptorPool(std::weak_ptr<Device> device, vk::DescriptorPool pool) : device(device), pool(pool) {}
+ao::vulkan::DescriptorPool::DescriptorPool(std::weak_ptr<Device> device, std::shared_ptr<vk::DescriptorPool> pool) : device(device), pool(pool) {}
 
 ao::vulkan::DescriptorPool::~DescriptorPool() {
-    auto _device = ao::core::shared(this->device);
-
     // Free descriptor sets
     if (!this->descriptor_sets.empty()) {
-        _device->logical.freeDescriptorSets(this->pool, this->descriptor_sets);
-    }
-
-    // Destroy pool
-    if (this->pool) {
-        _device->logical.destroyDescriptorPool(this->pool);
+        ao::core::shared(this->device)->logical.freeDescriptorSets(*this->pool, this->descriptor_sets);
     }
 }
 
 std::vector<vk::DescriptorSet> ao::vulkan::DescriptorPool::allocateDescriptorSets(u32 count,
                                                                                   std::vector<vk::DescriptorSetLayout> descriptor_layouts) {
     auto descriptors =
-        ao::core::shared(this->device)->logical.allocateDescriptorSets(vk::DescriptorSetAllocateInfo(this->pool, count, descriptor_layouts.data()));
+        ao::core::shared(this->device)->logical.allocateDescriptorSets(vk::DescriptorSetAllocateInfo(*this->pool, count, descriptor_layouts.data()));
 
     // Add descriptor sets
     for (auto& descriptor : descriptors) {

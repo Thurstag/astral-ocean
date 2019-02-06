@@ -14,10 +14,10 @@
 #include <vulkan/vulkan.hpp>
 
 #include "../utilities/vulkan.h"
+#include "container/pipeline_container.h"
 #include "container/semaphore_container.h"
 #include "settings.h"
 #include "wrapper/device.h"
-#include "wrapper/pipeline.h"
 #include "wrapper/swapchain.h"
 
 namespace ao::vulkan {
@@ -60,17 +60,12 @@ namespace ao::vulkan {
         std::shared_ptr<EngineSettings> settings_;
         std::atomic_bool enforce_resize;
 
-        // TODO: Refactor
-        std::vector<vk::DescriptorSetLayout> descriptorSetLayouts;
-        std::vector<vk::DescriptorPool> descriptorPools;
-        std::vector<vk::DescriptorSet> descriptorSets;
-        std::shared_ptr<Pipeline> pipeline;
-
         vk::DebugUtilsMessengerEXT debug_callBack;
         std::shared_ptr<vk::Instance> instance;
         std::shared_ptr<Swapchain> swapchain;
         std::shared_ptr<Device> device;
         SemaphoreContainer semaphores;
+        PipelineContainer pipelines;
         vk::RenderPass render_pass;
 
         /**
@@ -111,22 +106,16 @@ namespace ao::vulkan {
         virtual void recreateSwapChain();
 
         /**
-         * @brief Create pipeline objects
-         *
-         */
-        virtual void createPipelines();
-
-        /**
          * @brief Create semaphores
          *
          */
         virtual void createSemaphores();
 
-        virtual void createDescriptorSetLayouts() = 0;
-        virtual void createDescriptorPools() = 0;
-        virtual void createDescriptorSets() = 0;
-        virtual void createPipelineLayouts() = 0;
-        virtual void setUpPipelines() = 0;
+        /**
+         * @brief Create pipelines
+         *
+         */
+        virtual void createPipelines() = 0;
 
         /**
          * @brief Create vulkan buffers (UBO, vertex buffer...)

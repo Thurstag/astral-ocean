@@ -61,15 +61,7 @@ void ao::vulkan::Engine::initVulkan() {
 void ao::vulkan::Engine::freeVulkan() {
     this->swapchain.reset();
 
-    this->pipeline.reset();
-
-    for (auto& pool : this->descriptorPools) {
-        this->device->logical.destroyDescriptorPool(pool);
-    }
-
-    for (auto& layout : this->descriptorSetLayouts) {
-        this->device->logical.destroyDescriptorSetLayout(layout);
-    }
+    this->pipelines.clear();
 
     this->device->logical.destroyRenderPass(this->render_pass);
 
@@ -114,30 +106,6 @@ void ao::vulkan::Engine::recreateSwapChain() {
     this->device->logical.waitIdle();
 }
 
-void ao::vulkan::Engine::createPipelines() {
-    // Create pipeline
-    this->pipeline = std::make_shared<ao::vulkan::Pipeline>(this->device);
-
-    // Create pipeline cache
-    this->pipeline->cache = this->device->logical.createPipelineCache(vk::PipelineCacheCreateInfo());
-
-    // Create layouts
-    this->createPipelineLayouts();
-
-    // Set-up pipelines
-    this->setUpPipelines();
-
-    // Check pipelines
-    for (auto& pipeline : this->pipeline->pipelines) {
-        if (!pipeline) {
-            throw ao::core::Exception("Fail to create pipeline");
-        }
-    }
-    if (this->pipeline->pipelines.empty()) {
-        LOGGER << ao::core::Logger::Level::warning << "Pipeline vector is empty";
-    }
-}
-
 void ao::vulkan::Engine::createSemaphores() {
     this->semaphores = SemaphoreContainer(this->device);
 
@@ -174,18 +142,11 @@ void ao::vulkan::Engine::prepareVulkan() {
         throw ao::core::Exception("Render pass isn't initialized");
     }
 
-    // Create descriptor set layouts
-    this->createDescriptorSetLayouts();
-
     // Create pipelines
     this->createPipelines();
 
     // Set-up vulkan buffers
     this->createVulkanBuffers();
-
-    // Create descriptor pools & sets
-    this->createDescriptorPools();
-    this->createDescriptorSets();
 
     // Create framebuffers
     this->swapchain->createFramebuffers(this->render_pass);
@@ -208,6 +169,7 @@ void ao::vulkan::Engine::loop() {
 
 void ao::vulkan::Engine::render() {
     vk::Fence fence = this->swapchain->currentFence();
+    vk::PipelineStageFlags pipeline_stage = vk::PipelineStageFlagBits::eColorAttachmentOutput;
 
     // Wait fence
     this->device->logical.waitForFences(fence, VK_TRUE, (std::numeric_limits<u64>::max)());
@@ -224,7 +186,7 @@ void ao::vulkan::Engine::render() {
     // Create submit info
     vk::SubmitInfo submitInfo(static_cast<u32>(this->semaphores["graphicQueue"].waits.size()),
                               this->semaphores["graphicQueue"].waits.empty() ? nullptr : this->semaphores["graphicQueue"].waits.data(),
-                              &this->pipeline->submit_pipeline_stages, 1, &this->swapchain->currentCommand(),
+                              &pipeline_stage, 1, &this->swapchain->currentCommand(),
                               static_cast<u32>(this->semaphores["graphicQueue"].signals.size()),
                               this->semaphores["graphicQueue"].signals.empty() ? nullptr : this->semaphores["graphicQueue"].signals.data());
 

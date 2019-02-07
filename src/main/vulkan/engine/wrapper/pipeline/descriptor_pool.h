@@ -16,16 +16,10 @@ namespace ao::vulkan {
         /**
          * @brief Construct a new DescriptorPool object
          *
-         */
-        DescriptorPool() = default;
-
-        /**
-         * @brief Construct a new DescriptorPool object
-         *
          * @param device Device
-         * @param pool Pool
+         * @param create_info Create info
          */
-        DescriptorPool(std::weak_ptr<Device> device, std::shared_ptr<vk::DescriptorPool> pool);
+        DescriptorPool(std::weak_ptr<Device> device, vk::DescriptorPoolCreateInfo create_info);
 
         /**
          * @brief Destroy the DescriptorPool object

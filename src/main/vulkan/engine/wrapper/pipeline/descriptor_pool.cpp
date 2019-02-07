@@ -6,12 +6,20 @@
 
 #include <ao/core/utilities/pointers.h>
 
-ao::vulkan::DescriptorPool::DescriptorPool(std::weak_ptr<Device> device, std::shared_ptr<vk::DescriptorPool> pool) : device(device), pool(pool) {}
+ao::vulkan::DescriptorPool::DescriptorPool(std::weak_ptr<Device> device, vk::DescriptorPoolCreateInfo create_info) : device(device) {
+    this->pool = std::make_shared<vk::DescriptorPool>(ao::core::shared(this->device)->logical.createDescriptorPool(create_info));
+}
 
 ao::vulkan::DescriptorPool::~DescriptorPool() {
+    auto _device = ao::core::shared(this->device);
+
     // Free descriptor sets
     if (!this->descriptor_sets.empty()) {
-        ao::core::shared(this->device)->logical.freeDescriptorSets(*this->pool, this->descriptor_sets);
+        _device->logical.freeDescriptorSets(*this->pool, this->descriptor_sets);
+    }
+
+    if (this->pool.use_count() == 1) {
+        _device->logical.destroyDescriptorPool(*this->pool);
     }
 }
 

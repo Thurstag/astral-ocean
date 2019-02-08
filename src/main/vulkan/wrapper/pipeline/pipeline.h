@@ -26,8 +26,10 @@ namespace ao::vulkan {
          * @param device Device
          * @param layout Layout
          * @param pipeline Pipeline
+         * @param cache_create_info Pipeline cache create info
          */
-        Pipeline(std::weak_ptr<Device> device, std::shared_ptr<PipelineLayout> layout, vk::Pipeline pipeline);
+        Pipeline(std::weak_ptr<Device> device, std::shared_ptr<PipelineLayout> layout, vk::Pipeline pipeline,
+                 vk::PipelineCacheCreateInfo cache_create_info);
 
         /**
          * @brief Destroy the Pipeline object
@@ -56,11 +58,20 @@ namespace ao::vulkan {
          */
         vk::Pipeline value();
 
+        /**
+         * @brief Set a callback that will be executed before pipeline cache destruction
+         *
+         * @param callback Callback
+         */
+        void setBeforePipelineCacheDestruction(std::function<void(vk::PipelineCache)> callback);
+
        protected:
+        std::optional<std::function<void(vk::PipelineCache)>> before_cache_destruction;
         std::weak_ptr<Device> device;
 
         std::shared_ptr<PipelineLayout> layout_;
         std::vector<DescriptorPool> pools_;
+        vk::PipelineCache cache;
         vk::Pipeline pipeline;
     };
 

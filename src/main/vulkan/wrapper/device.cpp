@@ -4,7 +4,7 @@
 
 #include "device.h"
 
-#include "../../utilities/vulkan.h"
+#include "../utilities/vulkan.h"
 
 ao::vulkan::Device::Device(vk::PhysicalDevice device) : physical(device) {}
 

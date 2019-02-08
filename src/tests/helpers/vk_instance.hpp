@@ -4,9 +4,9 @@
 
 #pragma once
 
-#include <ao/vulkan/engine/settings.h>
-#include <ao/vulkan/engine/wrapper/device.h>
+#include <ao/vulkan/utilities/settings.h>
 #include <ao/vulkan/utilities/vulkan.h>
+#include <ao/vulkan/wrapper/device.h>
 #include <vulkan/vulkan.hpp>
 
 namespace ao::test {

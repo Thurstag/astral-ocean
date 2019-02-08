@@ -27,6 +27,13 @@ namespace ao::vulkan {
          */
         virtual ~PipelineContainer();
 
+        /**
+         * @brief Set a callback (for each pipeline) that will be executed before pipeline cache destruction
+         *
+         * @param callback Callback
+         */
+        void setBeforePipelineCacheDestruction(std::function<void(std::string, vk::PipelineCache)> callback);
+
         virtual void clear() override;
     };
 

@@ -4,9 +4,9 @@
 
 #pragma once
 
-#include <ao/vulkan/engine/wrapper/device.h>
-#include <ao/vulkan/engine/wrapper/buffer/tuple/basic_buffer.hpp>
-#include <ao/vulkan/engine/wrapper/buffer/tuple/staging_buffer.hpp>
+#include <ao/vulkan/wrapper/device.h>
+#include <ao/vulkan/wrapper/buffer/tuple/basic_buffer.hpp>
+#include <ao/vulkan/wrapper/buffer/tuple/staging_buffer.hpp>
 
 namespace ao::test {
     template<class... T>

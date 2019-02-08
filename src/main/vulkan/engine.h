@@ -13,10 +13,10 @@
 #include <ao/core/logger/logger.h>
 #include <vulkan/vulkan.hpp>
 
-#include "../utilities/vulkan.h"
 #include "container/pipeline_container.h"
 #include "container/semaphore_container.h"
-#include "settings.h"
+#include "utilities/settings.h"
+#include "utilities/vulkan.h"
 #include "wrapper/device.h"
 #include "wrapper/swapchain.h"
 

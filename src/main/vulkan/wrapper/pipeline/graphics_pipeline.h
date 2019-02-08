@@ -25,9 +25,9 @@ namespace ao::vulkan {
          * @param depth_stencil_create_info Depth stencil info
          * @param color_blend_create_info Color blend info
          * @param dynamic_state_create_info Dynamic state info
+         * @param cache_create_info Pipeline cache create info
          * @param subpass Subpass
          * @param base_pipeline Base pipeline
-         * @param base_pipeline_index Base pipeline's index
          */
         GraphicsPipeline(std::weak_ptr<Device> device, std::shared_ptr<PipelineLayout> layout, vk::RenderPass render_pass,
                          std::vector<vk::PipelineShaderStageCreateInfo> shader_stages,
@@ -39,16 +39,14 @@ namespace ao::vulkan {
                          std::optional<vk::PipelineMultisampleStateCreateInfo> multisample_create_info = std::nullopt,
                          std::optional<vk::PipelineDepthStencilStateCreateInfo> depth_stencil_create_info = std::nullopt,
                          std::optional<vk::PipelineColorBlendStateCreateInfo> color_blend_create_info = std::nullopt,
-                         std::optional<vk::PipelineDynamicStateCreateInfo> dynamic_state_create_info = std::nullopt, u32 subpass = 0,
-                         vk::Pipeline base_pipeline = vk::Pipeline(), u32 base_pipeline_index = 0);
+                         std::optional<vk::PipelineDynamicStateCreateInfo> dynamic_state_create_info = std::nullopt,
+                         vk::PipelineCacheCreateInfo cache_create_info = vk::PipelineCacheCreateInfo(), u32 subpass = 0,
+                         vk::Pipeline base_pipeline = vk::Pipeline());
 
         /**
          * @brief Destroy the Graphics Pipeline object
          *
          */
-        virtual ~GraphicsPipeline();
-
-       protected:
-        vk::PipelineCache cache;
+        virtual ~GraphicsPipeline() = default;
     };
 }  // namespace ao::vulkan

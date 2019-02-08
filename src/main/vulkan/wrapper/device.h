@@ -13,9 +13,9 @@
 #include <ao/core/logger/logger.h>
 #include <vulkan/vulkan.hpp>
 
-#include "../../utilities/queue.h"
-#include "../../utilities/vulkan.h"
 #include "../container/queue_container.h"
+#include "../utilities/queue.h"
+#include "../utilities/vulkan.h"
 #include "command_pool.h"
 
 namespace ao::vulkan {

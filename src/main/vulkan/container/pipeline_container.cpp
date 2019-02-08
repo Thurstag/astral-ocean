@@ -17,3 +17,9 @@ void ao::vulkan::PipelineContainer::clear() {
 
     this->map.clear();
 }
+
+void ao::vulkan::PipelineContainer::setBeforePipelineCacheDestruction(std::function<void(std::string, vk::PipelineCache)> callback) {
+    for (auto [key, value] : this->map) {
+        value->setBeforePipelineCacheDestruction([key, callback](vk::PipelineCache cache) { callback(key, cache); });
+    }
+}

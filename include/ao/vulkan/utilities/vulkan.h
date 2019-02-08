@@ -14,7 +14,7 @@
 #include <fmt/format.h>
 #include <vulkan/vulkan.hpp>
 
-#include "../engine/settings.h"
+#include "settings.h"
 
 namespace ao::vulkan {
     struct Utilities {};

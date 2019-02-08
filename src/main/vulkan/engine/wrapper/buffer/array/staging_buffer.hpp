@@ -90,7 +90,6 @@ namespace ao::vulkan {
         // Create fence
         if (!this->fence) {
             this->fence = _device->logical.createFence(vk::FenceCreateInfo(vk::FenceCreateFlagBits::eSignaled));
-            _device->logical.resetFences(fence);
         }
         return this;
     }
@@ -233,7 +232,6 @@ namespace ao::vulkan {
         // Create fence
         if (!this->fence) {
             this->fence = _device->logical.createFence(vk::FenceCreateInfo(vk::FenceCreateFlagBits::eSignaled));
-            _device->logical.resetFences(fence);
         }
         return this;
     }

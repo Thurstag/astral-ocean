@@ -4,9 +4,13 @@
 
 #pragma once
 
+#include <mutex>
+
 #include <ao/core/utilities/types.h>
 #include <ao/core/memory/map_container.hpp>
 #include <vulkan/vulkan.hpp>
+
+#include "../../utilities/queue.h"
 
 namespace ao::vulkan {
     namespace structs {
@@ -16,22 +20,27 @@ namespace ao::vulkan {
          */
         struct Queue {
            public:
+            vk::QueueFlags flags;
+            QueueLevel level;
             u32 family_index;
-            vk::Queue queue;
+            vk::Queue value;
 
             /**
              * @brief Construct a new Queue object
              *
              */
-            Queue() : Queue(nullptr, 0) {}
+            Queue() : Queue(nullptr, 0, QueueLevel::ePrimary, vk::QueueFlags()) {}
 
             /**
              * @brief Construct a new Queue object
              *
              * @param queue Vulkan queue
              * @param family_index Family index
+             * @param level Level
+             * @param flags Flags
              */
-            explicit Queue(vk::Queue queue, u32 family_index) : queue(queue), family_index(family_index) {}
+            explicit Queue(vk::Queue queue, u32 family_index, QueueLevel level, vk::QueueFlags flags)
+                : value(queue), family_index(family_index), level(level), flags(flags) {}
         };
     };  // namespace structs
 
@@ -45,12 +54,24 @@ namespace ao::vulkan {
          * @brief Construct a new QueueContainer object
          *
          */
-        QueueContainer() = default;
+        QueueContainer();
 
         /**
          * @brief Destroy the QueueContainer object
          *
          */
         virtual ~QueueContainer() = default;
+
+        /**
+         * @brief Submit to a queue that supports {flag}
+         *
+         * @param flag Queue flag
+         * @param submits Submissions
+         * @param fence fence
+         */
+        void submit(vk::QueueFlagBits flag, vk::ArrayProxy<vk::SubmitInfo const> submits, vk::Fence fence = nullptr);
+
+       protected:
+        std::map<vk::QueueFlagBits, std::pair<size_t, std::mutex>> cursors;
     };
 }  // namespace ao::vulkan

@@ -210,7 +210,7 @@ void ao::vulkan::Swapchain::initSurface() {
     }
 
     LOGGER << ao::core::Logger::Level::debug << fmt::format("Use {0} queue to present images", *queue_name);
-    this->present_queue = _device->queues[*queue_name].queue;
+    this->present_queue = _device->queues[*queue_name].value;
 
     // Get surface formats
     std::vector<vk::SurfaceFormatKHR> formats = _device->surfaceFormatKHRs(this->surface);

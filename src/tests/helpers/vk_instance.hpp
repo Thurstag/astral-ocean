@@ -55,9 +55,10 @@ namespace ao::test {
             this->device = std::make_shared<vulkan::Device>(devices.front());
 
             // Init logical device
-            this->device->initLogicalDevice({}, {},
-                                            {vulkan::QueueRequest(vk::QueueFlagBits::eGraphics), vulkan::QueueRequest(vk::QueueFlagBits::eTransfer),
-                                             vulkan::QueueRequest(vk::QueueFlagBits::eCompute)});
+            this->device->initLogicalDevice(
+                {}, {},
+                {vulkan::QueueRequest(vk::QueueFlagBits::eGraphics), vulkan::QueueRequest(vk::QueueFlagBits::eTransfer, 0, 1),
+                 vulkan::QueueRequest(vk::QueueFlagBits::eCompute)});
         } catch (...) {
             return false;
         }

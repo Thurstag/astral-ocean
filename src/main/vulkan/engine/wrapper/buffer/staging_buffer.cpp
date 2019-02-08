@@ -80,13 +80,13 @@ void ao::vulkan::StagingBuffer::sync() {
     }
     this->command_buffer.end();
 
+    // Reset fence
+    _device->logical.resetFences(this->fence);
+
     // Submit command
-    _device->queues[vk::to_string(vk::QueueFlagBits::eTransfer)].queue.submit(
-        vk::SubmitInfo().setCommandBufferCount(1).setPCommandBuffers(&this->command_buffer), this->fence);
+    _device->queues.submit(vk::QueueFlagBits::eTransfer, vk::SubmitInfo().setCommandBufferCount(1).setPCommandBuffers(&this->command_buffer),
+                           this->fence);
 
     // Wait fence
     _device->logical.waitForFences(this->fence, VK_TRUE, (std::numeric_limits<u64>::max)());
-
-    // Reset fence
-    _device->logical.resetFences(this->fence);
 }

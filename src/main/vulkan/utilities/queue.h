@@ -8,6 +8,8 @@
 #include <vulkan/vulkan.hpp>
 
 namespace ao::vulkan {
+    enum class QueueLevel { ePrimary, eSecondary };
+
     /**
      * @brief Queue request
      *
@@ -15,15 +17,27 @@ namespace ao::vulkan {
     struct QueueRequest {
        public:
         vk::QueueFlagBits flag;
-        u32 count;
+        u32 secondary_count;
+        u32 primary_count;
 
         /**
          * @brief Construct a new QueueRequest object
          *
          * @param flag Queue flag
-         * @param count Queue count
+         * @param primary_count Primary queue count
+         * @param secondary_count Secondary queue count
          */
-        explicit QueueRequest(vk::QueueFlagBits flag, u32 count = 1) : flag(flag), count(count) {}
+        explicit QueueRequest(vk::QueueFlagBits flag, u32 primary_count = 1, u32 secondary_count = 0)
+            : flag(flag), primary_count(primary_count), secondary_count(secondary_count) {}
+
+        /**
+         * @brief Get total count
+         *
+         * @return u32 Count
+         */
+        u32 count() {
+            return this->secondary_count + this->primary_count;
+        }
     };
 
     /**

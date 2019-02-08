@@ -194,7 +194,7 @@ void ao::vulkan::Engine::render() {
     this->device->logical.resetFences(fence);
 
     // Submit command buffer
-    this->device->queues[vk::to_string(vk::QueueFlagBits::eGraphics)].queue.submit(submitInfo, fence);
+    this->device->queues[vk::to_string(vk::QueueFlagBits::eGraphics)].value.submit(submitInfo, fence);
 
     // Submit frame
     this->submitFrame();

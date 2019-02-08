@@ -43,17 +43,17 @@ void ao::vulkan::Device::initLogicalDevice(std::vector<char const*> device_exten
         auto it = std::find_if(queue_create_info.begin(), queue_create_info.end(),
                                [family_index](vk::DeviceQueueCreateInfo& create_info) { return create_info.queueFamilyIndex == family_index; });
         if (it != queue_create_info.end()) {
-            if (it->queueCount + request.count <= queue_families[family_index].queueCount) {
+            if (it->queueCount + request.count() <= queue_families[family_index].queueCount) {
                 _queue_create_info.push_back(ao::vulkan::QueueCreateInfo(request, family_index, it->queueCount));
 
-                it->queueCount += request.count;
-            } else if (it->queueCount + request.count > queue_families[family_index].queueCount &&
-                       request.count <= queue_families[family_index].queueCount) {
-                it->queueCount += (std::max)(it->queueCount, request.count);
+                it->queueCount += request.count();
+            } else if (it->queueCount + request.count() > queue_families[family_index].queueCount &&
+                       request.count() <= queue_families[family_index].queueCount) {
+                it->queueCount += (std::max)(it->queueCount, request.count());
 
                 _queue_create_info.push_back(ao::vulkan::QueueCreateInfo(request, family_index, 0));
             } else {
-                throw ao::core::Exception(fmt::format("Queue request count ({}) exceeds family index ({})'s queue capacity: {}", request.count,
+                throw ao::core::Exception(fmt::format("Queue request count ({}) exceeds family index ({})'s queue capacity: {}", request.count(),
                                                       family_index, queue_families[family_index].queueCount));
             }
 
@@ -61,7 +61,7 @@ void ao::vulkan::Device::initLogicalDevice(std::vector<char const*> device_exten
         }
 
         _queue_create_info.push_back(ao::vulkan::QueueCreateInfo(request, family_index, 0));
-        queue_create_info.push_back(vk::DeviceQueueCreateInfo(vk::DeviceQueueCreateFlags(), family_index, request.count, queue_priorities.data()));
+        queue_create_info.push_back(vk::DeviceQueueCreateInfo(vk::DeviceQueueCreateFlags(), family_index, request.count(), queue_priorities.data()));
     }
 
     // Request swap chain extension
@@ -84,12 +84,22 @@ void ao::vulkan::Device::initLogicalDevice(std::vector<char const*> device_exten
 
     // Build queue container
     for (auto& create_info : _queue_create_info) {
-        this->queues[vk::to_string(create_info.request.flag)] =
-            ao::vulkan::structs::Queue(this->logical.getQueue(create_info.family_index, create_info.start_index), create_info.family_index);
+        u32 j = 0;
 
-        for (u32 i = 0; i < create_info.request.count - 1; i++) {
-            this->queues[fmt::format("{}-{}", vk::to_string(create_info.request.flag), i + 2)] = ao::vulkan::structs::Queue(
-                this->logical.getQueue(create_info.family_index, create_info.start_index + i + 1), create_info.family_index);
+        for (u32 i = 0; i < create_info.request.primary_count; i++) {
+            this->queues[fmt::format("{}{}", vk::to_string(create_info.request.flag), j == 0 ? "" : fmt::format("-{}", j + 1))] =
+                ao::vulkan::structs::Queue(this->logical.getQueue(create_info.family_index, create_info.start_index + j), create_info.family_index,
+                                           ao::vulkan::QueueLevel::ePrimary, queue_families[create_info.family_index].queueFlags);
+
+            j++;
+        }
+
+        for (u32 i = 0; i < create_info.request.secondary_count; i++) {
+            this->queues[fmt::format("{}{}", vk::to_string(create_info.request.flag), j == 0 ? "" : fmt::format("-{}", j + 1))] =
+                ao::vulkan::structs::Queue(this->logical.getQueue(create_info.family_index, create_info.start_index + j), create_info.family_index,
+                                           ao::vulkan::QueueLevel::eSecondary, queue_families[create_info.family_index].queueFlags);
+
+            j++;
         }
     }
 
@@ -201,7 +211,7 @@ void ao::vulkan::Device::processImage(vk::Image image, vk::Format format, vk::Im
     this->logical.resetFences(fence);
 
     // Submit command
-    this->queues[vk::to_string(vk::QueueFlagBits::eGraphics)].queue.submit(vk::SubmitInfo().setCommandBufferCount(1).setPCommandBuffers(&cmd), fence);
+    this->queues.submit(vk::QueueFlagBits::eGraphics, vk::SubmitInfo().setCommandBufferCount(1).setPCommandBuffers(&cmd), fence);
 
     // Wait fence
     this->logical.waitForFences(fence, VK_TRUE, (std::numeric_limits<u64>::max)());
@@ -230,7 +240,7 @@ void ao::vulkan::Device::copyBufferToImage(vk::Buffer buffer, vk::Image image, u
     this->logical.resetFences(fence);
 
     // Submit command
-    this->queues[vk::to_string(vk::QueueFlagBits::eTransfer)].queue.submit(vk::SubmitInfo().setCommandBufferCount(1).setPCommandBuffers(&cmd), fence);
+    this->queues.submit(vk::QueueFlagBits::eTransfer, vk::SubmitInfo().setCommandBufferCount(1).setPCommandBuffers(&cmd), fence);
 
     // Wait fence
     this->logical.waitForFences(fence, VK_TRUE, (std::numeric_limits<u64>::max)());

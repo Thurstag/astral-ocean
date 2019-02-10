@@ -21,11 +21,15 @@ ao::vulkan::StagingBuffer::~StagingBuffer() {
     }
 }
 
+void ao::vulkan::StagingBuffer::freeHostBuffer() {
+    this->host_buffer->free();
+}
+
 void ao::vulkan::StagingBuffer::free() {
-    if (this->host_buffer.get() != nullptr) {
+    if (this->host_buffer) {
         this->host_buffer.reset();
     }
-    if (this->device_buffer.get() != nullptr) {
+    if (this->device_buffer) {
         this->device_buffer.reset();
     }
 }
@@ -39,24 +43,24 @@ ao::vulkan::Buffer* ao::vulkan::StagingBuffer::map() {
 }
 
 vk::Buffer ao::vulkan::StagingBuffer::buffer() {
-    if (this->device_buffer.get() == nullptr) {
+    if (!this->device_buffer) {
         throw ao::vulkan::BufferUninitialized();
     }
     return this->device_buffer->buffer();
 }
 
 vk::DeviceSize ao::vulkan::StagingBuffer::size() const {
-    if (this->device_buffer.get() == nullptr) {
+    if (!this->device_buffer) {
         throw ao::vulkan::BufferUninitialized();
     }
     return this->device_buffer->size();
 }
 
 bool ao::vulkan::StagingBuffer::hasBuffer() const {
-    if (this->host_buffer.get() == nullptr || this->device_buffer.get() == nullptr) {
+    if (!this->device_buffer) {
         return false;
     }
-    return this->host_buffer->hasBuffer() && this->device_buffer->hasBuffer();
+    return this->device_buffer->hasBuffer();
 }
 
 void ao::vulkan::StagingBuffer::sync() {

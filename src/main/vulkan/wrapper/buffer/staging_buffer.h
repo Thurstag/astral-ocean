@@ -30,16 +30,17 @@ namespace ao::vulkan {
         virtual ~StagingBuffer();
 
         /**
-         * @brief Free buffers
+         * @brief Free buffer on host side
          *
          */
-        void free();
+        void freeHostBuffer();
 
         virtual vk::DeviceSize offset(size_t index) const override;
         virtual Buffer* map() override;
         vk::Buffer buffer() override;
         vk::DeviceSize size() const override;
         bool hasBuffer() const override;
+        void free() override;
 
        protected:
         vk::CommandBufferUsageFlags cmd_usage;

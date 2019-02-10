@@ -50,6 +50,7 @@ namespace ao::vulkan {
         vk::DeviceSize size() const override;
         vk::DeviceSize offset(size_t index) const override;
         Buffer* map() override;
+        void free() override;
     };
 
     template<class... T>
@@ -60,7 +61,7 @@ namespace ao::vulkan {
     StagingTupleBuffer<T...>* StagingTupleBuffer<T...>::init(std::initializer_list<vk::DeviceSize> const& sizes,
                                                              std::optional<vk::BufferUsageFlags> usage_flags) {
         if (this->hasBuffer()) {
-            this->free();
+            StagingBuffer::free();
         }
 
         // Init buffer in host's memory
@@ -99,12 +100,14 @@ namespace ao::vulkan {
             throw BufferUninitialized();
         }
 
-        // Update host buffer & synchronize memories
+        // Update host buffer
         if (auto host = static_cast<TupleBuffer<T...>*>(this->host_buffer.get())) {
             host->update(data...);
         } else {
             throw core::Exception("Fail to update host buffer");
         }
+
+        // Synchronize
         this->sync();
 
         return this;
@@ -116,12 +119,14 @@ namespace ao::vulkan {
             throw BufferUninitialized();
         }
 
-        // Update host buffer & synchronize memories
+        // Update host buffer
         if (auto host = static_cast<TupleBuffer<T...>*>(this->host_buffer.get())) {
             host->updateFragment(index, data);
         } else {
             throw core::Exception(fmt::format("Fail to update host buffer fragment: {0}", index));
         }
+
+        // Synchronize
         this->sync();
 
         return this;
@@ -150,5 +155,10 @@ namespace ao::vulkan {
     template<class... T>
     Buffer* StagingTupleBuffer<T...>::map() {
         return StagingBuffer::map();
+    }
+
+    template<class... T>
+    void StagingTupleBuffer<T...>::free() {
+        return StagingBuffer::free();
     }
 }  // namespace ao::vulkan

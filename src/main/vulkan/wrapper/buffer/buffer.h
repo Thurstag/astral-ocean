@@ -69,6 +69,12 @@ namespace ao::vulkan {
         virtual Buffer* map() = 0;
 
         /**
+         * @brief Free buffer
+         *
+         */
+        virtual void free() = 0;
+
+        /**
          * @brief Calculate UBO size with aligment
          *
          * @param size Size

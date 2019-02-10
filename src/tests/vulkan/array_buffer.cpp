@@ -375,4 +375,35 @@ namespace ao::test {
         ASSERT_EXCEPTION<core::Exception>([&]() { b.map(); });
         ASSERT_EXCEPTION<core::Exception>([&]() { b2.map(); });
     }
+
+    TEST(StagingBuffer, FreeHostBuffer) {
+        // Init instance
+        VkInstance instance;
+        SKIP_TEST(!instance.init(), FAIL_INIT_VULKAN);
+
+        TestStagingArrayBuffer<Object, 2> b(instance.device);
+        b.init(sizeof(Object));
+        TestStagingDynamicArrayBuffer<Object> b2(2, instance.device);
+        b2.init(sizeof(Object));
+
+        // Normal update
+        b.update({Object(1), Object(2)});
+        std::vector<Object> v = {Object(1), Object(2)};
+        b2.update(v);
+
+        b.freeHostBuffer();
+        b2.freeHostBuffer();
+
+        ASSERT_TRUE(b.buffer());
+        ASSERT_TRUE(b.hasBuffer());
+        ASSERT_NE(nullptr, b.getMapper());
+        ASSERT_EQ(sizeof(Object), b.offset(1));
+        ASSERT_EQ(sizeof(Object) * 2, b.size());
+
+        ASSERT_TRUE(b2.buffer());
+        ASSERT_TRUE(b2.hasBuffer());
+        ASSERT_NE(nullptr, b2.getMapper());
+        ASSERT_EQ(sizeof(Object), b2.offset(1));
+        ASSERT_EQ(sizeof(Object) * 2, b2.size());
+    }
 }  // namespace ao::test

@@ -51,6 +51,7 @@ namespace ao::vulkan {
         vk::DeviceSize size() const override;
         vk::DeviceSize offset(size_t index) const override;
         Buffer* map() override;
+        void free() override;
     };
 
     template<class T>
@@ -61,7 +62,7 @@ namespace ao::vulkan {
     template<class T>
     StagingDynamicArrayBuffer<T>* StagingDynamicArrayBuffer<T>::init(vk::DeviceSize size, std::optional<vk::BufferUsageFlags> usage_flags) {
         if (this->hasBuffer()) {
-            this->free();
+            StagingBuffer::free();
         }
 
         // Init buffer in host's memory
@@ -100,12 +101,14 @@ namespace ao::vulkan {
             throw BufferUninitialized();
         }
 
-        // Update host buffer & synchronize memories
+        // Update host buffer
         if (auto host = static_cast<DynamicArrayBuffer<T>*>(this->host_buffer.get())) {
             host->update(data);
         } else {
             throw core::Exception("Fail to update host buffer");
         }
+
+        // Synchronize
         this->sync();
 
         return this;
@@ -117,12 +120,14 @@ namespace ao::vulkan {
             throw BufferUninitialized();
         }
 
-        // Update host buffer & synchronize memories
+        // Update host buffer
         if (auto host = static_cast<DynamicArrayBuffer<T>*>(this->host_buffer.get())) {
             host->updateFragment(index, data);
         } else {
             throw BufferUninitialized();
         }
+
+        // Synchronize
         this->sync();
 
         return this;
@@ -151,6 +156,11 @@ namespace ao::vulkan {
     template<class T>
     Buffer* StagingDynamicArrayBuffer<T>::map() {
         return StagingBuffer::map();
+    }
+
+    template<class T>
+    void StagingDynamicArrayBuffer<T>::free() {
+        return StagingBuffer::free();
     }
 
     /**
@@ -194,6 +204,7 @@ namespace ao::vulkan {
         vk::DeviceSize size() const override;
         vk::DeviceSize offset(size_t index) const override;
         Buffer* map() override;
+        void free() override;
     };
 
     template<class T, size_t N>
@@ -203,7 +214,7 @@ namespace ao::vulkan {
     template<class T, size_t N>
     StagingArrayBuffer<T, N>* StagingArrayBuffer<T, N>::init(vk::DeviceSize size, std::optional<vk::BufferUsageFlags> usage_flags) {
         if (this->hasBuffer()) {
-            this->free();
+            StagingBuffer::free();
         }
 
         // Init buffer in host's memory
@@ -242,12 +253,14 @@ namespace ao::vulkan {
             throw BufferUninitialized();
         }
 
-        // Update host buffer & synchronize memories
+        // Update host buffer
         if (auto host = static_cast<ArrayBuffer<T, N>*>(this->host_buffer.get())) {
             host->update(data);
         } else {
             throw core::Exception("Fail to update host buffer");
         }
+
+        // Synchronize
         this->sync();
 
         return this;
@@ -259,12 +272,14 @@ namespace ao::vulkan {
             throw BufferUninitialized();
         }
 
-        // Update host buffer & synchronize memories
+        // Update host buffer
         if (auto host = static_cast<ArrayBuffer<T, N>*>(this->host_buffer.get())) {
             host->updateFragment(index, data);
         } else {
             throw core::Exception(fmt::format("Fail to update host buffer fragment: {0}", index));
         }
+
+        // Synchronize
         this->sync();
 
         return this;
@@ -293,5 +308,10 @@ namespace ao::vulkan {
     template<class T, size_t N>
     Buffer* StagingArrayBuffer<T, N>::map() {
         return StagingBuffer::map();
+    }
+
+    template<class T, size_t N>
+    void StagingArrayBuffer<T, N>::free() {
+        return StagingBuffer::free();
     }
 }  // namespace ao::vulkan

@@ -354,4 +354,31 @@ namespace ao::test {
         // Already map
         ASSERT_EXCEPTION<core::Exception>([&]() { b.map(); });
     }
+
+    TEST(StagingBuffer, FreeHostBuffer) {
+        // Init instance
+        VkInstance instance;
+        SKIP_TEST(!instance.init(), FAIL_INIT_VULKAN);
+
+        TestStagingTupleBuffer<Object, SecondObject> b(instance.device);
+        b.init({sizeof(Object), sizeof(SecondObject)});
+
+        Object* o = new Object(1);
+        SecondObject* sO = new SecondObject(true);
+
+        // Normal update
+        b.update(o, sO);
+
+        b.freeHostBuffer();
+
+        ASSERT_TRUE(b.buffer());
+        ASSERT_TRUE(b.hasBuffer());
+        ASSERT_NE(nullptr, b.mapper(0));
+        ASSERT_NE(nullptr, b.mapper(1));
+        ASSERT_EQ(sizeof(Object), b.offset(1));
+        ASSERT_EQ(sizeof(Object) + sizeof(SecondObject), b.size());
+
+        delete o;
+        delete sO;
+    }
 }  // namespace ao::test

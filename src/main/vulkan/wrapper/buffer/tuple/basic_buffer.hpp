@@ -38,7 +38,7 @@ namespace ao::vulkan {
          * @brief Free buffer
          *
          */
-        void free();
+        void free() override;
 
         /**
          * @brief Initialize buffer
@@ -79,7 +79,7 @@ namespace ao::vulkan {
 
     template<class... T>
     BasicTupleBuffer<T...>::~BasicTupleBuffer() {
-        this->free();
+        BasicTupleBuffer<T...>::free();
     }
 
     template<class... T>
@@ -122,7 +122,7 @@ namespace ao::vulkan {
     BasicTupleBuffer<T...>* BasicTupleBuffer<T...>::init(vk::BufferUsageFlags usage_flags, vk::SharingMode sharing_mode,
                                                          vk::MemoryPropertyFlags memory_flags, std::initializer_list<vk::DeviceSize> const& sizes) {
         if (this->hasBuffer()) {
-            this->free();
+            BasicTupleBuffer<T...>::free();
         }
         auto _device = ao::core::shared(this->device);
 
@@ -224,9 +224,6 @@ namespace ao::vulkan {
 
     template<class... T>
     vk::DeviceSize BasicTupleBuffer<T...>::offset(size_t index) const {
-        if (!this->has_mapper) {
-            throw ao::core::Exception("Buffer is not mapped");
-        }
         if (index >= sizeof...(T)) {
             throw core::IndexOutOfRangeException(std::make_pair(static_cast<u64>(0), static_cast<u64>(sizeof...(T))));
         }

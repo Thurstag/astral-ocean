@@ -36,7 +36,7 @@ namespace ao::vulkan {
          * @brief Free buffer
          *
          */
-        void free();
+        void free() override;
 
         /**
          * @brief Initialize buffer
@@ -74,7 +74,7 @@ namespace ao::vulkan {
 
     template<class T>
     BasicDynamicArrayBuffer<T>::~BasicDynamicArrayBuffer() {
-        this->free();
+        BasicDynamicArrayBuffer<T>::free();
     }
 
     template<class T>
@@ -96,7 +96,7 @@ namespace ao::vulkan {
     BasicDynamicArrayBuffer<T>* BasicDynamicArrayBuffer<T>::init(vk::BufferUsageFlags usage_flags, vk::SharingMode sharing_mode,
                                                                  vk::MemoryPropertyFlags memory_flags, vk::DeviceSize size) {
         if (this->hasBuffer()) {
-            this->free();
+            BasicDynamicArrayBuffer<T>::free();
         }
         auto _device = ao::core::shared(this->device);
 
@@ -235,7 +235,7 @@ namespace ao::vulkan {
          * @brief Free buffer
          *
          */
-        void free();
+        void free() override;
 
         /**
          * @brief Initialize buffer
@@ -272,7 +272,7 @@ namespace ao::vulkan {
 
     template<class T, size_t N>
     BasicArrayBuffer<T, N>::~BasicArrayBuffer() {
-        this->free();
+        BasicArrayBuffer<T, N>::free();
     }
 
     template<class T, size_t N>
@@ -294,7 +294,7 @@ namespace ao::vulkan {
     BasicArrayBuffer<T, N>* BasicArrayBuffer<T, N>::init(vk::BufferUsageFlags usage_flags, vk::SharingMode sharing_mode,
                                                          vk::MemoryPropertyFlags memory_flags, vk::DeviceSize size) {
         if (this->hasBuffer()) {
-            this->free();
+            BasicArrayBuffer<T, N>::free();
         }
         auto _device = ao::core::shared(this->device);
 

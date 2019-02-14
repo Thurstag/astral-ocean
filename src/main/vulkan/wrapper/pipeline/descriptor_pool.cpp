@@ -24,7 +24,7 @@ ao::vulkan::DescriptorPool::~DescriptorPool() {
 }
 
 std::vector<vk::DescriptorSet> ao::vulkan::DescriptorPool::allocateDescriptorSets(u32 count,
-                                                                                  std::vector<vk::DescriptorSetLayout> descriptor_layouts) {
+                                                                                  vk::ArrayProxy<vk::DescriptorSetLayout> descriptor_layouts) {
     auto descriptors =
         ao::core::shared(this->device)->logical.allocateDescriptorSets(vk::DescriptorSetAllocateInfo(*this->pool, count, descriptor_layouts.data()));
 

@@ -270,15 +270,18 @@ void ao::vulkan::Swapchain::createStencilBuffer() {
     auto _device = ao::core::shared(this->device);
 
     // Create image and it's view
-    auto image = _device->createImage(this->extent_.width, this->extent_.height, _device->depth_format, vk::ImageType::e2D, vk::ImageTiling::eOptimal,
-                                      vk::ImageUsageFlagBits::eDepthStencilAttachment, vk::MemoryPropertyFlagBits::eDeviceLocal);
-    vk::ImageView view = _device->createImageView(image.first, _device->depth_format, vk::ImageViewType::e2D, vk::ImageAspectFlagBits::eDepth);
+    auto image =
+        _device->createImage(this->extent_.width, this->extent_.height, 1, _device->depth_format, vk::ImageType::e2D, vk::ImageTiling::eOptimal,
+                             vk::ImageUsageFlagBits::eDepthStencilAttachment, vk::MemoryPropertyFlagBits::eDeviceLocal);
+    vk::ImageView view = _device->createImageView(image.first, _device->depth_format, vk::ImageViewType::e2D,
+                                                  vk::ImageSubresourceRange(vk::ImageAspectFlagBits::eDepth, 0, 1, 0, 1));
 
     // Assign
     this->stencil_buffer = std::make_optional(std::make_tuple(image.first, image.second, view));
 
     // Define transition layout
-    _device->processImage(std::get<0>(*this->stencil_buffer), _device->depth_format, vk::ImageLayout::eUndefined,
+    _device->processImage(std::get<0>(*this->stencil_buffer), _device->depth_format,
+                          vk::ImageSubresourceRange(vk::ImageAspectFlagBits::eDepth, 0, 1, 0, 1), vk::ImageLayout::eUndefined,
                           vk::ImageLayout::eDepthStencilAttachmentOptimal);
 }
 
@@ -336,8 +339,8 @@ vk::Result ao::vulkan::Swapchain::nextImage(vk::Semaphore acquire) {
         ->logical.acquireNextImageKHR(this->swapchain, (std::numeric_limits<u64>::max)(), acquire, nullptr, &this->frame_index);
 }
 
-vk::Result ao::vulkan::Swapchain::enqueueImage(std::vector<vk::Semaphore>& waitSemaphores) {
-    vk::PresentInfoKHR present_info(static_cast<u32>(waitSemaphores.size()), waitSemaphores.empty() ? nullptr : waitSemaphores.data(), 1,
+vk::Result ao::vulkan::Swapchain::enqueueImage(vk::ArrayProxy<vk::Semaphore> waiting_semaphores) {
+    vk::PresentInfoKHR present_info(static_cast<u32>(waiting_semaphores.size()), waiting_semaphores.empty() ? nullptr : waiting_semaphores.data(), 1,
                                     &this->swapchain, &this->frame_index);
 
     // Pass a pointer to don't trigger an exception

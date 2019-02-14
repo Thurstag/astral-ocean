@@ -13,8 +13,9 @@ ao::vulkan::Device::~Device() {
     this->graphics_command_pool.reset();
 }
 
-void ao::vulkan::Device::initLogicalDevice(std::vector<char const*> device_extensions, std::vector<vk::PhysicalDeviceFeatures> const& device_features,
-                                           std::vector<QueueRequest> requested_queues, bool swapchain_support) {
+void ao::vulkan::Device::initLogicalDevice(vk::ArrayProxy<char const* const> device_extensions,
+                                           vk::ArrayProxy<vk::PhysicalDeviceFeatures const> device_features,
+                                           vk::ArrayProxy<QueueRequest const> requested_queues) {
     // Get queue families
     std::vector<vk::QueueFamilyProperties> queue_families = this->physical.getQueueFamilyProperties();
 
@@ -62,11 +63,6 @@ void ao::vulkan::Device::initLogicalDevice(std::vector<char const*> device_exten
 
         _queue_create_info.push_back(ao::vulkan::QueueCreateInfo(request, family_index, 0));
         queue_create_info.push_back(vk::DeviceQueueCreateInfo(vk::DeviceQueueCreateFlags(), family_index, request.count(), queue_priorities.data()));
-    }
-
-    // Request swap chain extension
-    if (swapchain_support) {
-        device_extensions.push_back(VK_KHR_SWAPCHAIN_EXTENSION_NAME);
     }
 
     vk::DeviceCreateInfo device_info(vk::DeviceCreateFlags(), static_cast<u32>(queue_create_info.size()), queue_create_info.data());
@@ -127,15 +123,15 @@ std::vector<vk::Image> ao::vulkan::Device::swapChainImages(vk::SwapchainKHR swap
     return this->logical.getSwapchainImagesKHR(swapchain);
 }
 
-std::pair<vk::Image, vk::DeviceMemory> ao::vulkan::Device::createImage(u32 width, u32 height, vk::Format format, vk::ImageType type,
+std::pair<vk::Image, vk::DeviceMemory> ao::vulkan::Device::createImage(u32 width, u32 height, u32 mip_levels, vk::Format format, vk::ImageType type,
                                                                        vk::ImageTiling tilling, vk::ImageUsageFlags usage_flags,
                                                                        vk::MemoryPropertyFlags memory_flags) {
     std::pair<vk::Image, vk::DeviceMemory> pair;
 
     // Create image
-    pair.first = this->logical.createImage(vk::ImageCreateInfo(vk::ImageCreateFlags(), type, format, vk::Extent3D(vk::Extent2D(width, height), 1), 1,
-                                                               1, vk::SampleCountFlagBits::e1, tilling, usage_flags, vk::SharingMode::eExclusive, 0,
-                                                               nullptr, vk::ImageLayout::eUndefined));
+    pair.first = this->logical.createImage(vk::ImageCreateInfo(vk::ImageCreateFlags(), type, format, vk::Extent3D(vk::Extent2D(width, height), 1),
+                                                               mip_levels, 1, vk::SampleCountFlagBits::e1, tilling, usage_flags,
+                                                               vk::SharingMode::eExclusive, 0, nullptr, vk::ImageLayout::eUndefined));
 
     // Get memory requirements
     vk::MemoryRequirements mem_requirements = this->logical.getImageMemoryRequirements(pair.first);
@@ -150,12 +146,13 @@ std::pair<vk::Image, vk::DeviceMemory> ao::vulkan::Device::createImage(u32 width
 }
 
 vk::ImageView ao::vulkan::Device::createImageView(vk::Image image, vk::Format format, vk::ImageViewType view_type,
-                                                  vk::ImageAspectFlags aspect_flags) {
-    return this->logical.createImageView(vk::ImageViewCreateInfo(vk::ImageViewCreateFlags(), image, view_type, format, vk::ComponentMapping(),
-                                                                 vk::ImageSubresourceRange(aspect_flags, 0, 1, 0, 1)));
+                                                  vk::ImageSubresourceRange subresource_range) {
+    return this->logical.createImageView(
+        vk::ImageViewCreateInfo(vk::ImageViewCreateFlags(), image, view_type, format, vk::ComponentMapping(), subresource_range));
 }
 
-void ao::vulkan::Device::processImage(vk::Image image, vk::Format format, vk::ImageLayout old_layout, vk::ImageLayout new_layout) {
+void ao::vulkan::Device::processImage(vk::Image image, vk::Format format, vk::ImageSubresourceRange subresource_range, vk::ImageLayout old_layout,
+                                      vk::ImageLayout new_layout) {
     if (!this->graphics_command_pool) {
         throw ao::core::Exception("Graphics command pool is disabled, request a graphics queue to enable it");
     }
@@ -164,11 +161,8 @@ void ao::vulkan::Device::processImage(vk::Image image, vk::Format format, vk::Im
     vk::CommandBuffer cmd = this->graphics_command_pool->allocateCommandBuffers(vk::CommandBufferLevel::ePrimary, 1).front();
 
     // Create barrier
-    vk::ImageMemoryBarrier barrier(
-        vk::AccessFlags(), vk::AccessFlags(), old_layout, new_layout, VK_QUEUE_FAMILY_IGNORED, VK_QUEUE_FAMILY_IGNORED, image,
-        vk::ImageSubresourceRange(
-            new_layout == vk::ImageLayout::eDepthStencilAttachmentOptimal ? vk::ImageAspectFlagBits::eDepth : vk::ImageAspectFlagBits::eColor, 0, 1,
-            0, 1));
+    vk::ImageMemoryBarrier barrier(vk::AccessFlags(), vk::AccessFlags(), old_layout, new_layout, VK_QUEUE_FAMILY_IGNORED, VK_QUEUE_FAMILY_IGNORED,
+                                   image, subresource_range);
 
     // Add stencil
     if (new_layout == vk::ImageLayout::eDepthStencilAttachmentOptimal &&
@@ -221,7 +215,7 @@ void ao::vulkan::Device::processImage(vk::Image image, vk::Format format, vk::Im
     this->graphics_command_pool->freeCommandBuffers(cmd);
 }
 
-void ao::vulkan::Device::copyBufferToImage(vk::Buffer buffer, vk::Image image, u32 width, u32 height) {
+void ao::vulkan::Device::copyBufferToImage(vk::Buffer buffer, vk::Image image, vk::ArrayProxy<vk::BufferImageCopy const> regions) {
     if (!this->transfer_command_pool) {
         throw ao::core::Exception("Transfer command pool is disabled, request a graphics queue to enable it");
     }
@@ -230,9 +224,7 @@ void ao::vulkan::Device::copyBufferToImage(vk::Buffer buffer, vk::Image image, u
     vk::CommandBuffer cmd = this->transfer_command_pool->allocateCommandBuffers(vk::CommandBufferLevel::ePrimary, 1).front();
 
     cmd.begin(vk::CommandBufferBeginInfo(vk::CommandBufferUsageFlagBits::eOneTimeSubmit));
-    cmd.copyBufferToImage(buffer, image, vk::ImageLayout::eTransferDstOptimal,
-                          vk::BufferImageCopy(0, 0, 0, vk::ImageSubresourceLayers(vk::ImageAspectFlagBits::eColor, 0, 0, 1), vk::Offset3D(),
-                                              vk::Extent3D(vk::Extent2D(width, height), 1)));
+    cmd.copyBufferToImage(buffer, image, vk::ImageLayout::eTransferDstOptimal, regions);
     cmd.end();
 
     // Create fence

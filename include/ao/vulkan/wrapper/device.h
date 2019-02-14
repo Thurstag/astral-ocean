@@ -57,10 +57,9 @@ namespace ao::vulkan {
          * @param device_extensions Device's extensions to enable
          * @param device_features Device's features to enable
          * @param requested_queues Requested queues
-         * @param swapchain_support Swapchain support
          */
-        void initLogicalDevice(std::vector<char const*> device_extensions, std::vector<vk::PhysicalDeviceFeatures> const& device_features,
-                               std::vector<QueueRequest> requested_queues, bool swapchain_support = true);
+        void initLogicalDevice(vk::ArrayProxy<char const* const> device_extensions, vk::ArrayProxy<vk::PhysicalDeviceFeatures const> device_features,
+                               vk::ArrayProxy<QueueRequest const> requested_queues);
 
         /**
          * @brief Surface formats
@@ -83,6 +82,7 @@ namespace ao::vulkan {
          *
          * @param width Width
          * @param height height
+         * @param mip_levels Mip levels
          * @param format Format
          * @param type Type
          * @param tilling Tilling
@@ -90,8 +90,9 @@ namespace ao::vulkan {
          * @param memory_flags Memory flags
          * @return std::pair<vk::Image, vk::DeviceMemory> Image
          */
-        std::pair<vk::Image, vk::DeviceMemory> createImage(u32 width, u32 height, vk::Format format, vk::ImageType type, vk::ImageTiling tilling,
-                                                           vk::ImageUsageFlags usage_flags, vk::MemoryPropertyFlags memory_flags);
+        std::pair<vk::Image, vk::DeviceMemory> createImage(u32 width, u32 height, u32 mip_levels, vk::Format format, vk::ImageType type,
+                                                           vk::ImageTiling tilling, vk::ImageUsageFlags usage_flags,
+                                                           vk::MemoryPropertyFlags memory_flags);
 
         /**
          * @brief Create an ImageView
@@ -99,30 +100,31 @@ namespace ao::vulkan {
          * @param image Image
          * @param format Format
          * @param view_type View type
-         * @param aspect_flags Aspect flags
+         * @param subresource_range Subresource range
          * @return vk::ImageView ImageView
          */
-        vk::ImageView createImageView(vk::Image image, vk::Format format, vk::ImageViewType view_type, vk::ImageAspectFlags aspect_flags);
+        vk::ImageView createImageView(vk::Image image, vk::Format format, vk::ImageViewType view_type, vk::ImageSubresourceRange subresource_range);
 
         /**
          * @brief Process an image
          *
          * @param image Image
          * @param format Format
+         * @param subresource_range Subresource range
          * @param old_layout Old layout
          * @param new_layout New layout
          */
-        void processImage(vk::Image image, vk::Format format, vk::ImageLayout old_layout, vk::ImageLayout new_layout);
+        void processImage(vk::Image image, vk::Format format, vk::ImageSubresourceRange subresource_range, vk::ImageLayout old_layout,
+                          vk::ImageLayout new_layout);
 
         /**
          * @brief Copy vk::Buffer into an vk::Image
          *
          * @param buffer Buffer
          * @param image Image
-         * @param width Width
-         * @param height Height
+         * @param regions Regions
          */
-        void copyBufferToImage(vk::Buffer buffer, vk::Image image, u32 width, u32 height);
+        void copyBufferToImage(vk::Buffer buffer, vk::Image image, vk::ArrayProxy<vk::BufferImageCopy const> regions);
 
         /**
          * @brief Memory type

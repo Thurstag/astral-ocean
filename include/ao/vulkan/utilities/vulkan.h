@@ -69,7 +69,8 @@ namespace ao::vulkan {
                 settings->get<int>(ao::vulkan::settings::EngineVersion, std::make_optional(VK_MAKE_VERSION(0, 0, 0))), VK_API_VERSION_1_1);
 
             // Add validation extension
-            if (settings->get(ao::vulkan::settings::ValidationLayers, std::make_optional(false))) {
+            if (settings->get(ao::vulkan::settings::ValidationLayers, std::make_optional(false)) &&
+                std::find(extensions.begin(), extensions.end(), VK_EXT_DEBUG_UTILS_EXTENSION_NAME) == extensions.end()) {
                 extensions.push_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
             }
 

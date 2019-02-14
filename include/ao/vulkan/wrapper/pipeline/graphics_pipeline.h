@@ -30,7 +30,7 @@ namespace ao::vulkan {
          * @param base_pipeline Base pipeline
          */
         GraphicsPipeline(std::weak_ptr<Device> device, std::shared_ptr<PipelineLayout> layout, vk::RenderPass render_pass,
-                         std::vector<vk::PipelineShaderStageCreateInfo> shader_stages,
+                         vk::ArrayProxy<vk::PipelineShaderStageCreateInfo> shader_stages,
                          std::optional<vk::PipelineVertexInputStateCreateInfo> vertex_input_create_info = std::nullopt,
                          std::optional<vk::PipelineInputAssemblyStateCreateInfo> input_assembly_create_info = std::nullopt,
                          std::optional<vk::PipelineTessellationStateCreateInfo> tesselation_create_info = std::nullopt,

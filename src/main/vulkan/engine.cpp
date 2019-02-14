@@ -6,10 +6,6 @@
 
 ao::vulkan::Engine::Engine(std::shared_ptr<EngineSettings> settings) : settings_(settings), enforce_resize(false) {}
 
-ao::vulkan::Engine::~Engine() {
-    this->freeVulkan();
-}
-
 void ao::vulkan::Engine::run() {
     // Init window
     this->initWindow();
@@ -23,6 +19,9 @@ void ao::vulkan::Engine::run() {
 
     // Execute main loop
     this->loop();
+
+    // Free vulkan
+    this->freeVulkan();
 }
 
 void ao::vulkan::Engine::initVulkan() {
@@ -260,11 +259,11 @@ void ao::vulkan::Engine::updateCommandBuffers() {
 }
 
 std::vector<char const*> ao::vulkan::Engine::deviceExtensions() const {
-    return std::vector<char const*>();
+    return {VK_KHR_SWAPCHAIN_EXTENSION_NAME};
 }
 
 std::vector<vk::PhysicalDeviceFeatures> ao::vulkan::Engine::deviceFeatures() const {
-    return std::vector<vk::PhysicalDeviceFeatures>();
+    return {};
 }
 
 std::vector<ao::vulkan::QueueRequest> ao::vulkan::Engine::requestQueues() const {

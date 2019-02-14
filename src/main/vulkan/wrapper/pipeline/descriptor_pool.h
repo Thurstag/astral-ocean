@@ -34,7 +34,7 @@ namespace ao::vulkan {
          * @param descriptor_layouts Layouts
          * @return std::vector<vk::DescriptorSet> Descriptor sets
          */
-        std::vector<vk::DescriptorSet> allocateDescriptorSets(u32 count, std::vector<vk::DescriptorSetLayout> descriptor_layouts);
+        std::vector<vk::DescriptorSet> allocateDescriptorSets(u32 count, vk::ArrayProxy<vk::DescriptorSetLayout> descriptor_layouts);
 
         /**
          * @brief Get descriptor sets

@@ -35,7 +35,7 @@ namespace ao::vulkan {
          *
          * @return u32 Count
          */
-        u32 count() {
+        u32 count() const {
             return this->secondary_count + this->primary_count;
         }
     };

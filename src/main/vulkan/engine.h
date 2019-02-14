@@ -40,7 +40,7 @@ namespace ao::vulkan {
          * @brief Destroy the Engine object
          *
          */
-        virtual ~Engine();
+        virtual ~Engine() = default;
 
         /**
          * @brief Run engine

@@ -148,7 +148,7 @@ namespace ao::vulkan {
          * @param waiting_semaphores Waiting semaphores
          * @return vk::Result Result
          */
-        vk::Result enqueueImage(std::vector<vk::Semaphore>& waiting_semaphores);
+        vk::Result enqueueImage(vk::ArrayProxy<vk::Semaphore> waiting_semaphores);
 
         /**
          * @brief Set surface

@@ -70,7 +70,7 @@ namespace ao::vulkan {
 
     template<class T>
     BasicDynamicArrayBuffer<T>::BasicDynamicArrayBuffer(size_t count, std::weak_ptr<Device> device)
-        : DynamicArrayBuffer<T>(count, device), has_mapper(false) {}
+        : DynamicArrayBuffer<T>(count, device), has_mapper(false), mapper(nullptr) {}
 
     template<class T>
     BasicDynamicArrayBuffer<T>::~BasicDynamicArrayBuffer() {
@@ -223,7 +223,7 @@ namespace ao::vulkan {
          *
          * @param device Device
          */
-        BasicArrayBuffer(std::weak_ptr<Device> device);
+        explicit BasicArrayBuffer(std::weak_ptr<Device> device);
 
         /**
          * @brief Destroy the BasicArrayBuffer object
@@ -268,7 +268,7 @@ namespace ao::vulkan {
     };
 
     template<class T, size_t N>
-    BasicArrayBuffer<T, N>::BasicArrayBuffer(std::weak_ptr<Device> device) : ArrayBuffer<T, N>(device), has_mapper(false) {}
+    BasicArrayBuffer<T, N>::BasicArrayBuffer(std::weak_ptr<Device> device) : ArrayBuffer<T, N>(device), has_mapper(false), mapper(nullptr) {}
 
     template<class T, size_t N>
     BasicArrayBuffer<T, N>::~BasicArrayBuffer() {

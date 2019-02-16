@@ -1,6 +1,6 @@
 ![Project logo](https://raw.githubusercontent.com/Thurstag/astral-ocean/res/images/logo/logo-banner.png)
 
-# Astral Ocean [![Build Status](https://travis-ci.com/Thurstag/astral-ocean.svg?branch=master)](https://travis-ci.com/Thurstag/astral-ocean)
+# Astral Ocean  [![Codacy Badge](https://api.codacy.com/project/badge/Grade/26339f3dc9e2445683f437b64195b7bc)](https://www.codacy.com/app/Thurstag/astral-ocean?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=Thurstag/astral-ocean&amp;utm_campaign=Badge_Grade) [![Build Status](https://travis-ci.com/Thurstag/astral-ocean.svg?branch=master)](https://travis-ci.com/Thurstag/astral-ocean)
 This project is a basic implementation of Vulkan API in C++.
 
 ## Sub-projects

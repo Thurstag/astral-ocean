@@ -253,16 +253,14 @@ void ao::vulkan::Swapchain::createFramebuffers(vk::RenderPass render_pass) {
         attachments[1] = std::get<2>(*this->stencil_buffer);
     }
 
-    // Create info
-    vk::FramebufferCreateInfo create_info = vk::FramebufferCreateInfo(vk::FramebufferCreateFlags(), render_pass, static_cast<u32>(attachments.size()),
-                                                                      attachments.data(), this->extent_.width, this->extent_.height, 1);
-
     // Create framebuffers
     this->frames.resize(this->buffers.size());
     for (u32 i = 0; i < frames.size(); i++) {
         attachments[0] = this->buffers[i].second;
 
-        this->frames[i] = _device->logical.createFramebuffer(create_info);
+        this->frames[i] = _device->logical.createFramebuffer(vk::FramebufferCreateInfo(vk::FramebufferCreateFlags(), render_pass,
+                                                                                       static_cast<u32>(attachments.size()), attachments.data(),
+                                                                                       this->extent_.width, this->extent_.height, 1));
     }
 }
 

@@ -16,24 +16,16 @@ ao::vulkan::ShaderModule::~ShaderModule() {
 }
 
 std::vector<char> ao::vulkan::ShaderModule::read(std::string const& filename) {
-    // Open file and go to the end
-    std::ifstream file(filename, std::ios::ate | std::ios::binary);
-    std::vector<char> vector;
+    std::ifstream file(filename, std::ios::in | std::ios::binary);
 
     // Check file
     if (!file.is_open()) {
         throw ao::core::Exception(fmt::format("Fail to open: {0}", filename));
     }
 
-    // Get size
-    size_t size = static_cast<size_t>(file.tellg());
-
-    // Resize vector
-    vector.resize(size);
-
-    // Rollback to start & copy into vector
-    file.seekg(0);
-    file.read(vector.data(), size);
+    // Copy file into vector
+    std::istreambuf_iterator<char> start(file), end;
+    std::vector<char> vector(start, end);
 
     // Close file
     file.close();
@@ -46,10 +38,10 @@ std::vector<char> ao::vulkan::ShaderModule::read(std::string const& filename) {
     return vector;
 }
 
-vk::ShaderModule ao::vulkan::ShaderModule::createModule(const std::vector<char>& code) {
+vk::ShaderModule ao::vulkan::ShaderModule::createModule(std::vector<char> const& code) {
     return ao::core::shared(this->device)
         ->logical.createShaderModule(
-            vk::ShaderModuleCreateInfo(vk::ShaderModuleCreateFlags(), code.size(), reinterpret_cast<const u32*>(code.data())));
+            vk::ShaderModuleCreateInfo(vk::ShaderModuleCreateFlags(), code.size(), reinterpret_cast<u32 const*>(code.data())));
 }
 
 ao::vulkan::ShaderModule& ao::vulkan::ShaderModule::loadShader(vk::ShaderStageFlagBits flag, std::string const& filename) {

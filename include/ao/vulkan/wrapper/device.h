@@ -83,6 +83,7 @@ namespace ao::vulkan {
          * @param width Width
          * @param height height
          * @param mip_levels Mip levels
+         * @param array_layers Array layers
          * @param format Format
          * @param type Type
          * @param tilling Tilling
@@ -90,8 +91,8 @@ namespace ao::vulkan {
          * @param memory_flags Memory flags
          * @return std::pair<vk::Image, vk::DeviceMemory> Image
          */
-        std::pair<vk::Image, vk::DeviceMemory> createImage(u32 width, u32 height, u32 mip_levels, vk::Format format, vk::ImageType type,
-                                                           vk::ImageTiling tilling, vk::ImageUsageFlags usage_flags,
+        std::pair<vk::Image, vk::DeviceMemory> createImage(u32 width, u32 height, u32 mip_levels, u32 array_layers, vk::Format format,
+                                                           vk::ImageType type, vk::ImageTiling tilling, vk::ImageUsageFlags usage_flags,
                                                            vk::MemoryPropertyFlags memory_flags);
 
         /**

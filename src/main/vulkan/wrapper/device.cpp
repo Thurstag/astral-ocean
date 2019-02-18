@@ -123,14 +123,14 @@ std::vector<vk::Image> ao::vulkan::Device::swapChainImages(vk::SwapchainKHR swap
     return this->logical.getSwapchainImagesKHR(swapchain);
 }
 
-std::pair<vk::Image, vk::DeviceMemory> ao::vulkan::Device::createImage(u32 width, u32 height, u32 mip_levels, vk::Format format, vk::ImageType type,
-                                                                       vk::ImageTiling tilling, vk::ImageUsageFlags usage_flags,
+std::pair<vk::Image, vk::DeviceMemory> ao::vulkan::Device::createImage(u32 width, u32 height, u32 mip_levels, u32 array_layers, vk::Format format,
+                                                                       vk::ImageType type, vk::ImageTiling tilling, vk::ImageUsageFlags usage_flags,
                                                                        vk::MemoryPropertyFlags memory_flags) {
     std::pair<vk::Image, vk::DeviceMemory> pair;
 
     // Create image
     pair.first = this->logical.createImage(vk::ImageCreateInfo(vk::ImageCreateFlags(), type, format, vk::Extent3D(vk::Extent2D(width, height), 1),
-                                                               mip_levels, 1, vk::SampleCountFlagBits::e1, tilling, usage_flags,
+                                                               mip_levels, array_layers, vk::SampleCountFlagBits::e1, tilling, usage_flags,
                                                                vk::SharingMode::eExclusive, 0, nullptr, vk::ImageLayout::eUndefined));
 
     // Get memory requirements

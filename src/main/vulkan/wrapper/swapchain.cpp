@@ -269,7 +269,7 @@ void ao::vulkan::Swapchain::createStencilBuffer() {
 
     // Create image and it's view
     auto image =
-        _device->createImage(this->extent_.width, this->extent_.height, 1, _device->depth_format, vk::ImageType::e2D, vk::ImageTiling::eOptimal,
+        _device->createImage(this->extent_.width, this->extent_.height, 1, 1, _device->depth_format, vk::ImageType::e2D, vk::ImageTiling::eOptimal,
                              vk::ImageUsageFlagBits::eDepthStencilAttachment, vk::MemoryPropertyFlagBits::eDeviceLocal);
     vk::ImageView view = _device->createImageView(image.first, _device->depth_format, vk::ImageViewType::e2D,
                                                   vk::ImageSubresourceRange(vk::ImageAspectFlagBits::eDepth, 0, 1, 0, 1));

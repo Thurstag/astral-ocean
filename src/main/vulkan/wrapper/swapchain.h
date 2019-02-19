@@ -16,6 +16,12 @@
 
 namespace ao::vulkan {
     /**
+     * @brief Swapchain states
+     *
+     */
+    enum class SwapchainState { eIdle, eAcquireImage, eReset };
+
+    /**
      * @brief vk::Swapchain wrapper
      *
      */
@@ -79,60 +85,67 @@ namespace ao::vulkan {
         void destroyStencilBuffer();
 
         /**
-         * @brief Current fence
+         * @brief Get current fence
          *
          * @return vk::Fence Fence
          */
         vk::Fence currentFence();
 
         /**
-         * @brief Current frame
+         * @brief Get current frame
          *
          * @return vk::Framebuffer Frame
          */
         vk::Framebuffer currentFrame();
 
         /**
-         * @brief Current command buffer
+         * @brief Get current command buffer
          *
          * @return vk::CommandBuffer& Command buffer
          */
         vk::CommandBuffer& currentCommand();
 
         /**
-         * @brief Frame index
+         * @brief Get current frame index
          *
          * @return u32 Frame index
          */
         u32 currentFrameIndex();
 
         /**
-         * @brief Extent
+         * @brief Get extent
          *
          * @return vk::Extent2D Extent
          */
         vk::Extent2D extent();
 
         /**
-         * @brief Color space
+         * @brief Get color space
          *
          * @return vk::ColorSpaceKHR Color space
          */
         vk::ColorSpaceKHR colorSpace();
 
         /**
-         * @brief Color format
+         * @brief Get color format
          *
          * @return vk::Format Format
          */
         vk::Format colorFormat();
 
         /**
-         * @brief Swapchain's size
+         * @brief Get swapchain's size
          *
          * @return size_t Size
          */
         size_t size();
+
+        /**
+         * @brief Get state
+         *
+         * @return SwapchainState State
+         */
+        SwapchainState state();
 
         /**
          * @brief Acquire next image
@@ -140,7 +153,7 @@ namespace ao::vulkan {
          * @param acquire Acquire semaphore
          * @return vk::Result Result
          */
-        vk::Result nextImage(vk::Semaphore acquire);
+        vk::Result acquireNextImage(vk::Semaphore acquire);
 
         /**
          * @brief Enqueue an image
@@ -168,6 +181,7 @@ namespace ao::vulkan {
         u32 surface_images_count;
         vk::Queue present_queue;
         vk::SurfaceKHR surface;
+        SwapchainState state_;
         u32 frame_index;
 
         std::optional<StencilBuffer> stencil_buffer;

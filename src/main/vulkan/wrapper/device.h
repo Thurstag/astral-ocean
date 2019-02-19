@@ -26,8 +26,8 @@ namespace ao::vulkan {
     struct Device {
        public:
         std::unique_ptr<CommandPool> transfer_command_pool;
+        std::unique_ptr<QueueContainer> queues;
         vk::Format depth_format;
-        QueueContainer queues;
 
         vk::PhysicalDevice physical;
         vk::Device logical;

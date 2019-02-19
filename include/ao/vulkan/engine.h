@@ -49,6 +49,12 @@ namespace ao::vulkan {
         virtual void run();
 
         /**
+         * @brief Clean-up vulkan stuff
+         *
+         */
+        virtual void freeVulkan();
+
+        /**
          * @brief Get settings
          *
          * @return std::shared_ptr<EngineSettings> Settings
@@ -79,12 +85,6 @@ namespace ao::vulkan {
          *
          */
         virtual void prepareVulkan();
-
-        /**
-         * @brief Clean-up vulkan
-         *
-         */
-        virtual void freeVulkan();
 
         /**
          * @brief Set-up debugging (validation layers...)
@@ -221,12 +221,12 @@ namespace ao::vulkan {
         /**
          * @brief Execute secondary command buffers
          *
-         * @param inheritanceInfo Inheritance info
-         * @param frameIndex Current frame index
-         * @param primaryCmd Primary command buffer
+         * @param inheritance_info Inheritance info
+         * @param frame_index Current frame index
+         * @param primary_command Primary command buffer
          */
-        virtual void executeSecondaryCommandBuffers(vk::CommandBufferInheritanceInfo& inheritanceInfo, int frameIndex,
-                                                    vk::CommandBuffer primaryCmd) = 0;
+        virtual void executeSecondaryCommandBuffers(vk::CommandBufferInheritanceInfo& inheritance_info, int frame_index,
+                                                    vk::CommandBuffer primary_command) = 0;
 
         /**
          * @brief Define instance's extensions to enable

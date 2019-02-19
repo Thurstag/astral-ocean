@@ -31,6 +31,7 @@ namespace ao::core {
         virtual ~MapContainer() = default;
 
         virtual Value& operator[](Key const& key) override;
+        virtual Value& at(Key const& key) override;
         virtual bool remove(Key const& key) override;
         virtual bool exists(Key const& key) const override;
         virtual void clear() override;
@@ -45,6 +46,11 @@ namespace ao::core {
     template<class Key, class Value>
     inline Value& MapContainer<Key, Value>::operator[](Key const& key) {
         return this->map[key];
+    }
+
+    template<class Key, class Value>
+    inline Value& MapContainer<Key, Value>::at(Key const& key) {
+        return this->map.at(key);
     }
 
     template<class Key, class Value>

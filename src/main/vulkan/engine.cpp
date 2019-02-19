@@ -193,7 +193,7 @@ void ao::vulkan::Engine::render() {
     this->device->logical.resetFences(fence);
 
     // Submit command buffer
-    this->device->queues[vk::to_string(vk::QueueFlagBits::eGraphics)].value.submit(submitInfo, fence);
+    this->device->queues->at(vk::to_string(vk::QueueFlagBits::eGraphics)).value.submit(submitInfo, fence);
 
     // Submit frame
     this->submitFrame();
@@ -202,7 +202,7 @@ void ao::vulkan::Engine::render() {
 }
 
 void ao::vulkan::Engine::prepareFrame() {
-    vk::Result result = this->swapchain->nextImage(this->semaphores["acquireNextImage"].signals.front());
+    vk::Result result = this->swapchain->acquireNextImage(this->semaphores["acquireNextImage"].signals.front());
 
     // Check result
     if (result == vk::Result::eErrorOutOfDateKHR || result == vk::Result::eSuboptimalKHR || this->enforce_resize) {

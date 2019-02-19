@@ -6,6 +6,7 @@
 
 #include <mutex>
 
+#include <ao/core/logger/logger.h>
 #include <ao/core/utilities/types.h>
 #include <ao/core/memory/map_container.hpp>
 #include <vulkan/vulkan.hpp>
@@ -53,8 +54,12 @@ namespace ao::vulkan {
         /**
          * @brief Construct a new QueueContainer object
          *
+         * @param device Device
+         * @param queue_create_info Queue create info
+         * @param queue_families Queue families
          */
-        QueueContainer();
+        QueueContainer(vk::Device device, std::vector<QueueCreateInfo> const& queue_create_info,
+                       std::vector<vk::QueueFamilyProperties> const& queue_families);
 
         /**
          * @brief Destroy the QueueContainer object
@@ -67,11 +72,23 @@ namespace ao::vulkan {
          *
          * @param flag Queue flag
          * @param submits Submissions
-         * @param fence fence
+         * @param fence Fence
          */
         void submit(vk::QueueFlagBits flag, vk::ArrayProxy<vk::SubmitInfo const> submits, vk::Fence fence = nullptr);
 
        protected:
+        ao::core::Logger LOGGER = ao::core::Logger::GetInstance<QueueContainer>();
+
         std::map<vk::QueueFlagBits, std::pair<size_t, std::mutex>> cursors;
+        std::map<vk::QueueFlagBits, u32> queue_families;
+
+        /**
+         * @brief Find a queue that supports {flag}
+         *
+         * @param flag Flag
+         * @param predicate Predicate
+         * @return std::optional<std::string> Queue's name
+         */
+        std::optional<std::string> findQueue(vk::QueueFlagBits flag, std::function<bool(structs::Queue const&)> predicate);
     };
 }  // namespace ao::vulkan

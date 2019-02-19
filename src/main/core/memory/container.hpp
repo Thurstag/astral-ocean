@@ -27,12 +27,20 @@ namespace ao::core {
         virtual ~Container() = default;
 
         /**
-         * @brief Operator[] (Throws an execption if object doesn't exist)
+         * @brief Operator[]
          *
          * @param key Key
          * @return Value& Value
          */
         virtual Value& operator[](Key const& key) = 0;
+
+        /**
+         * @brief Operator[] with bounds verification
+         *
+         * @param key Key
+         * @return Value& Value
+         */
+        virtual Value& at(Key const& key) = 0;
 
         /**
          * @brief Remove an object

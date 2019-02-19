@@ -7,7 +7,7 @@
 #include "swapchain.h"
 
 ao::vulkan::Swapchain::Swapchain(std::weak_ptr<vk::Instance> instance, std::weak_ptr<Device> device)
-    : instance(instance), device(device), frame_index(0), surface_images_count(0) {}
+    : instance(instance), device(device), frame_index(0), surface_images_count(0), state_(ao::vulkan::SwapchainState::eIdle) {}
 
 ao::vulkan::Swapchain::~Swapchain() {
     auto _device = ao::core::shared(this->device);
@@ -41,7 +41,7 @@ void ao::vulkan::Swapchain::init(u64& win_width, u64& win_height, bool vsync, bo
     vk::SwapchainKHR old = this->swapchain;
 
     auto _device = ao::core::shared(this->device);
-    bool firstInit = !old;
+    bool first_init = !old;
 
     // Get physical device surface properties and formats
     vk::SurfaceCapabilitiesKHR capabilities = _device->physical.getSurfaceCapabilitiesKHR(this->surface);
@@ -88,7 +88,7 @@ void ao::vulkan::Swapchain::init(u64& win_width, u64& win_height, bool vsync, bo
     LOGGER << ao::core::Logger::Level::info << fmt::format("Use present mode: {0}", vk::to_string(present_mode));
 
     // Determine surface image capacity
-    if (firstInit) {
+    if (first_init) {
         this->surface_images_count = capabilities.minImageCount + 1;
         if (capabilities.maxImageCount > 0 && this->surface_images_count > capabilities.maxImageCount) {
             this->surface_images_count = capabilities.maxImageCount;
@@ -135,6 +135,8 @@ void ao::vulkan::Swapchain::init(u64& win_width, u64& win_height, bool vsync, bo
             _device->logical.destroyImageView(buffer.second);
         }
         _device->logical.destroySwapchainKHR(old);
+
+        this->state_ = ao::vulkan::SwapchainState::eReset;
     }
 
     // Get images
@@ -170,7 +172,7 @@ void ao::vulkan::Swapchain::init(u64& win_width, u64& win_height, bool vsync, bo
         this->createStencilBuffer();
     }
 
-    if (firstInit) {
+    if (first_init) {
         // Create fences
         this->waiting_fences.resize(this->buffers.size());
         for (auto& fence : this->waiting_fences) {
@@ -179,7 +181,7 @@ void ao::vulkan::Swapchain::init(u64& win_width, u64& win_height, bool vsync, bo
 
         // Create command pool
         this->command_pool = std::make_unique<ao::vulkan::CommandPool>(_device->logical, vk::CommandPoolCreateFlagBits::eResetCommandBuffer,
-                                                                       _device->queues[vk::to_string(vk::QueueFlagBits::eGraphics)].family_index);
+                                                                       _device->queues->at(vk::to_string(vk::QueueFlagBits::eGraphics)).family_index);
 
         // Create commands
         this->commands = this->command_pool->allocateCommandBuffers(vk::CommandBufferLevel::ePrimary, static_cast<u32>(this->buffers.size()));
@@ -197,7 +199,7 @@ void ao::vulkan::Swapchain::initSurface() {
 
     // Try to find a queue that supports present
     std::optional<std::string> queue_name;
-    for (auto& [key, value] : _device->queues) {
+    for (auto& [key, value] : *_device->queues) {
         if (support_present[value.family_index] == VK_TRUE) {
             queue_name = key;
             break;
@@ -209,8 +211,8 @@ void ao::vulkan::Swapchain::initSurface() {
         throw core::Exception("Fail to find a queue that supports present");
     }
 
-    LOGGER << ao::core::Logger::Level::debug << fmt::format("Use {0} queue to present images", *queue_name);
-    this->present_queue = _device->queues[*queue_name].value;
+    LOGGER << ao::core::Logger::Level::trace << fmt::format("Use {0} queue to present images", *queue_name);
+    this->present_queue = _device->queues->at(*queue_name).value;
 
     // Get surface formats
     std::vector<vk::SurfaceFormatKHR> formats = _device->surfaceFormatKHRs(this->surface);
@@ -332,12 +334,20 @@ size_t ao::vulkan::Swapchain::size() {
     return this->buffers.size();
 }
 
-vk::Result ao::vulkan::Swapchain::nextImage(vk::Semaphore acquire) {
+ao::vulkan::SwapchainState ao::vulkan::Swapchain::state() {
+    return this->state_;
+}
+
+vk::Result ao::vulkan::Swapchain::acquireNextImage(vk::Semaphore acquire) {
+    this->state_ = ao::vulkan::SwapchainState::eAcquireImage;
+
     return ao::core::shared(this->device)
         ->logical.acquireNextImageKHR(this->swapchain, (std::numeric_limits<u64>::max)(), acquire, nullptr, &this->frame_index);
 }
 
 vk::Result ao::vulkan::Swapchain::enqueueImage(vk::ArrayProxy<vk::Semaphore> waiting_semaphores) {
+    this->state_ = ao::vulkan::SwapchainState::eIdle;
+
     vk::PresentInfoKHR present_info(static_cast<u32>(waiting_semaphores.size()), waiting_semaphores.empty() ? nullptr : waiting_semaphores.data(), 1,
                                     &this->swapchain, &this->frame_index);
 

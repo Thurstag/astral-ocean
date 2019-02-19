@@ -114,7 +114,7 @@ namespace ao::vulkan {
             // Try to find a queue familly designed only for flag parameter
             for (u32 i = 0; i < queueFamilyProperties.size(); i++) {
                 if ((queueFamilyProperties[i].queueFlags & flag) && ((VkQueueFlags(queueFamilyProperties[i].queueFlags) & other) == 0)) {
-                    LOGGER << core::Logger::Level::debug << fmt::format("Found a queue that only supports: {0}", to_string(flag));
+                    LOGGER << core::Logger::Level::trace << fmt::format("Found a queue that only supports: {0}", to_string(flag));
                     return i;
                 }
             }

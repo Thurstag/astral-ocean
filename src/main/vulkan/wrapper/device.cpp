@@ -25,7 +25,7 @@ void ao::vulkan::Device::initLogicalDevice(vk::ArrayProxy<char const* const> dev
     }
 
     // Print a report of all queue families
-    this->LOGGER << ao::core::Logger::Level::debug << fmt::format("Queue families:\n{}", ao::vulkan::utilities::report(queue_families));
+    this->LOGGER << ao::core::Logger::Level::trace << fmt::format("Queue families:\n{}", ao::vulkan::utilities::report(queue_families));
 
     // Build queue priority list
     std::vector<float> queue_priorities(
@@ -78,37 +78,19 @@ void ao::vulkan::Device::initLogicalDevice(vk::ArrayProxy<char const* const> dev
     this->logical = this->physical.createDevice(device_info);
     volkLoadDevice(this->logical);
 
-    // Build queue container
-    for (auto& create_info : _queue_create_info) {
-        u32 j = 0;
-
-        for (u32 i = 0; i < create_info.request.primary_count; i++) {
-            this->queues[fmt::format("{}{}", vk::to_string(create_info.request.flag), j == 0 ? "" : fmt::format("-{}", j + 1))] =
-                ao::vulkan::structs::Queue(this->logical.getQueue(create_info.family_index, create_info.start_index + j), create_info.family_index,
-                                           ao::vulkan::QueueLevel::ePrimary, queue_families[create_info.family_index].queueFlags);
-
-            j++;
-        }
-
-        for (u32 i = 0; i < create_info.request.secondary_count; i++) {
-            this->queues[fmt::format("{}{}", vk::to_string(create_info.request.flag), j == 0 ? "" : fmt::format("-{}", j + 1))] =
-                ao::vulkan::structs::Queue(this->logical.getQueue(create_info.family_index, create_info.start_index + j), create_info.family_index,
-                                           ao::vulkan::QueueLevel::eSecondary, queue_families[create_info.family_index].queueFlags);
-
-            j++;
-        }
-    }
+    // Init queue container
+    this->queues = std::make_unique<ao::vulkan::QueueContainer>(this->logical, _queue_create_info, queue_families);
 
     // Create command pools
-    if (this->queues.exists(vk::to_string(vk::QueueFlagBits::eTransfer))) {
+    if (this->queues->exists(vk::to_string(vk::QueueFlagBits::eTransfer))) {
         this->transfer_command_pool = std::make_unique<ao::vulkan::CommandPool>(
-            this->logical, vk::CommandPoolCreateFlagBits::eResetCommandBuffer, this->queues[vk::to_string(vk::QueueFlagBits::eTransfer)].family_index,
-            ao::vulkan::CommandPoolAccessModeFlagBits::eConcurrent);
+            this->logical, vk::CommandPoolCreateFlagBits::eResetCommandBuffer,
+            this->queues->at(vk::to_string(vk::QueueFlagBits::eTransfer)).family_index, ao::vulkan::CommandPoolAccessModeFlagBits::eConcurrent);
     }
-    if (this->queues.exists(vk::to_string(vk::QueueFlagBits::eGraphics))) {
+    if (this->queues->exists(vk::to_string(vk::QueueFlagBits::eGraphics))) {
         this->graphics_command_pool = std::make_unique<ao::vulkan::CommandPool>(
-            this->logical, vk::CommandPoolCreateFlagBits::eResetCommandBuffer, this->queues[vk::to_string(vk::QueueFlagBits::eGraphics)].family_index,
-            ao::vulkan::CommandPoolAccessModeFlagBits::eConcurrent);
+            this->logical, vk::CommandPoolCreateFlagBits::eResetCommandBuffer,
+            this->queues->at(vk::to_string(vk::QueueFlagBits::eGraphics)).family_index, ao::vulkan::CommandPoolAccessModeFlagBits::eConcurrent);
     }
 
     // Find suitable depth format
@@ -205,7 +187,7 @@ void ao::vulkan::Device::processImage(vk::Image image, vk::Format format, vk::Im
     this->logical.resetFences(fence);
 
     // Submit command
-    this->queues.submit(vk::QueueFlagBits::eGraphics, vk::SubmitInfo().setCommandBufferCount(1).setPCommandBuffers(&cmd), fence);
+    this->queues->submit(vk::QueueFlagBits::eGraphics, vk::SubmitInfo().setCommandBufferCount(1).setPCommandBuffers(&cmd), fence);
 
     // Wait fence
     this->logical.waitForFences(fence, VK_TRUE, (std::numeric_limits<u64>::max)());
@@ -232,7 +214,7 @@ void ao::vulkan::Device::copyBufferToImage(vk::Buffer buffer, vk::Image image, v
     this->logical.resetFences(fence);
 
     // Submit command
-    this->queues.submit(vk::QueueFlagBits::eTransfer, vk::SubmitInfo().setCommandBufferCount(1).setPCommandBuffers(&cmd), fence);
+    this->queues->submit(vk::QueueFlagBits::eTransfer, vk::SubmitInfo().setCommandBufferCount(1).setPCommandBuffers(&cmd), fence);
 
     // Wait fence
     this->logical.waitForFences(fence, VK_TRUE, (std::numeric_limits<u64>::max)());

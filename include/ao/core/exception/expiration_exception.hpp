@@ -19,14 +19,14 @@ namespace ao::core {
     class ExpirationException : public Exception {
        public:
         /**
-         * @brief Construct a new Expiration Exception object
+         * @brief Construct a new ExpirationException object
          *
          * @param pointer Pointer
          */
         explicit ExpirationException(std::weak_ptr<T> const& pointer);
 
         /**
-         * @brief Destroy the Expiration Exception object
+         * @brief Destroy the ExpirationException object
          *
          */
         virtual ~ExpirationException() = default;

@@ -151,10 +151,6 @@ void ao::vulkan::Engine::prepareVulkan() {
     this->swapchain->createFramebuffers(this->render_pass);
 }
 
-std::shared_ptr<ao::vulkan::EngineSettings> ao::vulkan::Engine::settings() const {
-    return this->settings_;
-}
-
 void ao::vulkan::Engine::loop() {
     while (this->loopingCondition()) {
         if (!this->isIconified()) {
@@ -252,22 +248,10 @@ void ao::vulkan::Engine::updateCommandBuffers() {
         vk::CommandBufferInheritanceInfo inheritance(this->render_pass, 0, frame);
 
         // Execute secondary command buffers
-        this->executeSecondaryCommandBuffers(inheritance, this->swapchain->currentFrameIndex(), command);
+        this->executeSecondaryCommandBuffers(inheritance, this->swapchain->frameIndex(), command);
     }
     command.endRenderPass();
     command.end();
-}
-
-std::vector<char const*> ao::vulkan::Engine::deviceExtensions() const {
-    return {VK_KHR_SWAPCHAIN_EXTENSION_NAME};
-}
-
-std::vector<vk::PhysicalDeviceFeatures> ao::vulkan::Engine::deviceFeatures() const {
-    return {};
-}
-
-std::vector<ao::vulkan::QueueRequest> ao::vulkan::Engine::requestQueues() const {
-    return {ao::vulkan::QueueRequest(vk::QueueFlagBits::eGraphics)};
 }
 
 vk::DebugUtilsMessageSeverityFlagsEXT ao::vulkan::Engine::validationLayersSeverity() const {
@@ -305,8 +289,4 @@ VKAPI_ATTR VkBool32 VKAPI_CALL ao::vulkan::Engine::DebugCallBack(VkDebugUtilsMes
                 fmt::format("Unknown vk::DebugUtilsMessageSeverityFlagBitsEXT: {}", to_string(vk::DebugUtilsMessageSeverityFlagBitsEXT(severity))));
     }
     return VK_FALSE;
-}
-
-vk::PhysicalDevice ao::vulkan::Engine::selectVkPhysicalDevice(std::vector<vk::PhysicalDevice> const& devices) const {
-    return devices.front();  // First device
 }

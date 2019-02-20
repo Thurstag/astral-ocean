@@ -52,7 +52,9 @@ namespace ao::vulkan {
          * @return true Value exists
          * @return false Value doesn't exist
          */
-        bool exists(std::string const& key) const;
+        bool exists(std::string const& key) const {
+            return this->value_exists(key) || this->str_exists(key);
+        }
 
         /**
          * @brief Get value with a specified key

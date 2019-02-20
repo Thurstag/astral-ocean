@@ -12,10 +12,6 @@ ao::vulkan::EngineSettings::~EngineSettings() {
     }
 }
 
-bool ao::vulkan::EngineSettings::exists(std::string const& key) const {
-    return this->value_exists(key) || this->str_exists(key);
-}
-
 bool ao::vulkan::EngineSettings::str_exists(std::string const& key) const {
     return std::find_if(this->str_values.begin(), this->str_values.end(), [&key](auto& pair) { return pair.first == key; }) != this->str_values.end();
 }

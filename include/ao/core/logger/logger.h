@@ -57,7 +57,9 @@ namespace ao::core {
          * @param level Level
          * @return LoggerInstance LoggerInstance object
          */
-        LoggerInstance operator<<(Level const level) const;
+        LoggerInstance operator<<(Level const level) const {
+            return ao::core::LoggerInstance(level, this->data);
+        }
 
         /**
          * @brief Init logger
@@ -71,7 +73,9 @@ namespace ao::core {
          * @return true Logger is initiated
          * @return false Logger isn't initiated
          */
-        static bool Initiated();
+        static bool Initiated() {
+            return ao::core::Logger::initiated_;
+        }
 
         /**
          * @brief Set the minimum level

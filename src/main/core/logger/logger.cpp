@@ -39,14 +39,6 @@ void ao::core::Logger::Init() {
     ao::core::Logger::initiated_ = true;
 }
 
-bool ao::core::Logger::Initiated() {
-    return ao::core::Logger::initiated_;
-}
-
-ao::core::LoggerInstance ao::core::Logger::operator<<(ao::core::Logger::Level level) const {
-    return ao::core::LoggerInstance(level, this->data);
-}
-
 void ao::core::Logger::SetMinLevel(ao::core::Logger::Level level) {
     boost::log::core::get()->set_filter(boost::log::trivial::severity >= level);
 }

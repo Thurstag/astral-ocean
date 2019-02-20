@@ -6,7 +6,7 @@
 
 #include <ao/core/memory/map_container.hpp>
 
-#include "../wrapper/pipeline/pipeline.h"
+#include "../pipeline/pipeline.h"
 
 namespace ao::vulkan {
     /**

@@ -27,7 +27,7 @@ ao::vulkan::Swapchain::~Swapchain() {
         _device->logical.destroyFramebuffer(framebuffer);
     }
 
-    for (auto& fence : this->waiting_fences) {
+    for (auto& fence : this->fences) {
         _device->logical.destroyFence(fence);
     }
 
@@ -174,8 +174,8 @@ void ao::vulkan::Swapchain::init(u64& win_width, u64& win_height, bool vsync, bo
 
     if (first_init) {
         // Create fences
-        this->waiting_fences.resize(this->buffers.size());
-        for (auto& fence : this->waiting_fences) {
+        this->fences.resize(this->buffers.size());
+        for (auto& fence : this->fences) {
             fence = _device->logical.createFence(vk::FenceCreateInfo(vk::FenceCreateFlagBits::eSignaled));
         }
 
@@ -300,42 +300,6 @@ void ao::vulkan::Swapchain::destroyStencilBuffer() {
     _device->logical.destroyImageView(std::get<2>(*this->stencil_buffer));
     _device->logical.destroyImage(std::get<0>(*this->stencil_buffer));
     _device->logical.freeMemory(std::get<1>(*this->stencil_buffer));
-}
-
-vk::Fence ao::vulkan::Swapchain::currentFence() {
-    return this->waiting_fences[this->frame_index];
-}
-
-vk::Framebuffer ao::vulkan::Swapchain::currentFrame() {
-    return this->frames[this->frame_index];
-}
-
-vk::CommandBuffer& ao::vulkan::Swapchain::currentCommand() {
-    return this->commands[this->frame_index];
-}
-
-u32 ao::vulkan::Swapchain::currentFrameIndex() {
-    return this->frame_index;
-}
-
-vk::Extent2D ao::vulkan::Swapchain::extent() {
-    return this->extent_;
-}
-
-vk::ColorSpaceKHR ao::vulkan::Swapchain::colorSpace() {
-    return this->color_space;
-}
-
-vk::Format ao::vulkan::Swapchain::colorFormat() {
-    return this->color_format;
-}
-
-size_t ao::vulkan::Swapchain::size() {
-    return this->buffers.size();
-}
-
-ao::vulkan::SwapchainState ao::vulkan::Swapchain::state() {
-    return this->state_;
 }
 
 vk::Result ao::vulkan::Swapchain::acquireNextImage(vk::Semaphore acquire) {

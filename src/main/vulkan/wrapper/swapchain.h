@@ -89,63 +89,81 @@ namespace ao::vulkan {
          *
          * @return vk::Fence Fence
          */
-        vk::Fence currentFence();
+        vk::Fence currentFence() const {
+            return this->fences[this->frame_index];
+        }
 
         /**
          * @brief Get current frame
          *
          * @return vk::Framebuffer Frame
          */
-        vk::Framebuffer currentFrame();
+        vk::Framebuffer currentFrame() const {
+            return this->frames[this->frame_index];
+        }
 
         /**
          * @brief Get current command buffer
          *
          * @return vk::CommandBuffer& Command buffer
          */
-        vk::CommandBuffer& currentCommand();
+        vk::CommandBuffer& currentCommand() {
+            return this->commands[this->frame_index];
+        }
 
         /**
          * @brief Get current frame index
          *
          * @return u32 Frame index
          */
-        u32 currentFrameIndex();
+        u32 frameIndex() const {
+            return this->frame_index;
+        }
 
         /**
          * @brief Get extent
          *
          * @return vk::Extent2D Extent
          */
-        vk::Extent2D extent();
+        vk::Extent2D extent() const {
+            return this->extent_;
+        }
 
         /**
          * @brief Get color space
          *
          * @return vk::ColorSpaceKHR Color space
          */
-        vk::ColorSpaceKHR colorSpace();
+        vk::ColorSpaceKHR colorSpace() const {
+            return this->color_space;
+        }
 
         /**
          * @brief Get color format
          *
          * @return vk::Format Format
          */
-        vk::Format colorFormat();
+        vk::Format colorFormat() const {
+            return this->color_format;
+        }
 
         /**
          * @brief Get swapchain's size
          *
          * @return size_t Size
          */
-        size_t size();
+        size_t size() const {
+            return this->buffers.size();
+        }
 
         /**
          * @brief Get state
          *
          * @return SwapchainState State
          */
-        SwapchainState state();
+        SwapchainState state() const {
+            return this->state_;
+        }
 
         /**
          * @brief Acquire next image
@@ -167,7 +185,7 @@ namespace ao::vulkan {
          * @brief Set surface
          *
          * @param surface Surface
-         * @return Swapchain* Swapchain
+         * @return Swapchain* This
          */
         Swapchain* setSurface(vk::SurfaceKHR surface);
 
@@ -175,8 +193,8 @@ namespace ao::vulkan {
         core::Logger LOGGER = core::Logger::GetInstance<Swapchain>();
 
         std::vector<std::pair<vk::Image, vk::ImageView>> buffers;
-        std::vector<vk::Fence> waiting_fences;
         std::vector<vk::Framebuffer> frames;
+        std::vector<vk::Fence> fences;
         vk::SwapchainKHR swapchain;
         u32 surface_images_count;
         vk::Queue present_queue;

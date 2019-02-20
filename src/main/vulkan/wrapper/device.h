@@ -67,7 +67,9 @@ namespace ao::vulkan {
          * @param surface Surface
          * @return std::vector<vk::SurfaceFormatKHR> Formats
          */
-        std::vector<vk::SurfaceFormatKHR> surfaceFormatKHRs(vk::SurfaceKHR surface);
+        std::vector<vk::SurfaceFormatKHR> surfaceFormatKHRs(vk::SurfaceKHR surface) const {
+            return this->physical.getSurfaceFormatsKHR(surface);
+        }
 
         /**
          * @brief Swapchain's images
@@ -75,7 +77,9 @@ namespace ao::vulkan {
          * @param swapchain Swapchain
          * @return std::vector<vk::Image> Images
          */
-        std::vector<vk::Image> swapChainImages(vk::SwapchainKHR swapchain);
+        std::vector<vk::Image> swapChainImages(vk::SwapchainKHR swapchain) const {
+            return this->logical.getSwapchainImagesKHR(swapchain);
+        }
 
         /**
          * @brief Create an Image

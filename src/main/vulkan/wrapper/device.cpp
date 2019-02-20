@@ -5,6 +5,7 @@
 #include "device.h"
 
 #include "../utilities/vulkan.h"
+#include "fence.h"
 
 ao::vulkan::Device::Device(vk::PhysicalDevice device) : physical(device) {}
 
@@ -97,14 +98,6 @@ void ao::vulkan::Device::initLogicalDevice(vk::ArrayProxy<char const* const> dev
     this->depth_format = ao::vulkan::utilities::getSupportedDepthFormat(this->physical);
 }
 
-std::vector<vk::SurfaceFormatKHR> ao::vulkan::Device::surfaceFormatKHRs(vk::SurfaceKHR surface) {
-    return this->physical.getSurfaceFormatsKHR(surface);
-}
-
-std::vector<vk::Image> ao::vulkan::Device::swapChainImages(vk::SwapchainKHR swapchain) {
-    return this->logical.getSwapchainImagesKHR(swapchain);
-}
-
 std::pair<vk::Image, vk::DeviceMemory> ao::vulkan::Device::createImage(u32 width, u32 height, u32 mip_levels, u32 array_layers, vk::Format format,
                                                                        vk::ImageType type, vk::ImageTiling tilling, vk::ImageUsageFlags usage_flags,
                                                                        vk::MemoryPropertyFlags memory_flags) {
@@ -183,18 +176,17 @@ void ao::vulkan::Device::processImage(vk::Image image, vk::Format format, vk::Im
     cmd.end();
 
     // Create fence
-    vk::Fence fence = this->logical.createFence(vk::FenceCreateInfo(vk::FenceCreateFlagBits::eSignaled));
-    this->logical.resetFences(fence);
+    vulkan::Fence fence(this->logical);
 
     // Submit command
     this->queues->submit(vk::QueueFlagBits::eGraphics, vk::SubmitInfo().setCommandBufferCount(1).setPCommandBuffers(&cmd), fence);
 
     // Wait fence
-    this->logical.waitForFences(fence, VK_TRUE, (std::numeric_limits<u64>::max)());
+    fence.wait();
 
     // Free command/fence
-    this->logical.destroyFence(fence);
     this->graphics_command_pool->freeCommandBuffers(cmd);
+    fence.destroy();
 }
 
 void ao::vulkan::Device::copyBufferToImage(vk::Buffer buffer, vk::Image image, vk::ArrayProxy<vk::BufferImageCopy const> regions) {
@@ -210,18 +202,17 @@ void ao::vulkan::Device::copyBufferToImage(vk::Buffer buffer, vk::Image image, v
     cmd.end();
 
     // Create fence
-    vk::Fence fence = this->logical.createFence(vk::FenceCreateInfo(vk::FenceCreateFlagBits::eSignaled));
-    this->logical.resetFences(fence);
+    vulkan::Fence fence(this->logical);
 
     // Submit command
     this->queues->submit(vk::QueueFlagBits::eTransfer, vk::SubmitInfo().setCommandBufferCount(1).setPCommandBuffers(&cmd), fence);
 
     // Wait fence
-    this->logical.waitForFences(fence, VK_TRUE, (std::numeric_limits<u64>::max)());
+    fence.wait();
 
     // Free command/fence
-    this->logical.destroyFence(fence);
     this->transfer_command_pool->freeCommandBuffers(cmd);
+    fence.destroy();
 }
 
 u32 ao::vulkan::Device::memoryType(u32 type_bits, vk::MemoryPropertyFlags const properties) const {

@@ -8,7 +8,7 @@
 
 namespace ao::core {
     /**
-     * @brief Extract shared_ptr from a weak_ptr (Throws an exception if	weak_ptr is expired)
+     * @brief Extract shared_ptr from a weak_ptr (Throws an exception if weak_ptr is expired)
      *
      * @tparam T Pointer object type
      * @param ptr Pointer

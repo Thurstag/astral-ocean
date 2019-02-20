@@ -59,7 +59,9 @@ namespace ao::vulkan {
          *
          * @return std::shared_ptr<EngineSettings> Settings
          */
-        std::shared_ptr<EngineSettings> settings() const;
+        std::shared_ptr<EngineSettings> settings() const {
+            return this->settings_;
+        }
 
        protected:
         core::Logger LOGGER = core::Logger::GetInstance<Engine>();
@@ -240,21 +242,27 @@ namespace ao::vulkan {
          *
          * @return std::vector<char const*> Extensions
          */
-        virtual std::vector<char const*> deviceExtensions() const;
+        virtual std::vector<char const*> deviceExtensions() const {
+            return {VK_KHR_SWAPCHAIN_EXTENSION_NAME};
+        }
 
         /**
          * @brief Define device features to enable
          *
          * @return std::vector<vk::PhysicalDeviceFeatures> Features
          */
-        virtual std::vector<vk::PhysicalDeviceFeatures> deviceFeatures() const;
+        virtual std::vector<vk::PhysicalDeviceFeatures> deviceFeatures() const {
+            return {};
+        }
 
         /**
          * @brief Define queue requests
          *
          * @return std::vector<QueueRequest> Requests
          */
-        virtual std::vector<QueueRequest> requestQueues() const;
+        virtual std::vector<QueueRequest> requestQueues() const {
+            return {ao::vulkan::QueueRequest(vk::QueueFlagBits::eGraphics)};
+        }
 
         /**
          * @brief Define validation layers severity
@@ -282,6 +290,8 @@ namespace ao::vulkan {
          * @param devices Devices
          * @return vk::PhysicalDevice Selected device
          */
-        virtual vk::PhysicalDevice selectVkPhysicalDevice(std::vector<vk::PhysicalDevice> const& devices) const;
+        virtual vk::PhysicalDevice selectVkPhysicalDevice(std::vector<vk::PhysicalDevice> const& devices) const {
+            return devices.front();  // First device
+        }
     };
 }  // namespace ao::vulkan

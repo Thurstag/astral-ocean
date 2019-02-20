@@ -52,7 +52,7 @@ namespace ao::core {
         virtual bool remove(Key const& key) = 0;
 
         /**
-         * @brief Object exists
+         * @brief Check if object exists
          *
          * @param key Key
          * @return true Object exists
@@ -67,7 +67,7 @@ namespace ao::core {
         virtual void clear() = 0;
 
         /**
-         * @brief Container's size
+         * @brief Get size
          *
          * @return size_t Size
          */

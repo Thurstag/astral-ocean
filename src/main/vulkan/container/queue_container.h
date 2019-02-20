@@ -12,6 +12,7 @@
 #include <vulkan/vulkan.hpp>
 
 #include "../utilities/queue.h"
+#include "../wrapper/fence.h"
 
 namespace ao::vulkan {
     namespace structs {
@@ -74,13 +75,14 @@ namespace ao::vulkan {
          * @param submits Submissions
          * @param fence Fence
          */
-        void submit(vk::QueueFlagBits flag, vk::ArrayProxy<vk::SubmitInfo const> submits, vk::Fence fence = nullptr);
+        void submit(vk::QueueFlagBits flag, vk::ArrayProxy<vk::SubmitInfo const> submits, Fence fence = Fence());
 
        protected:
         ao::core::Logger LOGGER = ao::core::Logger::GetInstance<QueueContainer>();
 
-        std::map<vk::QueueFlagBits, std::pair<size_t, std::mutex>> cursors;
         std::map<vk::QueueFlagBits, u32> queue_families;
+        std::map<std::string, Fence> fences;
+        vk::Device device;
 
         /**
          * @brief Find a queue that supports {flag}

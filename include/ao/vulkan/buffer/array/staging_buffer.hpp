@@ -5,7 +5,7 @@
 #pragma once
 
 #include "../../exception/buffer_unitialized.h"
-#include "../staging_buffer.h"
+#include "../staging_buffer.hpp"
 #include "basic_buffer.hpp"
 
 namespace ao::vulkan {
@@ -15,7 +15,7 @@ namespace ao::vulkan {
      * @tparam T Buffer type
      */
     template<class T>
-    class StagingDynamicArrayBuffer : public virtual DynamicArrayBuffer<T>, public virtual StagingBuffer {
+    class StagingDynamicArrayBuffer : public DynamicArrayBuffer<T>, public StagingBuffer<BasicDynamicArrayBuffer<T>> {
        public:
         /**
          * @brief Construct a new StagingDynamicArrayBuffer object
@@ -25,7 +25,7 @@ namespace ao::vulkan {
          * @param usage_flags usage flags
          * @param memory_barrier Enable memory barrier
          */
-        StagingDynamicArrayBuffer(size_t count, std::weak_ptr<Device> device,
+        StagingDynamicArrayBuffer(size_t count, std::shared_ptr<Device> device,
                                   vk::CommandBufferUsageFlags usage_flags = vk::CommandBufferUsageFlagBits::eSimultaneousUse,
                                   bool memory_barrier = false);
 
@@ -55,37 +55,33 @@ namespace ao::vulkan {
     };
 
     template<class T>
-    StagingDynamicArrayBuffer<T>::StagingDynamicArrayBuffer(size_t count, std::weak_ptr<Device> device, vk::CommandBufferUsageFlags usage_flags,
+    StagingDynamicArrayBuffer<T>::StagingDynamicArrayBuffer(size_t count, std::shared_ptr<Device> device, vk::CommandBufferUsageFlags usage_flags,
                                                             bool memory_barrier)
-        : DynamicArrayBuffer<T>(count, device), StagingBuffer(device, usage_flags, memory_barrier) {}
+        : DynamicArrayBuffer<T>(count, device), StagingBuffer<BasicDynamicArrayBuffer<T>>(device, usage_flags, memory_barrier), Buffer(device) {}
 
     template<class T>
     StagingDynamicArrayBuffer<T>* StagingDynamicArrayBuffer<T>::init(vk::DeviceSize size, std::optional<vk::BufferUsageFlags> usage_flags) {
         if (this->hasBuffer()) {
-            StagingBuffer::free();
+            StagingBuffer<BasicDynamicArrayBuffer<T>>::free();
         }
 
         // Init buffer in host's memory
-        this->host_buffer = std::shared_ptr<DynamicArrayBuffer<T>>(
-            (new BasicDynamicArrayBuffer<T>(this->count, StagingBuffer::device))
-                ->init(vk::BufferUsageFlagBits::eTransferSrc, vk::SharingMode::eExclusive,
-                       vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent, size));
+        this->host_buffer = std::make_unique<BasicDynamicArrayBuffer<T>>(this->count, Buffer::device);
+        this->host_buffer->init(vk::BufferUsageFlagBits::eTransferSrc, vk::SharingMode::eExclusive,
+                                vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent, size);
 
         // Init buffer in device's memory
-        this->device_buffer = std::shared_ptr<DynamicArrayBuffer<T>>(
-            (new BasicDynamicArrayBuffer<T>(this->count, StagingBuffer::device))
-                ->init(usage_flags ? vk::BufferUsageFlagBits::eTransferDst | *usage_flags : vk::BufferUsageFlagBits::eTransferDst,
-                       vk::SharingMode::eExclusive, vk::MemoryPropertyFlagBits::eDeviceLocal, size));
-
-        auto _device = ao::core::shared(StagingBuffer::device);
+        this->device_buffer = std::make_unique<BasicDynamicArrayBuffer<T>>(this->count, Buffer::device);
+        this->device_buffer->init(usage_flags ? vk::BufferUsageFlagBits::eTransferDst | *usage_flags : vk::BufferUsageFlagBits::eTransferDst,
+                                  vk::SharingMode::eExclusive, vk::MemoryPropertyFlagBits::eDeviceLocal, size);
 
         // Create command buffer
         if (!this->command_buffer) {
-            if (!_device->transfer_command_pool) {
+            if (!Buffer::device->transfer_command_pool) {
                 throw ao::core::Exception("Transfer command pool is disabled, request a graphics queue to enable it");
             }
 
-            this->command_buffer = _device->transfer_command_pool->allocateCommandBuffers(vk::CommandBufferLevel::ePrimary, 1).front();
+            this->command_buffer = Buffer::device->transfer_command_pool->allocateCommandBuffers(vk::CommandBufferLevel::ePrimary, 1).front();
         }
         return this;
     }
@@ -130,32 +126,32 @@ namespace ao::vulkan {
 
     template<class T>
     bool StagingDynamicArrayBuffer<T>::hasBuffer() const {
-        return StagingBuffer::hasBuffer();
+        return StagingBuffer<BasicDynamicArrayBuffer<T>>::hasBuffer();
     }
 
     template<class T>
     vk::Buffer StagingDynamicArrayBuffer<T>::buffer() {
-        return StagingBuffer::buffer();
+        return StagingBuffer<BasicDynamicArrayBuffer<T>>::buffer();
     }
 
     template<class T>
     vk::DeviceSize StagingDynamicArrayBuffer<T>::size() const {
-        return StagingBuffer::size();
+        return StagingBuffer<BasicDynamicArrayBuffer<T>>::size();
     }
 
     template<class T>
     vk::DeviceSize StagingDynamicArrayBuffer<T>::offset(size_t index) const {
-        return StagingBuffer::offset(index);
+        return StagingBuffer<BasicDynamicArrayBuffer<T>>::offset(index);
     }
 
     template<class T>
     Buffer* StagingDynamicArrayBuffer<T>::map() {
-        return StagingBuffer::map();
+        return StagingBuffer<BasicDynamicArrayBuffer<T>>::map();
     }
 
     template<class T>
     void StagingDynamicArrayBuffer<T>::free() {
-        return StagingBuffer::free();
+        return StagingBuffer<BasicDynamicArrayBuffer<T>>::free();
     }
 
     /**
@@ -165,7 +161,7 @@ namespace ao::vulkan {
      * @tparam N Array's size
      */
     template<class T, size_t N>
-    class StagingArrayBuffer : public virtual ArrayBuffer<T, N>, public StagingBuffer {
+    class StagingArrayBuffer : public ArrayBuffer<T, N>, public StagingBuffer<BasicArrayBuffer<T, N>> {
        public:
         /**
          * @brief Construct a new StagingArrayBuffer object
@@ -174,7 +170,7 @@ namespace ao::vulkan {
          * @param usage_flags Usage flags
          * @param memory_barrier Enable memory barrier
          */
-        StagingArrayBuffer(std::weak_ptr<Device> device, vk::CommandBufferUsageFlags usage_flags = vk::CommandBufferUsageFlagBits::eSimultaneousUse,
+        StagingArrayBuffer(std::shared_ptr<Device> device, vk::CommandBufferUsageFlags usage_flags = vk::CommandBufferUsageFlagBits::eSimultaneousUse,
                            bool memory_barrier = false);
 
         /**
@@ -203,36 +199,32 @@ namespace ao::vulkan {
     };
 
     template<class T, size_t N>
-    StagingArrayBuffer<T, N>::StagingArrayBuffer(std::weak_ptr<Device> device, vk::CommandBufferUsageFlags usage_flags, bool memory_barrier)
-        : ArrayBuffer<T, N>(device), StagingBuffer(device, usage_flags, memory_barrier) {}
+    StagingArrayBuffer<T, N>::StagingArrayBuffer(std::shared_ptr<Device> device, vk::CommandBufferUsageFlags usage_flags, bool memory_barrier)
+        : ArrayBuffer<T, N>(device), StagingBuffer<BasicArrayBuffer<T, N>>(device, usage_flags, memory_barrier), Buffer(device) {}
 
     template<class T, size_t N>
     StagingArrayBuffer<T, N>* StagingArrayBuffer<T, N>::init(vk::DeviceSize size, std::optional<vk::BufferUsageFlags> usage_flags) {
         if (this->hasBuffer()) {
-            StagingBuffer::free();
+            StagingBuffer<BasicArrayBuffer<T, N>>::free();
         }
 
         // Init buffer in host's memory
-        this->host_buffer = std::shared_ptr<ArrayBuffer<T, N>>(
-            (new BasicArrayBuffer<T, N>(StagingBuffer::device))
-                ->init(vk::BufferUsageFlagBits::eTransferSrc, vk::SharingMode::eExclusive,
-                       vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent, size));
+        this->host_buffer = std::make_unique<BasicArrayBuffer<T, N>>(Buffer::device);
+        this->host_buffer->init(vk::BufferUsageFlagBits::eTransferSrc, vk::SharingMode::eExclusive,
+                                vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent, size);
 
         // Init buffer in device's memory
-        this->device_buffer = std::shared_ptr<ArrayBuffer<T, N>>(
-            (new BasicArrayBuffer<T, N>(StagingBuffer::device))
-                ->init(usage_flags ? vk::BufferUsageFlagBits::eTransferDst | *usage_flags : vk::BufferUsageFlagBits::eTransferDst,
-                       vk::SharingMode::eExclusive, vk::MemoryPropertyFlagBits::eDeviceLocal, size));
-
-        auto _device = ao::core::shared(StagingBuffer::device);
+        this->device_buffer = std::make_unique<BasicArrayBuffer<T, N>>(Buffer::device);
+        this->device_buffer->init(usage_flags ? vk::BufferUsageFlagBits::eTransferDst | *usage_flags : vk::BufferUsageFlagBits::eTransferDst,
+                                  vk::SharingMode::eExclusive, vk::MemoryPropertyFlagBits::eDeviceLocal, size);
 
         // Create command buffer
         if (!this->command_buffer) {
-            if (!_device->transfer_command_pool) {
+            if (!Buffer::device->transfer_command_pool) {
                 throw ao::core::Exception("Transfer command pool is disabled, request a graphics queue to enable it");
             }
 
-            this->command_buffer = _device->transfer_command_pool->allocateCommandBuffers(vk::CommandBufferLevel::ePrimary, 1).front();
+            this->command_buffer = Buffer::device->transfer_command_pool->allocateCommandBuffers(vk::CommandBufferLevel::ePrimary, 1).front();
         }
         return this;
     }
@@ -277,31 +269,31 @@ namespace ao::vulkan {
 
     template<class T, size_t N>
     bool StagingArrayBuffer<T, N>::hasBuffer() const {
-        return StagingBuffer::hasBuffer();
+        return StagingBuffer<BasicArrayBuffer<T, N>>::hasBuffer();
     }
 
     template<class T, size_t N>
     vk::Buffer StagingArrayBuffer<T, N>::buffer() {
-        return StagingBuffer::buffer();
+        return StagingBuffer<BasicArrayBuffer<T, N>>::buffer();
     }
 
     template<class T, size_t N>
     vk::DeviceSize StagingArrayBuffer<T, N>::size() const {
-        return StagingBuffer::size();
+        return StagingBuffer<BasicArrayBuffer<T, N>>::size();
     }
 
     template<class T, size_t N>
     vk::DeviceSize StagingArrayBuffer<T, N>::offset(size_t index) const {
-        return StagingBuffer::offset(index);
+        return StagingBuffer<BasicArrayBuffer<T, N>>::offset(index);
     }
 
     template<class T, size_t N>
     Buffer* StagingArrayBuffer<T, N>::map() {
-        return StagingBuffer::map();
+        return StagingBuffer<BasicArrayBuffer<T, N>>::map();
     }
 
     template<class T, size_t N>
     void StagingArrayBuffer<T, N>::free() {
-        return StagingBuffer::free();
+        return StagingBuffer<BasicArrayBuffer<T, N>>::free();
     }
 }  // namespace ao::vulkan

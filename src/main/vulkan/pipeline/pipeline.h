@@ -28,7 +28,7 @@ namespace ao::vulkan {
          * @param pipeline Pipeline
          * @param cache_create_info Pipeline cache create info
          */
-        Pipeline(std::weak_ptr<Device> device, std::shared_ptr<PipelineLayout> layout, vk::Pipeline pipeline,
+        Pipeline(std::shared_ptr<vk::Device> device, std::shared_ptr<PipelineLayout> layout, vk::Pipeline pipeline,
                  vk::PipelineCacheCreateInfo cache_create_info);
 
         /**
@@ -75,7 +75,7 @@ namespace ao::vulkan {
 
        protected:
         std::optional<std::function<void(vk::PipelineCache)>> before_cache_destruction;
-        std::weak_ptr<Device> device;
+        std::shared_ptr<vk::Device> device;
 
         std::shared_ptr<PipelineLayout> layout_;
         std::vector<DescriptorPool> pools_;

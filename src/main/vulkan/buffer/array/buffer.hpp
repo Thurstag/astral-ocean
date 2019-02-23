@@ -15,7 +15,7 @@ namespace ao::vulkan {
      * @tparam T Buffer type
      */
     template<class T>
-    class DynamicArrayBuffer : public Buffer {
+    class DynamicArrayBuffer : public virtual Buffer {
        public:
         /**
          * @brief Construct a new DynamicArrayBuffer object
@@ -23,7 +23,7 @@ namespace ao::vulkan {
          * @param count Count
          * @param device Device
          */
-        explicit DynamicArrayBuffer(size_t count, std::weak_ptr<Device> device);
+        explicit DynamicArrayBuffer(size_t count, std::shared_ptr<Device> device);
 
         /**
          * @brief Destroy the DynamicArrayBuffer object
@@ -63,7 +63,7 @@ namespace ao::vulkan {
     };
 
     template<class T>
-    DynamicArrayBuffer<T>::DynamicArrayBuffer(size_t count, std::weak_ptr<Device> device) : Buffer(device), count(count), has_buffer(false) {}
+    DynamicArrayBuffer<T>::DynamicArrayBuffer(size_t count, std::shared_ptr<Device> device) : Buffer(device), count(count), has_buffer(false) {}
 
     template<class T>
     size_t DynamicArrayBuffer<T>::capacity() const {
@@ -82,14 +82,14 @@ namespace ao::vulkan {
      * @tparam N Array's size
      */
     template<class T, size_t N>
-    class ArrayBuffer : public Buffer {
+    class ArrayBuffer : public virtual Buffer {
        public:
         /**
          * @brief Construct a new ArrayBuffer object
          *
          * @param device Device
          */
-        ArrayBuffer(std::weak_ptr<Device> device);
+        ArrayBuffer(std::shared_ptr<Device> device);
 
         /**
          * @brief Destroy the ArrayBuffer object
@@ -121,7 +121,7 @@ namespace ao::vulkan {
     };
 
     template<class T, size_t N>
-    ArrayBuffer<T, N>::ArrayBuffer(std::weak_ptr<Device> device) : Buffer(device), has_buffer(false) {}
+    ArrayBuffer<T, N>::ArrayBuffer(std::shared_ptr<Device> device) : Buffer(device), has_buffer(false) {}
 
     template<class T, size_t N>
     bool ArrayBuffer<T, N>::hasBuffer() const {

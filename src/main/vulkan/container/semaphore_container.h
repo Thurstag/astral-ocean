@@ -9,8 +9,6 @@
 #include <ao/core/memory/map_container.hpp>
 #include <vulkan/vulkan.hpp>
 
-#include "../wrapper/device.h"
-
 namespace ao::vulkan {
     namespace structs {
         /**
@@ -54,7 +52,7 @@ namespace ao::vulkan {
          *
          * @param device Device
          */
-        explicit SemaphoreContainer(std::weak_ptr<Device> device) : device(device) {}
+        explicit SemaphoreContainer(std::shared_ptr<vk::Device> device) : device(device) {}
 
         /**
          * @brief Destroy the SemaphoreContainer object
@@ -65,6 +63,6 @@ namespace ao::vulkan {
         virtual void clear() override;
 
        protected:
-        std::weak_ptr<Device> device;
+        std::shared_ptr<vk::Device> device;
     };
 }  // namespace ao::vulkan

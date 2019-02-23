@@ -30,7 +30,7 @@ namespace ao::test {
         // Check status
         ASSERT_TRUE(fence);
         ASSERT_EQ(ao::vulkan::FenceStatus::eUnsignaled, fence.status());
-        ASSERT_EQ(vk::Result::eNotReady, instance.device->logical.getFenceStatus(fence));
+        ASSERT_EQ(vk::Result::eNotReady, instance.device->logical->getFenceStatus(fence));
     }
 
     TEST(Fence, Copy) {
@@ -50,7 +50,7 @@ namespace ao::test {
         // Check status
         ASSERT_TRUE(fence);
         ASSERT_EQ(ao::vulkan::FenceStatus::eUnsignaled, fence.status());
-        ASSERT_EQ(vk::Result::eNotReady, instance.device->logical.getFenceStatus(fence));
+        ASSERT_EQ(vk::Result::eNotReady, instance.device->logical->getFenceStatus(fence));
     }
 
     TEST(Fence, Destroy) {

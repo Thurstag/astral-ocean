@@ -22,7 +22,7 @@ namespace ao::vulkan {
          * @param descriptor_layouts Descriptor layouts
          * @param push_constants Push Constants
          */
-        PipelineLayout(std::weak_ptr<Device> device, std::vector<vk::DescriptorSetLayout> descriptor_layouts = {},
+        PipelineLayout(std::shared_ptr<vk::Device> device, std::vector<vk::DescriptorSetLayout> descriptor_layouts = {},
                        std::vector<vk::PushConstantRange> push_constants = {});
 
         /**
@@ -59,7 +59,7 @@ namespace ao::vulkan {
         }
 
        protected:
-        std::weak_ptr<Device> device;
+        std::shared_ptr<vk::Device> device;
 
         std::vector<vk::DescriptorSetLayout> descriptor_layouts;
         std::vector<vk::PushConstantRange> push_constants;

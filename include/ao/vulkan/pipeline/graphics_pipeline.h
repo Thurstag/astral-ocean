@@ -29,7 +29,7 @@ namespace ao::vulkan {
          * @param subpass Subpass
          * @param base_pipeline Base pipeline
          */
-        GraphicsPipeline(std::weak_ptr<Device> device, std::shared_ptr<PipelineLayout> layout, vk::RenderPass render_pass,
+        GraphicsPipeline(std::shared_ptr<vk::Device> device, std::shared_ptr<PipelineLayout> layout, vk::RenderPass render_pass,
                          vk::ArrayProxy<vk::PipelineShaderStageCreateInfo> shader_stages,
                          std::optional<vk::PipelineVertexInputStateCreateInfo> vertex_input_create_info = std::nullopt,
                          std::optional<vk::PipelineInputAssemblyStateCreateInfo> input_assembly_create_info = std::nullopt,

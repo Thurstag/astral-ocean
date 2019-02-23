@@ -5,7 +5,7 @@
 #pragma once
 
 #include "../../exception/buffer_unitialized.h"
-#include "../staging_buffer.h"
+#include "../staging_buffer.hpp"
 #include "basic_buffer.hpp"
 
 namespace ao::vulkan {
@@ -15,7 +15,7 @@ namespace ao::vulkan {
      * @tparam T
      */
     template<class... T>
-    class StagingTupleBuffer : public virtual TupleBuffer<T...>, public virtual StagingBuffer {
+    class StagingTupleBuffer : public TupleBuffer<T...>, public StagingBuffer<BasicTupleBuffer<T...>> {
        public:
         /**
          * @brief Construct a new StagingTupleBuffer object
@@ -24,7 +24,7 @@ namespace ao::vulkan {
          * @param usage_flags Usage flags
          * @param memory_barrier Enable memory barrier
          */
-        StagingTupleBuffer(std::weak_ptr<Device> device, vk::CommandBufferUsageFlags usage_flags = vk::CommandBufferUsageFlagBits::eSimultaneousUse,
+        StagingTupleBuffer(std::shared_ptr<Device> device, vk::CommandBufferUsageFlags usage_flags = vk::CommandBufferUsageFlagBits::eSimultaneousUse,
                            bool memory_barrier = false);
 
         /**
@@ -54,37 +54,33 @@ namespace ao::vulkan {
     };
 
     template<class... T>
-    StagingTupleBuffer<T...>::StagingTupleBuffer(std::weak_ptr<Device> device, vk::CommandBufferUsageFlags usage_flags, bool memory_barrier)
-        : TupleBuffer<T...>(device), StagingBuffer(device, usage_flags, memory_barrier) {}
+    StagingTupleBuffer<T...>::StagingTupleBuffer(std::shared_ptr<Device> device, vk::CommandBufferUsageFlags usage_flags, bool memory_barrier)
+        : TupleBuffer<T...>(device), StagingBuffer<BasicTupleBuffer<T...>>(device, usage_flags, memory_barrier), Buffer(device) {}
 
     template<class... T>
     StagingTupleBuffer<T...>* StagingTupleBuffer<T...>::init(std::initializer_list<vk::DeviceSize> const& sizes,
                                                              std::optional<vk::BufferUsageFlags> usage_flags) {
         if (this->hasBuffer()) {
-            StagingBuffer::free();
+            StagingBuffer<BasicTupleBuffer<T...>>::free();
         }
 
         // Init buffer in host's memory
-        this->host_buffer = std::shared_ptr<TupleBuffer<T...>>(
-            (new BasicTupleBuffer<T...>(StagingBuffer::device))
-                ->init(vk::BufferUsageFlagBits::eTransferSrc, vk::SharingMode::eExclusive,
-                       vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent, sizes));
+        this->host_buffer = std::make_unique<BasicTupleBuffer<T...>>(Buffer::device);
+        this->host_buffer->init(vk::BufferUsageFlagBits::eTransferSrc, vk::SharingMode::eExclusive,
+                                vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent, sizes);
 
         // Init buffer in device's memory
-        this->device_buffer = std::shared_ptr<TupleBuffer<T...>>(
-            (new BasicTupleBuffer<T...>(StagingBuffer::device))
-                ->init(usage_flags ? vk::BufferUsageFlagBits::eTransferDst | *usage_flags : vk::BufferUsageFlagBits::eTransferDst,
-                       vk::SharingMode::eExclusive, vk::MemoryPropertyFlagBits::eDeviceLocal, sizes));
-
-        auto _device = ao::core::shared(StagingBuffer::device);
+        this->device_buffer = std::make_unique<BasicTupleBuffer<T...>>(Buffer::device);
+        this->device_buffer->init(usage_flags ? vk::BufferUsageFlagBits::eTransferDst | *usage_flags : vk::BufferUsageFlagBits::eTransferDst,
+                                  vk::SharingMode::eExclusive, vk::MemoryPropertyFlagBits::eDeviceLocal, sizes);
 
         // Create command buffer
         if (!this->command_buffer) {
-            if (!_device->transfer_command_pool) {
+            if (!Buffer::device->transfer_command_pool) {
                 throw ao::core::Exception("Transfer command pool is disabled, request a graphics queue to enable it");
             }
 
-            this->command_buffer = _device->transfer_command_pool->allocateCommandBuffers(vk::CommandBufferLevel::ePrimary, 1).front();
+            this->command_buffer = Buffer::device->transfer_command_pool->allocateCommandBuffers(vk::CommandBufferLevel::ePrimary, 1).front();
         }
         return this;
     }
@@ -129,31 +125,31 @@ namespace ao::vulkan {
 
     template<class... T>
     bool StagingTupleBuffer<T...>::hasBuffer() const {
-        return StagingBuffer::hasBuffer();
+        return StagingBuffer<BasicTupleBuffer<T...>>::hasBuffer();
     }
 
     template<class... T>
     vk::Buffer StagingTupleBuffer<T...>::buffer() {
-        return StagingBuffer::buffer();
+        return StagingBuffer<BasicTupleBuffer<T...>>::buffer();
     }
 
     template<class... T>
     vk::DeviceSize StagingTupleBuffer<T...>::size() const {
-        return StagingBuffer::size();
+        return StagingBuffer<BasicTupleBuffer<T...>>::size();
     }
 
     template<class... T>
     vk::DeviceSize StagingTupleBuffer<T...>::offset(size_t index) const {
-        return StagingBuffer::offset(index);
+        return StagingBuffer<BasicTupleBuffer<T...>>::offset(index);
     }
 
     template<class... T>
     Buffer* StagingTupleBuffer<T...>::map() {
-        return StagingBuffer::map();
+        return StagingBuffer<BasicTupleBuffer<T...>>::map();
     }
 
     template<class... T>
     void StagingTupleBuffer<T...>::free() {
-        return StagingBuffer::free();
+        return StagingBuffer<BasicTupleBuffer<T...>>::free();
     }
 }  // namespace ao::vulkan

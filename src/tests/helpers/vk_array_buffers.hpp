@@ -16,7 +16,7 @@ namespace ao::test {
          *
          * @param device Device
          */
-        explicit TestBasicArrayBuffer(std::weak_ptr<vulkan::Device> device);
+        explicit TestBasicArrayBuffer(std::shared_ptr<vulkan::Device> device);
 
         /**
          * @brief Expose mapper member
@@ -27,7 +27,8 @@ namespace ao::test {
     };
 
     template<class T, size_t N>
-    TestBasicArrayBuffer<T, N>::TestBasicArrayBuffer(std::weak_ptr<vulkan::Device> device) : vulkan::BasicArrayBuffer<T, N>(device) {}
+    TestBasicArrayBuffer<T, N>::TestBasicArrayBuffer(std::shared_ptr<vulkan::Device> device)
+        : vulkan::BasicArrayBuffer<T, N>(device), vulkan::Buffer(device) {}
 
     template<class T, size_t N>
     void* TestBasicArrayBuffer<T, N>::getMapper() {
@@ -43,7 +44,7 @@ namespace ao::test {
          * @param count Count
          * @param device Device
          */
-        TestBasicDynamicArrayBuffer(size_t count, std::weak_ptr<vulkan::Device> device);
+        TestBasicDynamicArrayBuffer(size_t count, std::shared_ptr<vulkan::Device> device);
 
         /**
          * @brief Expose mapper member
@@ -54,8 +55,8 @@ namespace ao::test {
     };
 
     template<class T>
-    TestBasicDynamicArrayBuffer<T>::TestBasicDynamicArrayBuffer(size_t count, std::weak_ptr<vulkan::Device> device)
-        : vulkan::BasicDynamicArrayBuffer<T>(count, device) {}
+    TestBasicDynamicArrayBuffer<T>::TestBasicDynamicArrayBuffer(size_t count, std::shared_ptr<vulkan::Device> device)
+        : vulkan::BasicDynamicArrayBuffer<T>(count, device), vulkan::Buffer(device) {}
 
     template<class T>
     void* TestBasicDynamicArrayBuffer<T>::getMapper() {
@@ -71,7 +72,7 @@ namespace ao::test {
          * @param count
          * @param device
          */
-        TestStagingDynamicArrayBuffer(size_t count, std::weak_ptr<vulkan::Device> device);
+        TestStagingDynamicArrayBuffer(size_t count, std::shared_ptr<vulkan::Device> device);
 
         /**
          * @brief Expose mapper member
@@ -82,10 +83,8 @@ namespace ao::test {
     };
 
     template<class T>
-    TestStagingDynamicArrayBuffer<T>::TestStagingDynamicArrayBuffer(size_t count, std::weak_ptr<vulkan::Device> device)
-        : vulkan::StagingDynamicArrayBuffer<T>(count, device, vk::CommandBufferUsageFlagBits::eOneTimeSubmit),
-          vulkan::DynamicArrayBuffer<T>(count, device),
-          vulkan::StagingBuffer(device, vk::CommandBufferUsageFlagBits::eOneTimeSubmit) {}
+    TestStagingDynamicArrayBuffer<T>::TestStagingDynamicArrayBuffer(size_t count, std::shared_ptr<vulkan::Device> device)
+        : vulkan::StagingDynamicArrayBuffer<T>(count, device, vk::CommandBufferUsageFlagBits::eOneTimeSubmit), vulkan::Buffer(device) {}
 
     template<class T>
     void* TestStagingDynamicArrayBuffer<T>::getMapper() {
@@ -103,7 +102,7 @@ namespace ao::test {
          *
          * @param device Device
          */
-        explicit TestStagingArrayBuffer(std::weak_ptr<vulkan::Device> device);
+        explicit TestStagingArrayBuffer(std::shared_ptr<vulkan::Device> device);
 
         /**
          * @brief Expose mapper member
@@ -114,8 +113,8 @@ namespace ao::test {
     };
 
     template<class T, size_t N>
-    TestStagingArrayBuffer<T, N>::TestStagingArrayBuffer(std::weak_ptr<vulkan::Device> device)
-        : vulkan::StagingArrayBuffer<T, N>(device, vk::CommandBufferUsageFlagBits::eOneTimeSubmit), vulkan::ArrayBuffer<T, N>(device) {}
+    TestStagingArrayBuffer<T, N>::TestStagingArrayBuffer(std::shared_ptr<vulkan::Device> device)
+        : vulkan::StagingArrayBuffer<T, N>(device, vk::CommandBufferUsageFlagBits::eOneTimeSubmit), vulkan::Buffer(device) {}
 
     template<class T, size_t N>
     void* TestStagingArrayBuffer<T, N>::getMapper() {

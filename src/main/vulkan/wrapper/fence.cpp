@@ -6,12 +6,13 @@
 
 #include <ao/core/exception/exception.h>
 
-ao::vulkan::Fence::Fence(vk::Device device) : device(device), status_(std::make_shared<ao::vulkan::FenceStatus>(ao::vulkan::FenceStatus::eUnknown)) {
+ao::vulkan::Fence::Fence(std::shared_ptr<vk::Device> device)
+    : device(device), status_(std::make_shared<ao::vulkan::FenceStatus>(ao::vulkan::FenceStatus::eUnknown)) {
     // Create fence
-    this->fence = std::make_shared<vk::Fence>(this->device.createFence(vk::FenceCreateInfo()));
+    this->fence = std::make_shared<vk::Fence>(this->device->createFence(vk::FenceCreateInfo()));
 
     // Reset it
-    this->device.resetFences(*this->fence);
+    this->device->resetFences(*this->fence);
 }
 
 ao::vulkan::Fence::~Fence() {
@@ -38,7 +39,7 @@ ao::vulkan::FenceStatus ao::vulkan::Fence::ToStatus(vk::Result result) {
 
 ao::vulkan::FenceStatus ao::vulkan::Fence::status() const {
     if (*this->status_ == ao::vulkan::FenceStatus::eUnknown) {
-        return ao::vulkan::Fence::ToStatus(this->device.getFenceStatus(*this->fence));
+        return ao::vulkan::Fence::ToStatus(this->device->getFenceStatus(*this->fence));
     }
     return *this->status_;
 }
@@ -46,20 +47,20 @@ ao::vulkan::FenceStatus ao::vulkan::Fence::status() const {
 void ao::vulkan::Fence::destroy() {
     (this->assert)();
 
-    this->device.destroyFence(*this->fence);
+    this->device->destroyFence(*this->fence);
     *this->status_ = ao::vulkan::FenceStatus::eDestroyed;
 }
 
 void ao::vulkan::Fence::reset() {
     (this->assert)();
 
-    this->device.resetFences(*this->fence);
+    this->device->resetFences(*this->fence);
 }
 
 void ao::vulkan::Fence::wait(u64 timeout) const {
     (this->assert)();
 
-    this->device.waitForFences(*this->fence, VK_TRUE, timeout);
+    this->device->waitForFences(*this->fence, VK_TRUE, timeout);
 }
 
 void(ao::vulkan::Fence::assert)() const {

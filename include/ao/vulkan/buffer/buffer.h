@@ -7,7 +7,6 @@
 #include <memory>
 
 #include <ao/core/logger/logger.h>
-#include <ao/core/utilities/pointers.h>
 
 #include "../wrapper/device.h"
 
@@ -23,7 +22,7 @@ namespace ao::vulkan {
          *
          * @param device Device
          */
-        explicit Buffer(std::weak_ptr<Device> device);
+        explicit Buffer(std::shared_ptr<Device> device);
 
         /**
          * @brief Destroy the Buffer object
@@ -81,7 +80,7 @@ namespace ao::vulkan {
          * @return size_t Size with aligment
          */
         size_t calculateUBOAligmentSize(size_t size) const {
-            return ao::vulkan::Buffer::CalculateUBOAligmentSize(ao::core::shared(this->device)->physical, size);
+            return ao::vulkan::Buffer::CalculateUBOAligmentSize(this->device->physical, size);
         }
 
         /**
@@ -95,6 +94,6 @@ namespace ao::vulkan {
 
        protected:
         core::Logger LOGGER = core::Logger::GetInstance<Buffer>();
-        std::weak_ptr<Device> device;
+        std::shared_ptr<Device> device;
     };
 }  // namespace ao::vulkan

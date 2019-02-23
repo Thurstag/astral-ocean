@@ -13,14 +13,14 @@ namespace ao::vulkan {
      * @tparam T Buffer types
      */
     template<class... T>
-    class TupleBuffer : public Buffer {
+    class TupleBuffer : public virtual Buffer {
        public:
         /**
          * @brief Construct a new TupleBuffer object
          *
          * @param device Device
          */
-        explicit TupleBuffer(std::weak_ptr<Device> device);
+        explicit TupleBuffer(std::shared_ptr<Device> device);
 
         /**
          * @brief Destroy the TupleBuffer object
@@ -52,7 +52,7 @@ namespace ao::vulkan {
     };
 
     template<class... T>
-    TupleBuffer<T...>::TupleBuffer(std::weak_ptr<Device> device) : Buffer(device), has_buffer(false) {}
+    TupleBuffer<T...>::TupleBuffer(std::shared_ptr<Device> device) : Buffer(device), has_buffer(false) {}
 
     template<class... T>
     bool TupleBuffer<T...>::hasBuffer() const {

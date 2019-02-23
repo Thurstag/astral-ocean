@@ -31,7 +31,7 @@ namespace ao::vulkan {
          *
          * @param device Device
          */
-        explicit Fence(vk::Device device);
+        explicit Fence(std::shared_ptr<vk::Device> device);
 
         /**
          * @brief Destroy the Fence object
@@ -96,7 +96,7 @@ namespace ao::vulkan {
         std::shared_ptr<FenceStatus> status_;
         std::shared_ptr<vk::Fence> fence;
 
-        vk::Device device;
+        std::shared_ptr<vk::Device> device;
 
         /**
          * @brief Assert fence existence

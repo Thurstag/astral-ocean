@@ -17,7 +17,7 @@ namespace ao::test {
          *
          * @param device
          */
-        explicit TestBasicTupleBuffer(std::weak_ptr<vulkan::Device> device);
+        explicit TestBasicTupleBuffer(std::shared_ptr<vulkan::Device> device);
 
         /**
          * @brief Expose mapper member
@@ -29,7 +29,8 @@ namespace ao::test {
     };
 
     template<class... T>
-    TestBasicTupleBuffer<T...>::TestBasicTupleBuffer(std::weak_ptr<vulkan::Device> device) : vulkan::BasicTupleBuffer<T...>(device) {}
+    TestBasicTupleBuffer<T...>::TestBasicTupleBuffer(std::shared_ptr<vulkan::Device> device)
+        : vulkan::BasicTupleBuffer<T...>(device), vulkan::Buffer(device) {}
 
     template<class... T>
     void* TestBasicTupleBuffer<T...>::mapper(size_t index) {
@@ -44,7 +45,7 @@ namespace ao::test {
          *
          * @param device
          */
-        explicit TestStagingTupleBuffer(std::weak_ptr<vulkan::Device> device);
+        explicit TestStagingTupleBuffer(std::shared_ptr<vulkan::Device> device);
 
         /**
          * @brief Expose mapper member
@@ -56,10 +57,8 @@ namespace ao::test {
     };
 
     template<class... T>
-    TestStagingTupleBuffer<T...>::TestStagingTupleBuffer(std::weak_ptr<vulkan::Device> device)
-        : vulkan::StagingTupleBuffer<T...>(device, vk::CommandBufferUsageFlagBits::eOneTimeSubmit),
-          vulkan::TupleBuffer<T...>(device),
-          vulkan::StagingBuffer(device, vk::CommandBufferUsageFlagBits::eOneTimeSubmit) {}
+    TestStagingTupleBuffer<T...>::TestStagingTupleBuffer(std::shared_ptr<vulkan::Device> device)
+        : vulkan::StagingTupleBuffer<T...>(device, vk::CommandBufferUsageFlagBits::eOneTimeSubmit), vulkan::Buffer(device) {}
 
     template<class... T>
     void* TestStagingTupleBuffer<T...>::mapper(size_t index) {

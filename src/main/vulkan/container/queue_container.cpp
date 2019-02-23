@@ -9,7 +9,7 @@
 #include <ao/core/exception/exception.h>
 #include <fmt/format.h>
 
-ao::vulkan::QueueContainer::QueueContainer(vk::Device device, std::vector<QueueCreateInfo> const& queue_create_info,
+ao::vulkan::QueueContainer::QueueContainer(std::shared_ptr<vk::Device> device, std::vector<QueueCreateInfo> const& queue_create_info,
                                            std::vector<vk::QueueFamilyProperties> const& queue_families)
     : device(device) {
     // Build queue map
@@ -19,7 +19,7 @@ ao::vulkan::QueueContainer::QueueContainer(vk::Device device, std::vector<QueueC
         // Primary queues
         for (u32 i = 0; i < create_info.request.primary_count; i++) {
             this->map[fmt::format("{}{}", vk::to_string(create_info.request.flag), j == 0 ? "" : fmt::format("-{}", j + 1))] =
-                ao::vulkan::structs::Queue(device.getQueue(create_info.family_index, create_info.start_index + j), create_info.family_index,
+                ao::vulkan::structs::Queue(device->getQueue(create_info.family_index, create_info.start_index + j), create_info.family_index,
                                            ao::vulkan::QueueLevel::ePrimary, queue_families[create_info.family_index].queueFlags);
 
             j++;
@@ -28,7 +28,7 @@ ao::vulkan::QueueContainer::QueueContainer(vk::Device device, std::vector<QueueC
         // Secondary queues
         for (u32 i = 0; i < create_info.request.secondary_count; i++) {
             this->map[fmt::format("{}{}", vk::to_string(create_info.request.flag), j == 0 ? "" : fmt::format("-{}", j + 1))] =
-                ao::vulkan::structs::Queue(device.getQueue(create_info.family_index, create_info.start_index + j), create_info.family_index,
+                ao::vulkan::structs::Queue(device->getQueue(create_info.family_index, create_info.start_index + j), create_info.family_index,
                                            ao::vulkan::QueueLevel::eSecondary, queue_families[create_info.family_index].queueFlags);
             j++;
         }
@@ -79,7 +79,6 @@ std::optional<std::string> ao::vulkan::QueueContainer::findQueue(vk::QueueFlagBi
     std::optional<std::string> primary_queue_key;
 
     // Search best queue
-    size_t i = 0;
     for (auto [key, queue] : this->map) {
         if (predicate(queue)) {
             if (!this->fences[key] || this->fences[key].status() == ao::vulkan::FenceStatus::eDestroyed ||
@@ -98,8 +97,6 @@ std::optional<std::string> ao::vulkan::QueueContainer::findQueue(vk::QueueFlagBi
                 }
             }
         }
-
-        i++;
     }
 
     if (secondary_queue_key) {

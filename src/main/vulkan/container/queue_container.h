@@ -59,7 +59,7 @@ namespace ao::vulkan {
          * @param queue_create_info Queue create info
          * @param queue_families Queue families
          */
-        QueueContainer(vk::Device device, std::vector<QueueCreateInfo> const& queue_create_info,
+        QueueContainer(std::shared_ptr<vk::Device> device, std::vector<QueueCreateInfo> const& queue_create_info,
                        std::vector<vk::QueueFamilyProperties> const& queue_families);
 
         /**
@@ -82,7 +82,7 @@ namespace ao::vulkan {
 
         std::map<vk::QueueFlagBits, u32> queue_families;
         std::map<std::string, Fence> fences;
-        vk::Device device;
+        std::shared_ptr<vk::Device> device;
 
         /**
          * @brief Find a queue that supports {flag}

@@ -4,15 +4,16 @@
 
 #include "shader_module.h"
 
-ao::vulkan::ShaderModule::ShaderModule(std::weak_ptr<Device> device) : device(device) {}
+#include <ao/core/utilities/types.h>
+#include <fmt/format.h>
+
+ao::vulkan::ShaderModule::ShaderModule(std::shared_ptr<vk::Device> device) : device(device) {}
 
 ao::vulkan::ShaderModule::~ShaderModule() {
-    if (auto _device = ao::core::shared(this->device)) {
-        for (auto& [key, value] : this->shaders) {
-            _device->logical.destroyShaderModule(value.module);
-        }
-        this->shaders.clear();
+    for (auto& [key, value] : this->shaders) {
+        this->device->destroyShaderModule(value.module);
     }
+    this->shaders.clear();
 }
 
 std::vector<char> ao::vulkan::ShaderModule::read(std::string const& filename) {
@@ -39,14 +40,11 @@ std::vector<char> ao::vulkan::ShaderModule::read(std::string const& filename) {
 }
 
 vk::ShaderModule ao::vulkan::ShaderModule::createModule(std::vector<char> const& code) {
-    return ao::core::shared(this->device)
-        ->logical.createShaderModule(
-            vk::ShaderModuleCreateInfo(vk::ShaderModuleCreateFlags(), code.size(), reinterpret_cast<u32 const*>(code.data())));
+    return this->device->createShaderModule(
+        vk::ShaderModuleCreateInfo(vk::ShaderModuleCreateFlags(), code.size(), reinterpret_cast<u32 const*>(code.data())));
 }
 
 ao::vulkan::ShaderModule& ao::vulkan::ShaderModule::loadShader(vk::ShaderStageFlagBits flag, std::string const& filename) {
-    auto _device = ao::core::shared(this->device);
-
     // Create module
     std::vector<char> code = ao::vulkan::ShaderModule::read(filename);
     vk::ShaderModule module = ao::vulkan::ShaderModule::createModule(code);
@@ -54,7 +52,7 @@ ao::vulkan::ShaderModule& ao::vulkan::ShaderModule::loadShader(vk::ShaderStageFl
     // Destroy old one
     auto it = this->shaders.find(flag);
     if (it != this->shaders.end()) {
-        _device->logical.destroyShaderModule(this->shaders[flag].module);
+        this->device->destroyShaderModule(this->shaders[flag].module);
 
         this->shaders.erase(it);
     }

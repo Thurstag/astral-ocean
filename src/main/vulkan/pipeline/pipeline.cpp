@@ -4,17 +4,13 @@
 
 #include "pipeline.h"
 
-#include <ao/core/utilities/pointers.h>
-
-ao::vulkan::Pipeline::Pipeline(std::weak_ptr<Device> device, std::shared_ptr<PipelineLayout> layout, vk::Pipeline pipeline,
+ao::vulkan::Pipeline::Pipeline(std::shared_ptr<vk::Device> device, std::shared_ptr<PipelineLayout> layout, vk::Pipeline pipeline,
                                vk::PipelineCacheCreateInfo cache_create_info)
     : device(device), layout_(layout), pipeline(pipeline) {
-    this->cache = ao::core::shared(device)->logical.createPipelineCache(cache_create_info);
+    this->cache = this->device->createPipelineCache(cache_create_info);
 }
 
 ao::vulkan::Pipeline::~Pipeline() {
-    auto _device = ao::core::shared(this->device);
-
     this->layout_.reset();
 
     if (this->cache) {
@@ -22,10 +18,10 @@ ao::vulkan::Pipeline::~Pipeline() {
             (*this->before_cache_destruction)(this->cache);
         }
 
-        _device->logical.destroyPipelineCache(this->cache);
+        this->device->destroyPipelineCache(this->cache);
     }
     if (this->pipeline) {
-        _device->logical.destroyPipeline(this->pipeline);
+        this->device->destroyPipeline(this->pipeline);
     }
 
     this->pools_.clear();

@@ -11,10 +11,7 @@
 #include <vector>
 
 #include <ao/core/exception/exception.h>
-#include <ao/core/utilities/pointers.h>
 #include <vulkan/vulkan.hpp>
-
-#include "device.h"
 
 namespace ao::vulkan {
     /**
@@ -28,7 +25,7 @@ namespace ao::vulkan {
          *
          * @param device Device
          */
-        explicit ShaderModule(std::weak_ptr<Device> device);
+        explicit ShaderModule(std::shared_ptr<vk::Device> device);
 
         /**
          * @brief Destroy the ShaderModule object
@@ -54,7 +51,7 @@ namespace ao::vulkan {
 
        protected:
         std::map<vk::ShaderStageFlagBits, vk::PipelineShaderStageCreateInfo> shaders;
-        std::weak_ptr<Device> device;
+        std::shared_ptr<vk::Device> device;
 
         /**
          * @brief Read a file

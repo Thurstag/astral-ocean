@@ -4,7 +4,8 @@
 
 #pragma once
 
-#include "../wrapper/device.h"
+#include <ao/core/utilities/types.h>
+#include <vulkan/vulkan.hpp>
 
 namespace ao::vulkan {
     /**
@@ -19,7 +20,7 @@ namespace ao::vulkan {
          * @param device Device
          * @param create_info Create info
          */
-        DescriptorPool(std::weak_ptr<Device> device, vk::DescriptorPoolCreateInfo create_info);
+        DescriptorPool(std::shared_ptr<vk::Device> device, vk::DescriptorPoolCreateInfo create_info);
 
         /**
          * @brief Destroy the DescriptorPool object
@@ -46,7 +47,7 @@ namespace ao::vulkan {
         }
 
        protected:
-        std::weak_ptr<Device> device;
+        std::shared_ptr<vk::Device> device;
 
         std::vector<vk::DescriptorSet> descriptor_sets;
         std::shared_ptr<vk::DescriptorPool> pool;

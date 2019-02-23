@@ -29,8 +29,8 @@ namespace ao::vulkan {
         std::unique_ptr<QueueContainer> queues;
         vk::Format depth_format;
 
+        std::shared_ptr<vk::Device> logical;
         vk::PhysicalDevice physical;
-        vk::Device logical;
 
         /**
          * @brief Construct a new Device object
@@ -78,7 +78,7 @@ namespace ao::vulkan {
          * @return std::vector<vk::Image> Images
          */
         std::vector<vk::Image> swapChainImages(vk::SwapchainKHR swapchain) const {
-            return this->logical.getSwapchainImagesKHR(swapchain);
+            return this->logical->getSwapchainImagesKHR(swapchain);
         }
 
         /**
@@ -111,7 +111,7 @@ namespace ao::vulkan {
         vk::ImageView createImageView(vk::Image image, vk::Format format, vk::ImageViewType view_type, vk::ImageSubresourceRange subresource_range);
 
         /**
-         * @brief Process an image
+         * @brief Update image's layout
          *
          * @param image Image
          * @param format Format
@@ -119,8 +119,8 @@ namespace ao::vulkan {
          * @param old_layout Old layout
          * @param new_layout New layout
          */
-        void processImage(vk::Image image, vk::Format format, vk::ImageSubresourceRange subresource_range, vk::ImageLayout old_layout,
-                          vk::ImageLayout new_layout);
+        void updateImageLayout(vk::Image image, vk::Format format, vk::ImageSubresourceRange subresource_range, vk::ImageLayout old_layout,
+                               vk::ImageLayout new_layout);
 
         /**
          * @brief Copy vk::Buffer into an vk::Image

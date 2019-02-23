@@ -35,7 +35,7 @@ namespace ao::vulkan {
          * @param instance Instance
          * @param device Device
          */
-        Swapchain(std::weak_ptr<vk::Instance> instance, std::weak_ptr<Device> device);
+        Swapchain(std::shared_ptr<vk::Instance> instance, std::shared_ptr<Device> device);
 
         /**
          * @brief Destroy the Swapchain object
@@ -210,7 +210,7 @@ namespace ao::vulkan {
 
         std::unique_ptr<CommandPool> command_pool;
         std::vector<vk::CommandBuffer> commands;
-        std::weak_ptr<vk::Instance> instance;
-        std::weak_ptr<Device> device;
+        std::shared_ptr<vk::Instance> instance;
+        std::shared_ptr<Device> device;
     };
 }  // namespace ao::vulkan

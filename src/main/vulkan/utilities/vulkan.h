@@ -132,10 +132,10 @@ namespace ao::vulkan {
         /**
          * @brief Get the supported depth format for a device
          *
-         * @param physicalDevice Device
+         * @param physical_device Device
          * @return vk::Format Format
          */
-        inline vk::Format getSupportedDepthFormat(vk::PhysicalDevice physicalDevice) {
+        inline vk::Format getSupportedDepthFormat(vk::PhysicalDevice physical_device) {
             // clang-format off
             std::vector<vk::Format> formats = {
 				vk::Format::eD32SfloatS8Uint, vk::Format::eD32Sfloat, vk::Format::eD24UnormS8Uint,
@@ -144,7 +144,7 @@ namespace ao::vulkan {
             // clang-format on
 
             for (auto& format : formats) {
-                vk::FormatProperties formatProps = physicalDevice.getFormatProperties(format);
+                vk::FormatProperties formatProps = physical_device.getFormatProperties(format);
 
                 // Check properties
                 if (formatProps.optimalTilingFeatures & vk::FormatFeatureFlagBits::eDepthStencilAttachment) {

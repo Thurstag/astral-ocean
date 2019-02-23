@@ -62,7 +62,7 @@ void ao::vulkan::Engine::freeVulkan() {
 
     this->pipelines.clear();
 
-    this->device->logical.destroyRenderPass(this->render_pass);
+    this->device->logical->destroyRenderPass(this->render_pass);
 
     this->semaphores.clear();
 
@@ -85,7 +85,7 @@ void ao::vulkan::Engine::setUpDebugging() {
 
 void ao::vulkan::Engine::recreateSwapChain() {
     // Ensure all operations on the device have been finished
-    this->device->logical.waitIdle();
+    this->device->logical->waitIdle();
 
     // Destroy framebuffers
     this->swapchain->destroyFramebuffers();
@@ -102,15 +102,15 @@ void ao::vulkan::Engine::recreateSwapChain() {
     this->onSwapchainRecreation();
 
     // Wait device idle
-    this->device->logical.waitIdle();
+    this->device->logical->waitIdle();
 }
 
 void ao::vulkan::Engine::createSemaphores() {
-    this->semaphores = SemaphoreContainer(this->device);
+    this->semaphores = SemaphoreContainer(this->device->logical);
 
     // Create semaphores
-    vk::Semaphore acquire = this->device->logical.createSemaphore(vk::SemaphoreCreateInfo());
-    vk::Semaphore render = this->device->logical.createSemaphore(vk::SemaphoreCreateInfo());
+    vk::Semaphore acquire = this->device->logical->createSemaphore(vk::SemaphoreCreateInfo());
+    vk::Semaphore render = this->device->logical->createSemaphore(vk::SemaphoreCreateInfo());
 
     // Fill container
     this->semaphores["acquireNextImage"].signals.push_back(acquire);
@@ -167,7 +167,7 @@ void ao::vulkan::Engine::render() {
     vk::PipelineStageFlags pipeline_stage = vk::PipelineStageFlagBits::eColorAttachmentOutput;
 
     // Wait fence
-    this->device->logical.waitForFences(fence, VK_TRUE, (std::numeric_limits<u64>::max)());
+    this->device->logical->waitForFences(fence, VK_TRUE, (std::numeric_limits<u64>::max)());
 
     // Prepare frame
     this->prepareFrame();
@@ -186,7 +186,7 @@ void ao::vulkan::Engine::render() {
                               this->semaphores["graphicQueue"].signals.empty() ? nullptr : this->semaphores["graphicQueue"].signals.data());
 
     // Reset fence
-    this->device->logical.resetFences(fence);
+    this->device->logical->resetFences(fence);
 
     // Submit command buffer
     this->device->queues->at(vk::to_string(vk::QueueFlagBits::eGraphics)).value.submit(submitInfo, fence);

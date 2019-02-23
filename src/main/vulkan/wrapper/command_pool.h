@@ -30,7 +30,7 @@ namespace ao::vulkan {
          * @param queue_family_index Queue family index
          * @param access_mode Access mode
          */
-        CommandPool(vk::Device device, vk::CommandPoolCreateFlags flags = vk::CommandPoolCreateFlags(), u32 queue_family_index = 0,
+        CommandPool(std::shared_ptr<vk::Device> device, vk::CommandPoolCreateFlags flags = vk::CommandPoolCreateFlags(), u32 queue_family_index = 0,
                     CommandPoolAccessModeFlagBits access_mode = CommandPoolAccessModeFlagBits::eSequential);
 
         /**
@@ -59,7 +59,7 @@ namespace ao::vulkan {
         CommandPoolAccessModeFlagBits access_mode;
         vk::CommandPoolCreateFlags create_flags;
         u32 queue_family_index;
-        vk::Device device;  // TODO: Change type when refactor Device struct
+        std::shared_ptr<vk::Device> device;
 
         std::map<vk::CommandBuffer, vk::CommandPool> command_buffers;
         std::vector<vk::CommandPool> command_pools;

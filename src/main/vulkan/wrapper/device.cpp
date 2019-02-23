@@ -76,8 +76,8 @@ void ao::vulkan::Device::initLogicalDevice(vk::ArrayProxy<char const* const> dev
     }
 
     // Create device
-    this->logical = this->physical.createDevice(device_info);
-    volkLoadDevice(this->logical);
+    this->logical = std::make_shared<vk::Device>(this->physical.createDevice(device_info));
+    volkLoadDevice(*this->logical);
 
     // Init queue container
     this->queues = std::make_unique<ao::vulkan::QueueContainer>(this->logical, _queue_create_info, queue_families);
@@ -104,30 +104,30 @@ std::pair<vk::Image, vk::DeviceMemory> ao::vulkan::Device::createImage(u32 width
     std::pair<vk::Image, vk::DeviceMemory> pair;
 
     // Create image
-    pair.first = this->logical.createImage(vk::ImageCreateInfo(vk::ImageCreateFlags(), type, format, vk::Extent3D(vk::Extent2D(width, height), 1),
-                                                               mip_levels, array_layers, vk::SampleCountFlagBits::e1, tilling, usage_flags,
-                                                               vk::SharingMode::eExclusive, 0, nullptr, vk::ImageLayout::eUndefined));
+    pair.first = this->logical->createImage(vk::ImageCreateInfo(vk::ImageCreateFlags(), type, format, vk::Extent3D(vk::Extent2D(width, height), 1),
+                                                                mip_levels, array_layers, vk::SampleCountFlagBits::e1, tilling, usage_flags,
+                                                                vk::SharingMode::eExclusive, 0, nullptr, vk::ImageLayout::eUndefined));
 
     // Get memory requirements
-    vk::MemoryRequirements mem_requirements = this->logical.getImageMemoryRequirements(pair.first);
+    vk::MemoryRequirements mem_requirements = this->logical->getImageMemoryRequirements(pair.first);
 
     // Allocate	memory
     pair.second =
-        this->logical.allocateMemory(vk::MemoryAllocateInfo(mem_requirements.size, this->memoryType(mem_requirements.memoryTypeBits, memory_flags)));
+        this->logical->allocateMemory(vk::MemoryAllocateInfo(mem_requirements.size, this->memoryType(mem_requirements.memoryTypeBits, memory_flags)));
 
     // Bind image and memory
-    this->logical.bindImageMemory(pair.first, pair.second, 0);
+    this->logical->bindImageMemory(pair.first, pair.second, 0);
     return pair;
 }
 
 vk::ImageView ao::vulkan::Device::createImageView(vk::Image image, vk::Format format, vk::ImageViewType view_type,
                                                   vk::ImageSubresourceRange subresource_range) {
-    return this->logical.createImageView(
+    return this->logical->createImageView(
         vk::ImageViewCreateInfo(vk::ImageViewCreateFlags(), image, view_type, format, vk::ComponentMapping(), subresource_range));
 }
 
-void ao::vulkan::Device::processImage(vk::Image image, vk::Format format, vk::ImageSubresourceRange subresource_range, vk::ImageLayout old_layout,
-                                      vk::ImageLayout new_layout) {
+void ao::vulkan::Device::updateImageLayout(vk::Image image, vk::Format format, vk::ImageSubresourceRange subresource_range,
+                                           vk::ImageLayout old_layout, vk::ImageLayout new_layout) {
     if (!this->graphics_command_pool) {
         throw ao::core::Exception("Graphics command pool is disabled, request a graphics queue to enable it");
     }

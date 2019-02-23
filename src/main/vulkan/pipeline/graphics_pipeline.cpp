@@ -4,9 +4,7 @@
 
 #include "graphics_pipeline.h"
 
-#include <ao/core/utilities/pointers.h>
-
-ao::vulkan::GraphicsPipeline::GraphicsPipeline(std::weak_ptr<Device> device, std::shared_ptr<PipelineLayout> layout, vk::RenderPass render_pass,
+ao::vulkan::GraphicsPipeline::GraphicsPipeline(std::shared_ptr<vk::Device> device, std::shared_ptr<PipelineLayout> layout, vk::RenderPass render_pass,
                                                vk::ArrayProxy<vk::PipelineShaderStageCreateInfo> shader_stages,
                                                std::optional<vk::PipelineVertexInputStateCreateInfo> vertex_input_create_info,
                                                std::optional<vk::PipelineInputAssemblyStateCreateInfo> input_assembly_create_info,
@@ -28,5 +26,5 @@ ao::vulkan::GraphicsPipeline::GraphicsPipeline(std::weak_ptr<Device> device, std
         dynamic_state_create_info ? &(*dynamic_state_create_info) : nullptr, layout->value(), render_pass, subpass, base_pipeline);
 
     // Create pipeline
-    this->pipeline = ao::core::shared(this->device)->logical.createGraphicsPipelines(this->cache, create_info).front();
+    this->pipeline = this->device->createGraphicsPipelines(this->cache, create_info).front();
 }

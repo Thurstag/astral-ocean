@@ -15,8 +15,9 @@ namespace ao::core {
      * @tparam Key Key
      * @tparam Value Value
      * @tparam Iterator Iterator
+     * @tparam ConstIterator Constant iterator
      */
-    template<class Key, class Value, class Iterator>
+    template<class Key, class Value, class Iterator, class ConstIterator>
     class IterableContainer : public Container<Key, Value> {
        public:
         /**
@@ -39,10 +40,24 @@ namespace ao::core {
         virtual Iterator begin() = 0;
 
         /**
+         * @brief Begin iterator
+         *
+         * @return ConstIterator Iterator
+         */
+        virtual ConstIterator begin() const = 0;
+
+        /**
          * @brief End iterator
          *
          * @return Iterator Iterator
          */
         virtual Iterator end() = 0;
+
+        /**
+         * @brief End iterator
+         *
+         * @return Iterator Iterator
+         */
+        virtual ConstIterator end() const = 0;
     };
 }  // namespace ao::core

@@ -80,7 +80,7 @@ namespace ao::vulkan {
          * @return size_t Size with aligment
          */
         size_t calculateUBOAligmentSize(size_t size) const {
-            return ao::vulkan::Buffer::CalculateUBOAligmentSize(this->device->physical, size);
+            return ao::vulkan::Buffer::CalculateUBOAligmentSize(this->device->physical(), size);
         }
 
         /**

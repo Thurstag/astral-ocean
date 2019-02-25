@@ -2,7 +2,7 @@
 // Licensed under GPLv3 or any later version
 // Refer to the LICENSE.md file included.
 
-#include <ao/vulkan/utilities/settings.h>
+#include <ao/vulkan/engine/settings.h>
 #include <gtest/gtest.h>
 #include <boost/log/core.hpp>
 #include <boost/log/trivial.hpp>

@@ -23,15 +23,8 @@ namespace ao::vulkan {
      * @brief vk::Device wrapper
      *
      */
-    struct Device {
+    class Device {
        public:
-        std::unique_ptr<CommandPool> transfer_command_pool;
-        std::unique_ptr<QueueContainer> queues;
-        vk::Format depth_format;
-
-        std::shared_ptr<vk::Device> logical;
-        vk::PhysicalDevice physical;
-
         /**
          * @brief Construct a new Device object
          *
@@ -68,7 +61,7 @@ namespace ao::vulkan {
          * @return std::vector<vk::SurfaceFormatKHR> Formats
          */
         std::vector<vk::SurfaceFormatKHR> surfaceFormatKHRs(vk::SurfaceKHR surface) const {
-            return this->physical.getSurfaceFormatsKHR(surface);
+            return this->physical_.getSurfaceFormatsKHR(surface);
         }
 
         /**
@@ -78,71 +71,53 @@ namespace ao::vulkan {
          * @return std::vector<vk::Image> Images
          */
         std::vector<vk::Image> swapChainImages(vk::SwapchainKHR swapchain) const {
-            return this->logical->getSwapchainImagesKHR(swapchain);
+            return this->logical_->getSwapchainImagesKHR(swapchain);
         }
 
         /**
-         * @brief Create an Image
+         * @brief Get transfer command pool
          *
-         * @param width Width
-         * @param height height
-         * @param mip_levels Mip levels
-         * @param array_layers Array layers
-         * @param format Format
-         * @param type Type
-         * @param tilling Tilling
-         * @param usage_flags Usage flags
-         * @param memory_flags Memory flags
-         * @return std::pair<vk::Image, vk::DeviceMemory> Image
+         * @return CommandPool& Command pool
          */
-        std::pair<vk::Image, vk::DeviceMemory> createImage(u32 width, u32 height, u32 mip_levels, u32 array_layers, vk::Format format,
-                                                           vk::ImageType type, vk::ImageTiling tilling, vk::ImageUsageFlags usage_flags,
-                                                           vk::MemoryPropertyFlags memory_flags);
+        CommandPool& transferPool();
 
         /**
-         * @brief Create an ImageView
+         * @brief Get graphics command pool
          *
-         * @param image Image
-         * @param format Format
-         * @param view_type View type
-         * @param subresource_range Subresource range
-         * @return vk::ImageView ImageView
+         * @return CommandPool& Command pool
          */
-        vk::ImageView createImageView(vk::Image image, vk::Format format, vk::ImageViewType view_type, vk::ImageSubresourceRange subresource_range);
+        CommandPool& graphicsPool();
 
         /**
-         * @brief Update image's layout
+         * @brief Get queues
          *
-         * @param image Image
-         * @param format Format
-         * @param subresource_range Subresource range
-         * @param old_layout Old layout
-         * @param new_layout New layout
+         * @return QueueContainer const& Queue
          */
-        void updateImageLayout(vk::Image image, vk::Format format, vk::ImageSubresourceRange subresource_range, vk::ImageLayout old_layout,
-                               vk::ImageLayout new_layout);
+        std::unique_ptr<QueueContainer> const& queues() const {
+            return this->queues_;
+        }
 
         /**
-         * @brief Copy vk::Buffer into an vk::Image
+         * @brief Get logical device
          *
-         * @param buffer Buffer
-         * @param image Image
-         * @param regions Regions
+         * @return vk::Device Device
          */
-        void copyBufferToImage(vk::Buffer buffer, vk::Image image, vk::ArrayProxy<vk::BufferImageCopy const> regions);
+        std::shared_ptr<vk::Device> const logical() const {
+            return this->logical_;
+        }
 
-        /**
-         * @brief Memory type
-         *
-         * @param type_bits Type bits
-         * @param properties Properties
-         * @return u32 Index
-         */
-        u32 memoryType(u32 type_bits, vk::MemoryPropertyFlags properties) const;
+        vk::PhysicalDevice physical() const {
+            return this->physical_;
+        }
 
        protected:
         core::Logger LOGGER = core::Logger::GetInstance<Device>();
 
+        std::unique_ptr<CommandPool> transfer_command_pool;
         std::unique_ptr<CommandPool> graphics_command_pool;
+        std::unique_ptr<QueueContainer> queues_;
+
+        std::shared_ptr<vk::Device> logical_;
+        vk::PhysicalDevice physical_;
     };
 }  // namespace ao::vulkan

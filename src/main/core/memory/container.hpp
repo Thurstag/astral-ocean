@@ -43,6 +43,14 @@ namespace ao::core {
         virtual Value& at(Key const& key) = 0;
 
         /**
+         * @brief Operator[] with bounds verification
+         *
+         * @param key Key
+         * @return Value& Value
+         */
+        virtual Value const& at(Key const& key) const = 0;
+
+        /**
          * @brief Remove an object
          *
          * @param key Key

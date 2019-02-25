@@ -9,6 +9,7 @@
 #include <ao/core/exception/index_out_of_range.h>
 
 #include "../../exception/buffer_unitialized.h"
+#include "../../utilities/device.h"
 #include "buffer.hpp"
 
 namespace ao::vulkan {
@@ -97,12 +98,12 @@ namespace ao::vulkan {
     template<class... T>
     void BasicTupleBuffer<T...>::free() {
         if (this->has_mapper) {
-            this->device->logical->unmapMemory(this->memory);
+            this->device->logical()->unmapMemory(this->memory);
             this->has_mapper = false;
         }
         if (this->has_buffer) {
-            this->device->logical->destroyBuffer(this->buffer_);
-            this->device->logical->freeMemory(this->memory);
+            this->device->logical()->destroyBuffer(this->buffer_);
+            this->device->logical()->freeMemory(this->memory);
             this->has_buffer = false;
         }
     }
@@ -116,7 +117,7 @@ namespace ao::vulkan {
         // Map each fragment
         u64 offset = 0;
         for (size_t i = 0; i < sizeof...(T); i++) {
-            this->fragments[i].second = this->device->logical->mapMemory(this->memory, offset, this->fragments[i].first);
+            this->fragments[i].second = this->device->logical()->mapMemory(this->memory, offset, this->fragments[i].first);
 
             this->offsets[i] = offset;
             offset += this->fragments[i].first;
@@ -149,17 +150,17 @@ namespace ao::vulkan {
         this->size_ = std::accumulate(sizes.begin(), sizes.end(), vk::DeviceSize(0), std::plus<vk::DeviceSize>());
 
         // Create buffer
-        this->buffer_ = this->device->logical->createBuffer(vk::BufferCreateInfo(vk::BufferCreateFlags(), this->size_, usage_flags, sharing_mode));
+        this->buffer_ = this->device->logical()->createBuffer(vk::BufferCreateInfo(vk::BufferCreateFlags(), this->size_, usage_flags, sharing_mode));
 
         // Get memory requirements
-        vk::MemoryRequirements mem_requirements = this->device->logical->getBufferMemoryRequirements(this->buffer_);
+        vk::MemoryRequirements mem_requirements = this->device->logical()->getBufferMemoryRequirements(this->buffer_);
 
         // Allocate memory
-        this->memory = this->device->logical->allocateMemory(
-            vk::MemoryAllocateInfo(mem_requirements.size, this->device->memoryType(mem_requirements.memoryTypeBits, memory_flags)));
+        this->memory = this->device->logical()->allocateMemory(vk::MemoryAllocateInfo(
+            mem_requirements.size, ao::vulkan::utilities::memoryType(this->device->physical(), mem_requirements.memoryTypeBits, memory_flags)));
 
         // Bind memory and buffer
-        this->device->logical->bindBufferMemory(this->buffer_, this->memory, 0);
+        this->device->logical()->bindBufferMemory(this->buffer_, this->memory, 0);
         this->memory_flags = memory_flags;
         this->has_buffer = true;
 
@@ -185,7 +186,7 @@ namespace ao::vulkan {
 
         // Notify changes
         if (!(this->memory_flags & vk::MemoryPropertyFlagBits::eHostCoherent)) {
-            this->device->logical->flushMappedMemoryRanges(vk::MappedMemoryRange(this->memory, 0, this->size_));
+            this->device->logical()->flushMappedMemoryRanges(vk::MappedMemoryRange(this->memory, 0, this->size_));
         }
 
         return this;
@@ -212,7 +213,7 @@ namespace ao::vulkan {
 
         // Notify changes
         if (!(this->memory_flags & vk::MemoryPropertyFlagBits::eHostCoherent)) {
-            this->device->logical->flushMappedMemoryRanges(vk::MappedMemoryRange(this->memory, this->offset(index), this->fragments[index].first));
+            this->device->logical()->flushMappedMemoryRanges(vk::MappedMemoryRange(this->memory, this->offset(index), this->fragments[index].first));
         }
 
         return this;

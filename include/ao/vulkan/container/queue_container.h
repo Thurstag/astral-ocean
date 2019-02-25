@@ -91,6 +91,6 @@ namespace ao::vulkan {
          * @param predicate Predicate
          * @return std::optional<std::string> Queue's name
          */
-        std::optional<std::string> findQueue(vk::QueueFlagBits flag, std::function<bool(structs::Queue const&)> predicate);
+        std::optional<std::string> findQueue(vk::QueueFlagBits flag, std::function<bool(structs::Queue const&)> predicate) const;
     };
 }  // namespace ao::vulkan

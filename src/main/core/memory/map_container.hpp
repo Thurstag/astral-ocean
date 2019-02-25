@@ -16,7 +16,8 @@ namespace ao::core {
      * @tparam Value Value
      */
     template<class Key, class Value>
-    class MapContainer : public IterableContainer<Key, Value, typename std::map<Key, Value>::iterator> {
+    class MapContainer
+        : public IterableContainer<Key, Value, typename std::map<Key, Value>::iterator, typename std::map<Key, Value>::const_iterator> {
        public:
         /**
          * @brief Construct a new MapContainer object
@@ -32,12 +33,15 @@ namespace ao::core {
 
         virtual Value& operator[](Key const& key) override;
         virtual Value& at(Key const& key) override;
+        virtual Value const& at(Key const& key) const override;
         virtual bool remove(Key const& key) override;
         virtual bool exists(Key const& key) const override;
         virtual void clear() override;
         virtual size_t size() const override;
         typename std::map<Key, Value>::iterator begin() override;
         typename std::map<Key, Value>::iterator end() override;
+        typename std::map<Key, Value>::const_iterator begin() const override;
+        typename std::map<Key, Value>::const_iterator end() const override;
 
        protected:
         std::map<Key, Value> map;
@@ -50,6 +54,11 @@ namespace ao::core {
 
     template<class Key, class Value>
     inline Value& MapContainer<Key, Value>::at(Key const& key) {
+        return this->map.at(key);
+    }
+
+    template<class Key, class Value>
+    inline Value const& MapContainer<Key, Value>::at(Key const& key) const {
         return this->map.at(key);
     }
 
@@ -84,6 +93,16 @@ namespace ao::core {
 
     template<class Key, class Value>
     inline typename std::map<Key, Value>::iterator MapContainer<Key, Value>::end() {
+        return this->map.end();
+    }
+
+    template<class Key, class Value>
+    inline typename std::map<Key, Value>::const_iterator MapContainer<Key, Value>::begin() const {
+        return this->map.begin();
+    }
+
+    template<class Key, class Value>
+    inline typename std::map<Key, Value>::const_iterator MapContainer<Key, Value>::end() const {
         return this->map.end();
     }
 }  // namespace ao::core

@@ -71,14 +71,14 @@ namespace ao::vulkan {
 
     template<class T>
     StagingBuffer<T>::StagingBuffer(std::shared_ptr<Device> device, vk::CommandBufferUsageFlags cmd_usage, bool memory_barrier)
-        : Buffer(device), cmd_usage(cmd_usage), memory_barrier(memory_barrier), fence(device->logical) {}
+        : Buffer(device), cmd_usage(cmd_usage), memory_barrier(memory_barrier), fence(device->logical()), command_buffer(nullptr) {}
 
     template<class T>
     StagingBuffer<T>::~StagingBuffer() {
         this->free();
 
-        if (this->command_buffer && this->device->transfer_command_pool) {
-            this->device->transfer_command_pool->freeCommandBuffers(this->command_buffer);
+        if (this->command_buffer) {
+            this->device->transferPool().freeCommandBuffers(this->command_buffer);
         }
     }
 
@@ -124,7 +124,7 @@ namespace ao::vulkan {
             // Memory barrier
             if (this->memory_barrier) {
                 vk::BufferMemoryBarrier barrier(vk::AccessFlagBits::eTransferWrite, vk::AccessFlags(),
-                                                this->device->queues->at(vk::to_string(vk::QueueFlagBits::eTransfer)).family_index,
+                                                this->device->queues()->at(vk::to_string(vk::QueueFlagBits::eTransfer)).family_index,
                                                 VK_QUEUE_FAMILY_IGNORED, this->device_buffer->buffer());
                 this->command_buffer.pipelineBarrier(vk::PipelineStageFlagBits::eTopOfPipe, vk::PipelineStageFlagBits::eVertexInput,
                                                      vk::DependencyFlags(), {}, barrier, {});
@@ -140,8 +140,8 @@ namespace ao::vulkan {
         this->fence.reset();
 
         // Submit command
-        this->device->queues->submit(vk::QueueFlagBits::eTransfer,
-                                     vk::SubmitInfo().setCommandBufferCount(1).setPCommandBuffers(&this->command_buffer), this->fence);
+        this->device->queues()->submit(vk::QueueFlagBits::eTransfer,
+                                       vk::SubmitInfo().setCommandBufferCount(1).setPCommandBuffers(&this->command_buffer), this->fence);
 
         // Wait fence
         this->fence.wait();

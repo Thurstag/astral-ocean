@@ -25,12 +25,12 @@ namespace ao::test {
         SKIP_TEST(!instance.init(), FAIL_INIT_VULKAN);
 
         // Create fence
-        vulkan::Fence fence(instance.device->logical);
+        vulkan::Fence fence(instance.device->logical());
 
         // Check status
         ASSERT_TRUE(fence);
         ASSERT_EQ(ao::vulkan::FenceStatus::eUnsignaled, fence.status());
-        ASSERT_EQ(vk::Result::eNotReady, instance.device->logical->getFenceStatus(fence));
+        ASSERT_EQ(vk::Result::eNotReady, instance.device->logical()->getFenceStatus(fence));
     }
 
     TEST(Fence, Copy) {
@@ -39,7 +39,7 @@ namespace ao::test {
         SKIP_TEST(!instance.init(), FAIL_INIT_VULKAN);
 
         // Create fence
-        vulkan::Fence fence(instance.device->logical);
+        vulkan::Fence fence(instance.device->logical());
 
         // Copy
         ([](vulkan::Fence fence) {
@@ -50,7 +50,7 @@ namespace ao::test {
         // Check status
         ASSERT_TRUE(fence);
         ASSERT_EQ(ao::vulkan::FenceStatus::eUnsignaled, fence.status());
-        ASSERT_EQ(vk::Result::eNotReady, instance.device->logical->getFenceStatus(fence));
+        ASSERT_EQ(vk::Result::eNotReady, instance.device->logical()->getFenceStatus(fence));
     }
 
     TEST(Fence, Destroy) {
@@ -59,7 +59,7 @@ namespace ao::test {
         SKIP_TEST(!instance.init(), FAIL_INIT_VULKAN);
 
         // Create fence
-        vulkan::Fence fence(instance.device->logical);
+        vulkan::Fence fence(instance.device->logical());
 
         // Destroy
         fence.destroy();
@@ -78,7 +78,7 @@ namespace ao::test {
         SKIP_TEST(!instance.init(), FAIL_INIT_VULKAN);
 
         // Create fences
-        vulkan::Fence fence(instance.device->logical);
+        vulkan::Fence fence(instance.device->logical());
         auto fence2 = fence;
 
         // Destroy once

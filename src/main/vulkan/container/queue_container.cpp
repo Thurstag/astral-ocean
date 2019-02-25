@@ -70,19 +70,19 @@ void ao::vulkan::QueueContainer::submit(vk::QueueFlagBits flag, vk::ArrayProxy<v
 
     // Submit
     this->LOGGER << ao::core::Logger::Level::trace << fmt::format("Submit into '{}' queue for flag: {}", *queue, vk::to_string(flag));
-    this->map[*queue].value.submit(submits, fence);
+    this->map.at(*queue).value.submit(submits, fence);
 }
 
 std::optional<std::string> ao::vulkan::QueueContainer::findQueue(vk::QueueFlagBits flag,
-                                                                 std::function<bool(ao::vulkan::structs::Queue const&)> predicate) {
+                                                                 std::function<bool(ao::vulkan::structs::Queue const&)> predicate) const {
     std::optional<std::string> secondary_queue_key;
     std::optional<std::string> primary_queue_key;
 
     // Search best queue
     for (auto [key, queue] : this->map) {
         if (predicate(queue)) {
-            if (!this->fences[key] || this->fences[key].status() == ao::vulkan::FenceStatus::eDestroyed ||
-                this->fences[key].status() == ao::vulkan::FenceStatus::eSignaled) {
+            if (this->fences.count(key) == 0 || this->fences.at(key).status() == ao::vulkan::FenceStatus::eDestroyed ||
+                this->fences.at(key).status() == ao::vulkan::FenceStatus::eSignaled) {
                 if (queue.level == ao::vulkan::QueueLevel::eSecondary) {
                     secondary_queue_key = key;
                     break;

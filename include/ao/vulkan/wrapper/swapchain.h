@@ -130,21 +130,21 @@ namespace ao::vulkan {
         }
 
         /**
-         * @brief Get color space
+         * @brief Get surface color space
          *
          * @return vk::ColorSpaceKHR Color space
          */
-        vk::ColorSpaceKHR colorSpace() const {
-            return this->color_space;
+        vk::ColorSpaceKHR surfaceColorSpace() const {
+            return this->surface_color_space;
         }
 
         /**
-         * @brief Get color format
+         * @brief Get surface color format
          *
          * @return vk::Format Format
          */
-        vk::Format colorFormat() const {
-            return this->color_format;
+        vk::Format surfaceColorFormat() const {
+            return this->surface_color_format;
         }
 
         /**
@@ -204,8 +204,8 @@ namespace ao::vulkan {
 
         std::optional<StencilBuffer> stencil_buffer;
 
-        vk::ColorSpaceKHR color_space;
-        vk::Format color_format;
+        vk::ColorSpaceKHR surface_color_space;
+        vk::Format surface_color_format;
         vk::Extent2D extent_;
 
         std::unique_ptr<CommandPool> command_pool;

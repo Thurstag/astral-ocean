@@ -14,7 +14,7 @@
 #include <fmt/format.h>
 #include <vulkan/vulkan.hpp>
 
-#include "settings.h"
+#include "../engine/settings.h"
 
 namespace ao::vulkan {
     struct Utilities {};
@@ -58,15 +58,14 @@ namespace ao::vulkan {
          * @param extensions Extenions to enable
          * @return vk::Instance Instance
          */
-        inline vk::Instance createVkInstance(std::shared_ptr<EngineSettings> settings, std::vector<char const*> extensions) {
+        inline vk::Instance createInstance(std::shared_ptr<EngineSettings> settings, std::vector<char const*> extensions) {
             std::vector<char const*> validationLayer{"VK_LAYER_LUNARG_standard_validation"};
 
             // Create app info
-            vk::ApplicationInfo appInfo(
-                settings->get<std::string>(ao::vulkan::settings::AppName, std::make_optional<std::string>("Undefined")).c_str(),
-                settings->get<int>(ao::vulkan::settings::AppVersion, std::make_optional(VK_MAKE_VERSION(0, 0, 0))),
-                settings->get<std::string>(ao::vulkan::settings::EngineName, std::make_optional<std::string>("Astral-Ocean")).c_str(),
-                settings->get<int>(ao::vulkan::settings::EngineVersion, std::make_optional(VK_MAKE_VERSION(0, 0, 0))), VK_API_VERSION_1_1);
+            vk::ApplicationInfo appInfo(settings->get<std::string>(ao::vulkan::settings::AppName, std::string("Undefined")).c_str(),
+                                        settings->get<int>(ao::vulkan::settings::AppVersion, VK_MAKE_VERSION(0, 0, 0)),
+                                        settings->get<std::string>(ao::vulkan::settings::EngineName, std::string("Astral-Ocean")).c_str(),
+                                        settings->get<int>(ao::vulkan::settings::EngineVersion, VK_MAKE_VERSION(0, 0, 0)), VK_API_VERSION_1_1);
 
             // Add validation extension
             if (settings->get(ao::vulkan::settings::ValidationLayers, std::make_optional(false)) &&
@@ -130,32 +129,7 @@ namespace ao::vulkan {
         }
 
         /**
-         * @brief Get the supported depth format for a device
-         *
-         * @param physical_device Device
-         * @return vk::Format Format
-         */
-        inline vk::Format getSupportedDepthFormat(vk::PhysicalDevice physical_device) {
-            // clang-format off
-            std::vector<vk::Format> formats = {
-				vk::Format::eD32SfloatS8Uint, vk::Format::eD32Sfloat, vk::Format::eD24UnormS8Uint,
-                vk::Format::eD16UnormS8Uint, vk::Format::eD16Unorm
-			};
-            // clang-format on
-
-            for (auto& format : formats) {
-                vk::FormatProperties formatProps = physical_device.getFormatProperties(format);
-
-                // Check properties
-                if (formatProps.optimalTilingFeatures & vk::FormatFeatureFlagBits::eDepthStencilAttachment) {
-                    return format;
-                }
-            }
-            throw core::Exception("Fail to find a suitable vk::Format");
-        }
-
-        /**
-         * @brief Build to report of queue families
+         * @brief Build a report of queue families
          *
          * @param queue_families Queue families
          * @return std::string Report

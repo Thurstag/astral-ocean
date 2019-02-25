@@ -13,12 +13,12 @@
 #include <ao/core/logger/logger.h>
 #include <vulkan/vulkan.hpp>
 
-#include "container/pipeline_container.h"
-#include "container/semaphore_container.h"
-#include "utilities/settings.h"
-#include "utilities/vulkan.h"
-#include "wrapper/device.h"
-#include "wrapper/swapchain.h"
+#include "../container/pipeline_container.h"
+#include "../container/semaphore_container.h"
+#include "../utilities/vulkan.h"
+#include "../wrapper/device.h"
+#include "../wrapper/swapchain.h"
+#include "settings.h"
 
 namespace ao::vulkan {
     struct ValidationLayers {};

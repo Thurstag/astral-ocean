@@ -4,7 +4,7 @@
 
 #pragma once
 
-#include <ao/vulkan/utilities/settings.h>
+#include <ao/vulkan/engine/settings.h>
 #include <ao/vulkan/utilities/vulkan.h>
 #include <ao/vulkan/wrapper/device.h>
 #include <vulkan/vulkan.hpp>
@@ -40,7 +40,7 @@ namespace ao::test {
             ao::vulkan::utilities::vkAssert(volkInitialize(), "Fail to initialize vulkan loader");
 
             // Create instance
-            this->instance = std::make_shared<vk::Instance>(vulkan::utilities::createVkInstance(settings, {}));
+            this->instance = std::make_shared<vk::Instance>(vulkan::utilities::createInstance(settings, {}));
             volkLoadInstance(*this->instance);
 
             // Get GPUs

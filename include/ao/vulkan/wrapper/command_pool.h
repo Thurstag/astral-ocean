@@ -5,6 +5,7 @@
 #pragma once
 
 #include <map>
+#include <mutex>
 
 #include <ao/core/utilities/types.h>
 #include <vulkan/vulkan.hpp>
@@ -14,7 +15,7 @@ namespace ao::vulkan {
      * @brief Access mode to command pool
      *
      */
-    enum class CommandPoolAccessModeFlagBits { eSequential, eConcurrent };
+    enum class CommandPoolAccessMode { eSequential, eConcurrent };
 
     /**
      * @brief vk::CommanPool wrapper
@@ -31,7 +32,7 @@ namespace ao::vulkan {
          * @param access_mode Access mode
          */
         CommandPool(std::shared_ptr<vk::Device> device, vk::CommandPoolCreateFlags flags = vk::CommandPoolCreateFlags(), u32 queue_family_index = 0,
-                    CommandPoolAccessModeFlagBits access_mode = CommandPoolAccessModeFlagBits::eSequential);
+                    CommandPoolAccessMode access_mode = CommandPoolAccessMode::eSequential);
 
         /**
          * @brief Destroy the CommandPool object
@@ -49,19 +50,28 @@ namespace ao::vulkan {
         std::vector<vk::CommandBuffer> allocateCommandBuffers(vk::CommandBufferLevel level, u32 count);
 
         /**
+         * @brief Free command buffers
+         *
+         * @param buffers Buffers
+         */
+        void freeCommandBuffers(vk::ArrayProxy<vk::CommandBuffer const> buffers);
+
+       protected:
+        std::shared_ptr<vk::Device> device;
+        std::mutex mutex;
+
+        vk::CommandPoolCreateFlags create_flags;
+        CommandPoolAccessMode access_mode;
+        u32 queue_family_index;
+
+        std::map<vk::CommandBuffer, vk::CommandPool> command_buffers;
+        std::vector<vk::CommandPool> command_pools;
+
+        /**
          * @brief Free a command buffer
          *
          * @param buffer Buffer
          */
-        void freeCommandBuffers(vk::CommandBuffer buffer);
-
-       protected:
-        CommandPoolAccessModeFlagBits access_mode;
-        vk::CommandPoolCreateFlags create_flags;
-        u32 queue_family_index;
-        std::shared_ptr<vk::Device> device;
-
-        std::map<vk::CommandBuffer, vk::CommandPool> command_buffers;
-        std::vector<vk::CommandPool> command_pools;
+        void freeCommandBuffer(vk::CommandBuffer buffer);
     };
 }  // namespace ao::vulkan

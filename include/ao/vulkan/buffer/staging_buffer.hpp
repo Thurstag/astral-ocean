@@ -21,10 +21,8 @@ namespace ao::vulkan {
          *
          * @param device Device
          * @param usage_flags Usage flags
-         * @param memory_barrier Memory barrier
          */
-        StagingBuffer(std::shared_ptr<Device> device, vk::CommandBufferUsageFlags usage_flags = vk::CommandBufferUsageFlagBits::eSimultaneousUse,
-                      bool memory_barrier = false);
+        StagingBuffer(std::shared_ptr<Device> device, vk::CommandBufferUsageFlags usage_flags = vk::CommandBufferUsageFlagBits::eSimultaneousUse);
 
         /**
          * @brief Destroy the StagingBuffer object
@@ -56,7 +54,6 @@ namespace ao::vulkan {
        protected:
         vk::CommandBufferUsageFlags cmd_usage;
         vk::CommandBuffer command_buffer;
-        bool memory_barrier;
         Fence fence;
 
         std::unique_ptr<T> device_buffer;
@@ -70,8 +67,8 @@ namespace ao::vulkan {
     };
 
     template<class T>
-    StagingBuffer<T>::StagingBuffer(std::shared_ptr<Device> device, vk::CommandBufferUsageFlags cmd_usage, bool memory_barrier)
-        : Buffer(device), cmd_usage(cmd_usage), memory_barrier(memory_barrier), fence(device->logical()), command_buffer(nullptr) {}
+    StagingBuffer<T>::StagingBuffer(std::shared_ptr<Device> device, vk::CommandBufferUsageFlags cmd_usage)
+        : Buffer(device), cmd_usage(cmd_usage), fence(device->logical()), command_buffer(nullptr) {}
 
     template<class T>
     StagingBuffer<T>::~StagingBuffer() {
@@ -120,20 +117,8 @@ namespace ao::vulkan {
     void StagingBuffer<T>::sync() {
         // Create command to transfer data from host to device
         this->command_buffer.begin(vk::CommandBufferBeginInfo(this->cmd_usage));
-        {
-            // Memory barrier
-            if (this->memory_barrier) {
-                vk::BufferMemoryBarrier barrier(vk::AccessFlagBits::eTransferWrite, vk::AccessFlags(),
-                                                this->device->queues()->at(vk::to_string(vk::QueueFlagBits::eTransfer)).family_index,
-                                                VK_QUEUE_FAMILY_IGNORED, this->device_buffer->buffer());
-                this->command_buffer.pipelineBarrier(vk::PipelineStageFlagBits::eTopOfPipe, vk::PipelineStageFlagBits::eVertexInput,
-                                                     vk::DependencyFlags(), {}, barrier, {});
-            }
-
-            // Copy buffer
-            this->command_buffer.copyBuffer(this->host_buffer->buffer(), this->device_buffer->buffer(),
-                                            vk::BufferCopy().setSize(this->device_buffer->size()));
-        }
+        this->command_buffer.copyBuffer(this->host_buffer->buffer(), this->device_buffer->buffer(),
+                                        vk::BufferCopy().setSize(this->device_buffer->size()));
         this->command_buffer.end();
 
         // Reset fence

@@ -126,12 +126,6 @@ namespace ao::vulkan {
         virtual void createVulkanBuffers() = 0;
 
         /**
-         * @brief Create secondary command buffers
-         *
-         */
-        virtual void createSecondaryCommandBuffers() = 0;
-
-        /**
          * @brief Create a Surface object
          *
          * @return vk::SurfaceKHR Surface
@@ -200,7 +194,7 @@ namespace ao::vulkan {
          * @brief Update command buffers
          *
          */
-        virtual void updateCommandBuffers();
+        virtual void updateCommandBuffers() = 0;
 
         /**
          * @brief Called before command buffers update
@@ -219,16 +213,6 @@ namespace ao::vulkan {
          *
          */
         virtual void onSwapchainRecreation(){};
-
-        /**
-         * @brief Execute secondary command buffers
-         *
-         * @param inheritance_info Inheritance info
-         * @param frame_index Current frame index
-         * @param primary_command Primary command buffer
-         */
-        virtual void executeSecondaryCommandBuffers(vk::CommandBufferInheritanceInfo& inheritance_info, int frame_index,
-                                                    vk::CommandBuffer primary_command) = 0;
 
         /**
          * @brief Define instance's extensions to enable

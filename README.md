@@ -18,7 +18,7 @@ TODO
 
 ## Dependencies
 
-| Project          |      Version      |
+|                  |      Version      |
 | ---------------- | :---------------: |
 | Vulkan / Volk    |   **1.1.97.0**    |
 | Boost (All libs) | **1.68.0** (or +) |

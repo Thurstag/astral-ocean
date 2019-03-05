@@ -23,11 +23,9 @@ namespace ao::vulkan {
          * @param count Count
          * @param device Device
          * @param usage_flags usage flags
-         * @param memory_barrier Enable memory barrier
          */
         StagingDynamicArrayBuffer(size_t count, std::shared_ptr<Device> device,
-                                  vk::CommandBufferUsageFlags usage_flags = vk::CommandBufferUsageFlagBits::eSimultaneousUse,
-                                  bool memory_barrier = false);
+                                  vk::CommandBufferUsageFlags usage_flags = vk::CommandBufferUsageFlagBits::eSimultaneousUse);
 
         /**
          * @brief Destroy the StagingDynamicArrayBuffer object
@@ -55,9 +53,8 @@ namespace ao::vulkan {
     };
 
     template<class T>
-    StagingDynamicArrayBuffer<T>::StagingDynamicArrayBuffer(size_t count, std::shared_ptr<Device> device, vk::CommandBufferUsageFlags usage_flags,
-                                                            bool memory_barrier)
-        : DynamicArrayBuffer<T>(count, device), StagingBuffer<BasicDynamicArrayBuffer<T>>(device, usage_flags, memory_barrier), Buffer(device) {}
+    StagingDynamicArrayBuffer<T>::StagingDynamicArrayBuffer(size_t count, std::shared_ptr<Device> device, vk::CommandBufferUsageFlags usage_flags)
+        : DynamicArrayBuffer<T>(count, device), StagingBuffer<BasicDynamicArrayBuffer<T>>(device, usage_flags), Buffer(device) {}
 
     template<class T>
     StagingDynamicArrayBuffer<T>* StagingDynamicArrayBuffer<T>::init(vk::DeviceSize size, std::optional<vk::BufferUsageFlags> usage_flags) {
@@ -164,10 +161,9 @@ namespace ao::vulkan {
          *
          * @param device Device
          * @param usage_flags Usage flags
-         * @param memory_barrier Enable memory barrier
          */
-        StagingArrayBuffer(std::shared_ptr<Device> device, vk::CommandBufferUsageFlags usage_flags = vk::CommandBufferUsageFlagBits::eSimultaneousUse,
-                           bool memory_barrier = false);
+        StagingArrayBuffer(std::shared_ptr<Device> device,
+                           vk::CommandBufferUsageFlags usage_flags = vk::CommandBufferUsageFlagBits::eSimultaneousUse);
 
         /**
          * @brief Destroy the StagingArrayBuffer object
@@ -195,8 +191,8 @@ namespace ao::vulkan {
     };
 
     template<class T, size_t N>
-    StagingArrayBuffer<T, N>::StagingArrayBuffer(std::shared_ptr<Device> device, vk::CommandBufferUsageFlags usage_flags, bool memory_barrier)
-        : ArrayBuffer<T, N>(device), StagingBuffer<BasicArrayBuffer<T, N>>(device, usage_flags, memory_barrier), Buffer(device) {}
+    StagingArrayBuffer<T, N>::StagingArrayBuffer(std::shared_ptr<Device> device, vk::CommandBufferUsageFlags usage_flags)
+        : ArrayBuffer<T, N>(device), StagingBuffer<BasicArrayBuffer<T, N>>(device, usage_flags), Buffer(device) {}
 
     template<class T, size_t N>
     StagingArrayBuffer<T, N>* StagingArrayBuffer<T, N>::init(vk::DeviceSize size, std::optional<vk::BufferUsageFlags> usage_flags) {

@@ -133,9 +133,6 @@ void ao::vulkan::Engine::prepareVulkan() {
                           this->settings_->get(ao::vulkan::settings::WindowVsync, std::make_optional(false)),
                           this->settings_->get(ao::vulkan::settings::StencilBuffer, std::make_optional(false)));
 
-    // Create secondary commands
-    this->createSecondaryCommandBuffers();
-
     // Create render pass
     if (!(this->render_pass = this->createRenderPass())) {
         throw ao::core::Exception("Render pass isn't initialized");
@@ -221,37 +218,6 @@ void ao::vulkan::Engine::submitFrame() {
         return this->recreateSwapChain();
     }
     ao::vulkan::utilities::vkAssert(result, "Fail to enqueue image");
-}
-
-void ao::vulkan::Engine::updateCommandBuffers() {
-    // Get current command buffer/frame
-    vk::CommandBuffer command = this->swapchain->currentCommand();
-    vk::Framebuffer frame = this->swapchain->currentFrame();
-
-    // Create info
-    vk::CommandBufferBeginInfo begin_info(vk::CommandBufferUsageFlagBits::eRenderPassContinue);
-
-    std::vector<vk::ClearValue> clearValues(1);
-    std::array<float, 4> color = {0.0f, 0.0f, 0.0f, 1.0f};
-    clearValues[0].setColor(vk::ClearColorValue(color));
-    if (this->settings_->get(ao::vulkan::settings::StencilBuffer, std::make_optional(false))) {
-        clearValues.push_back(vk::ClearValue().setDepthStencil(vk::ClearDepthStencilValue(1)));
-    }
-
-    vk::RenderPassBeginInfo render_pass_info(this->render_pass, frame, vk::Rect2D().setExtent(this->swapchain->extent()),
-                                             static_cast<u32>(clearValues.size()), clearValues.data());
-
-    command.begin(&begin_info);
-    command.beginRenderPass(render_pass_info, vk::SubpassContents::eSecondaryCommandBuffers);
-    {
-        // Create inheritance info for the secondary command buffers
-        vk::CommandBufferInheritanceInfo inheritance(this->render_pass, 0, frame);
-
-        // Execute secondary command buffers
-        this->executeSecondaryCommandBuffers(inheritance, this->swapchain->frameIndex(), command);
-    }
-    command.endRenderPass();
-    command.end();
 }
 
 vk::DebugUtilsMessageSeverityFlagsEXT ao::vulkan::Engine::validationLayersSeverity() const {

@@ -22,10 +22,9 @@ namespace ao::vulkan {
          *
          * @param device Device
          * @param usage_flags Usage flags
-         * @param memory_barrier Enable memory barrier
          */
-        StagingTupleBuffer(std::shared_ptr<Device> device, vk::CommandBufferUsageFlags usage_flags = vk::CommandBufferUsageFlagBits::eSimultaneousUse,
-                           bool memory_barrier = false);
+        StagingTupleBuffer(std::shared_ptr<Device> device,
+                           vk::CommandBufferUsageFlags usage_flags = vk::CommandBufferUsageFlagBits::eSimultaneousUse);
 
         /**
          * @brief Destroy the StagingTupleBuffer object
@@ -54,8 +53,8 @@ namespace ao::vulkan {
     };
 
     template<class... T>
-    StagingTupleBuffer<T...>::StagingTupleBuffer(std::shared_ptr<Device> device, vk::CommandBufferUsageFlags usage_flags, bool memory_barrier)
-        : TupleBuffer<T...>(device), StagingBuffer<BasicTupleBuffer<T...>>(device, usage_flags, memory_barrier), Buffer(device) {}
+    StagingTupleBuffer<T...>::StagingTupleBuffer(std::shared_ptr<Device> device, vk::CommandBufferUsageFlags usage_flags)
+        : TupleBuffer<T...>(device), StagingBuffer<BasicTupleBuffer<T...>>(device, usage_flags), Buffer(device) {}
 
     template<class... T>
     StagingTupleBuffer<T...>* StagingTupleBuffer<T...>::init(std::initializer_list<vk::DeviceSize> const& sizes,

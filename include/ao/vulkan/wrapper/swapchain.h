@@ -112,6 +112,15 @@ namespace ao::vulkan {
         }
 
         /**
+         * @brief Get command buffer list
+         *
+         * @return std::vector<vk::CommandBuffer> const& Command buffers
+         */
+        std::vector<vk::CommandBuffer> const& commandBuffers() {
+            return this->commands;
+        }
+
+        /**
          * @brief Get current frame index
          *
          * @return u32 Frame index

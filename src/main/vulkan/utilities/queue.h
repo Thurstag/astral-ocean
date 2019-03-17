@@ -8,7 +8,7 @@
 #include <vulkan/vulkan.hpp>
 
 namespace ao::vulkan {
-    enum class QueueLevel { ePrimary, eSecondary };
+    enum class QueueUsage { eManual, eAutomatic };
 
     /**
      * @brief Queue request
@@ -17,18 +17,18 @@ namespace ao::vulkan {
     struct QueueRequest {
        public:
         vk::QueueFlagBits flag;
-        u32 secondary_count;
-        u32 primary_count;
+        u32 automatic_count;
+        u32 manual_count;
 
         /**
          * @brief Construct a new QueueRequest object
          *
          * @param flag Queue flag
-         * @param primary_count Primary queue count
-         * @param secondary_count Secondary queue count
+         * @param manual_count Manual queue count
+         * @param automatic_count Automatic queue count
          */
-        explicit QueueRequest(vk::QueueFlagBits flag, u32 primary_count = 1, u32 secondary_count = 0)
-            : flag(flag), primary_count(primary_count), secondary_count(secondary_count) {}
+        explicit QueueRequest(vk::QueueFlagBits flag, u32 manual_count = 1, u32 automatic_count = 0)
+            : flag(flag), manual_count(manual_count), automatic_count(automatic_count) {}
 
         /**
          * @brief Get total count
@@ -36,7 +36,7 @@ namespace ao::vulkan {
          * @return u32 Count
          */
         u32 count() const {
-            return this->secondary_count + this->primary_count;
+            return this->automatic_count + this->manual_count;
         }
     };
 

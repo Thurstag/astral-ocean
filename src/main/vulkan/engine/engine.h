@@ -114,16 +114,10 @@ namespace ao::vulkan {
         virtual void createSemaphores();
 
         /**
-         * @brief Create pipelines
+         * @brief Create vulkan objects (Pipelines, buffers...)
          *
          */
-        virtual void createPipelines() = 0;
-
-        /**
-         * @brief Create vulkan buffers (UBO, vertex buffer...)
-         *
-         */
-        virtual void createVulkanBuffers() = 0;
+        virtual void createVulkanObjects() = 0;
 
         /**
          * @brief Create a Surface object

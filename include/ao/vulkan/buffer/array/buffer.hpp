@@ -20,10 +20,10 @@ namespace ao::vulkan {
         /**
          * @brief Construct a new DynamicArrayBuffer object
          *
-         * @param count Count
+         * @param capacity Capacity
          * @param device Device
          */
-        explicit DynamicArrayBuffer(size_t count, std::shared_ptr<Device> device);
+        explicit DynamicArrayBuffer(size_t capacity, std::shared_ptr<Device> device);
 
         /**
          * @brief Destroy the DynamicArrayBuffer object
@@ -58,16 +58,17 @@ namespace ao::vulkan {
         virtual bool hasBuffer() const override;
 
        protected:
-        size_t count;
+        size_t capacity_;
         bool has_buffer;
     };
 
     template<class T>
-    DynamicArrayBuffer<T>::DynamicArrayBuffer(size_t count, std::shared_ptr<Device> device) : Buffer(device), count(count), has_buffer(false) {}
+    DynamicArrayBuffer<T>::DynamicArrayBuffer(size_t capacity, std::shared_ptr<Device> device)
+        : Buffer(device), capacity_(capacity), has_buffer(false) {}
 
     template<class T>
     size_t DynamicArrayBuffer<T>::capacity() const {
-        return this->count;
+        return this->capacity_;
     }
 
     template<class T>

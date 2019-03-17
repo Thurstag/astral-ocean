@@ -22,10 +22,10 @@ namespace ao::vulkan {
         /**
          * @brief Construct a new BasicDynamicArrayBuffer object
          *
-         * @param count Count
+         * @param capacity Capacity
          * @param device Device
          */
-        BasicDynamicArrayBuffer(size_t count, std::shared_ptr<Device> device);
+        BasicDynamicArrayBuffer(size_t capacity, std::shared_ptr<Device> device);
 
         /**
          * @brief Construct a new BasicDynamicArrayBuffer object
@@ -67,9 +67,9 @@ namespace ao::vulkan {
         DynamicArrayBuffer<T>* update(std::vector<T> const& data) override;
         DynamicArrayBuffer<T>* updateFragment(std::size_t index, T const* data) override;
         vk::DeviceSize offset(size_t index) const override;
-        vk::Buffer buffer() override;
-        vk::DeviceSize size() const override;
         DynamicArrayBuffer<T>* map() override;
+        vk::DeviceSize size() const override;
+        vk::Buffer buffer() override;
 
        protected:
         vk::MemoryPropertyFlags memory_flags;
@@ -83,8 +83,8 @@ namespace ao::vulkan {
     };
 
     template<class T>
-    BasicDynamicArrayBuffer<T>::BasicDynamicArrayBuffer(size_t count, std::shared_ptr<Device> device)
-        : DynamicArrayBuffer<T>(count, device), Buffer(device), has_mapper(false), mapper(nullptr) {}
+    BasicDynamicArrayBuffer<T>::BasicDynamicArrayBuffer(size_t capacity, std::shared_ptr<Device> device)
+        : DynamicArrayBuffer<T>(capacity, device), Buffer(device), has_mapper(false), mapper(nullptr) {}
 
     template<class T>
     BasicDynamicArrayBuffer<T>::~BasicDynamicArrayBuffer() {
@@ -112,7 +112,7 @@ namespace ao::vulkan {
         }
 
         // Get total size
-        this->size_ = size * this->count;
+        this->size_ = size * this->capacity_;
 
         // Create buffer
         this->buffer_ = this->device->logical()->createBuffer(vk::BufferCreateInfo(vk::BufferCreateFlags(), this->size_, usage_flags, sharing_mode));
@@ -144,13 +144,13 @@ namespace ao::vulkan {
         }
 
         // Check sizes
-        if (data.size() != this->count) {
-            throw core::Exception(fmt::format("Data argument size should be equal to: {0}", this->count));
+        if (data.size() != this->capacity_) {
+            throw core::Exception(fmt::format("Data argument size should be equal to: {0}", this->capacity_));
         }
 
         // Update fragments
-        for (size_t i = 0; i < this->count; i++) {
-            std::memcpy((void*)((u64)this->mapper + i * this->size_ / this->count), &data[i], this->size_ / this->count);
+        for (size_t i = 0; i < this->capacity_; i++) {
+            std::memcpy((void*)((u64)this->mapper + i * this->size_ / this->capacity_), &data[i], this->size_ / this->capacity_);
         }
 
         // Notify changes
@@ -168,8 +168,8 @@ namespace ao::vulkan {
         }
 
         // Check index
-        if (index >= this->count) {
-            throw core::IndexOutOfRangeException(std::make_pair(static_cast<u64>(0), static_cast<u64>(this->count)));
+        if (index >= this->capacity_) {
+            throw core::IndexOutOfRangeException(std::make_pair(static_cast<u64>(0), static_cast<u64>(this->capacity_)));
         }
 
         // Map memory
@@ -178,11 +178,11 @@ namespace ao::vulkan {
         }
 
         // Copy into buffer
-        std::memcpy((void*)((u64)this->mapper + (index * this->size_ / this->count)), data, this->size_ / this->count);
+        std::memcpy((void*)((u64)this->mapper + (index * this->size_ / this->capacity_)), data, this->size_ / this->capacity_);
 
         // Notify changes
         if (!(this->memory_flags & vk::MemoryPropertyFlagBits::eHostCoherent)) {
-            this->device->logical()->flushMappedMemoryRanges(vk::MappedMemoryRange(this->memory, this->offset(index), this->size_ / this->count));
+            this->device->logical()->flushMappedMemoryRanges(vk::MappedMemoryRange(this->memory, this->offset(index), this->size_ / this->capacity_));
         }
 
         return this;
@@ -190,10 +190,10 @@ namespace ao::vulkan {
 
     template<class T>
     vk::DeviceSize BasicDynamicArrayBuffer<T>::offset(size_t index) const {
-        if (index >= this->count) {
-            throw core::IndexOutOfRangeException(std::make_pair(static_cast<u64>(0), static_cast<u64>(this->count)));
+        if (index >= this->capacity_) {
+            throw core::IndexOutOfRangeException(std::make_pair(static_cast<u64>(0), static_cast<u64>(this->capacity_)));
         }
-        return index * this->size_ / this->count;
+        return index * this->size_ / this->capacity_;
     }
 
     template<class T>
@@ -275,9 +275,9 @@ namespace ao::vulkan {
         ArrayBuffer<T, N>* update(std::array<T, N> const& data) override;
         ArrayBuffer<T, N>* updateFragment(std::size_t index, T const* data) override;
         vk::DeviceSize offset(size_t index) const override;
-        vk::Buffer buffer() override;
         vk::DeviceSize size() const override;
         ArrayBuffer<T, N>* map() override;
+        vk::Buffer buffer() override;
 
        protected:
         vk::MemoryPropertyFlags memory_flags;

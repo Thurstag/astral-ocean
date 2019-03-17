@@ -16,20 +16,20 @@ ao::vulkan::QueueContainer::QueueContainer(std::shared_ptr<vk::Device> device, s
     for (auto& create_info : queue_create_info) {
         u32 j = 0;
 
-        // Primary queues
-        for (u32 i = 0; i < create_info.request.primary_count; i++) {
+        // Manual queues
+        for (u32 i = 0; i < create_info.request.manual_count; i++) {
             this->map[fmt::format("{}{}", vk::to_string(create_info.request.flag), j == 0 ? "" : fmt::format("-{}", j + 1))] =
                 ao::vulkan::structs::Queue(device->getQueue(create_info.family_index, create_info.start_index + j), create_info.family_index,
-                                           ao::vulkan::QueueLevel::ePrimary, queue_families[create_info.family_index].queueFlags);
+                                           ao::vulkan::QueueUsage::eManual, queue_families[create_info.family_index].queueFlags);
 
             j++;
         }
 
-        // Secondary queues
-        for (u32 i = 0; i < create_info.request.secondary_count; i++) {
+        // Automatic queues
+        for (u32 i = 0; i < create_info.request.automatic_count; i++) {
             this->map[fmt::format("{}{}", vk::to_string(create_info.request.flag), j == 0 ? "" : fmt::format("-{}", j + 1))] =
                 ao::vulkan::structs::Queue(device->getQueue(create_info.family_index, create_info.start_index + j), create_info.family_index,
-                                           ao::vulkan::QueueLevel::eSecondary, queue_families[create_info.family_index].queueFlags);
+                                           ao::vulkan::QueueUsage::eAutomatic, queue_families[create_info.family_index].queueFlags);
             j++;
         }
 
@@ -75,34 +75,34 @@ void ao::vulkan::QueueContainer::submit(vk::QueueFlagBits flag, vk::ArrayProxy<v
 
 std::optional<std::string> ao::vulkan::QueueContainer::findQueue(vk::QueueFlagBits flag,
                                                                  std::function<bool(ao::vulkan::structs::Queue const&)> predicate) const {
-    std::optional<std::string> secondary_queue_key;
-    std::optional<std::string> primary_queue_key;
+    std::optional<std::string> automatic_queue_key;
+    std::optional<std::string> manual_queue_key;
 
     // Search best queue
     for (auto [key, queue] : this->map) {
         if (predicate(queue)) {
             if (this->fences.count(key) == 0 || this->fences.at(key).status() == ao::vulkan::FenceStatus::eDestroyed ||
                 this->fences.at(key).status() == ao::vulkan::FenceStatus::eSignaled) {
-                if (queue.level == ao::vulkan::QueueLevel::eSecondary) {
-                    secondary_queue_key = key;
+                if (queue.usage == ao::vulkan::QueueUsage::eAutomatic) {
+                    automatic_queue_key = key;
                     break;
-                } else if (queue.level == ao::vulkan::QueueLevel::ePrimary) {
-                    primary_queue_key = key;
+                } else if (queue.usage == ao::vulkan::QueueUsage::eManual) {
+                    manual_queue_key = key;
                 }
             } else {
-                if (queue.level == ao::vulkan::QueueLevel::eSecondary && !secondary_queue_key) {
-                    secondary_queue_key = key;
-                } else if (queue.level == ao::vulkan::QueueLevel::ePrimary && !primary_queue_key) {
-                    primary_queue_key = key;
+                if (queue.usage == ao::vulkan::QueueUsage::eAutomatic && !automatic_queue_key) {
+                    automatic_queue_key = key;
+                } else if (queue.usage == ao::vulkan::QueueUsage::eManual && !manual_queue_key) {
+                    manual_queue_key = key;
                 }
             }
         }
     }
 
-    if (secondary_queue_key) {
-        return *secondary_queue_key;
-    } else if (primary_queue_key) {
-        return *primary_queue_key;
+    if (automatic_queue_key) {
+        return *automatic_queue_key;
+    } else if (manual_queue_key) {
+        return *manual_queue_key;
     }
     return std::nullopt;
 }

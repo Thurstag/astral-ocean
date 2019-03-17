@@ -65,12 +65,12 @@ namespace ao::vulkan {
         BasicTupleBuffer<T...>* init(vk::BufferUsageFlags usage_flags, vk::SharingMode sharing_mode, vk::MemoryPropertyFlags memory_flags,
                                      std::initializer_list<vk::DeviceSize> const& sizes);
 
-        BasicTupleBuffer<T...>* map() override;
         TupleBuffer<T...>* update(T const*... data) override;
         TupleBuffer<T...>* updateFragment(std::size_t index, void* const data) override;
         vk::Buffer buffer() override;
         vk::DeviceSize size() const override;
         vk::DeviceSize offset(size_t index) const override;
+        BasicTupleBuffer<T...>* map() override;
 
        protected:
         std::vector<std::pair<vk::DeviceSize, void*>> fragments;  // In pair, First = fragment's size / Second fragment's mapper
@@ -80,7 +80,6 @@ namespace ao::vulkan {
         vk::DeviceMemory memory;
         vk::DeviceSize size_;
         vk::Buffer buffer_;
-
         bool has_mapper;
     };
 

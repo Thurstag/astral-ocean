@@ -61,17 +61,17 @@ namespace ao::vulkan {
         virtual vk::DeviceSize offset(size_t index) const = 0;
 
         /**
+         * @brief Free buffer
+         *
+         */
+        virtual void free() = 0;
+
+        /**
          * @brief Map buffer
          *
          * @return Buffer* Buffer
          */
         virtual Buffer* map() = 0;
-
-        /**
-         * @brief Free buffer
-         *
-         */
-        virtual void free() = 0;
 
         /**
          * @brief Calculate UBO size with aligment

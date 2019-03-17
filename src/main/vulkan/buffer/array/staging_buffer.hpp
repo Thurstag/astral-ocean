@@ -20,11 +20,11 @@ namespace ao::vulkan {
         /**
          * @brief Construct a new StagingDynamicArrayBuffer object
          *
-         * @param count Count
+         * @param capacity Capacity
          * @param device Device
          * @param usage_flags usage flags
          */
-        StagingDynamicArrayBuffer(size_t count, std::shared_ptr<Device> device,
+        StagingDynamicArrayBuffer(size_t capacity, std::shared_ptr<Device> device,
                                   vk::CommandBufferUsageFlags usage_flags = vk::CommandBufferUsageFlagBits::eSimultaneousUse);
 
         /**
@@ -53,8 +53,8 @@ namespace ao::vulkan {
     };
 
     template<class T>
-    StagingDynamicArrayBuffer<T>::StagingDynamicArrayBuffer(size_t count, std::shared_ptr<Device> device, vk::CommandBufferUsageFlags usage_flags)
-        : DynamicArrayBuffer<T>(count, device), StagingBuffer<BasicDynamicArrayBuffer<T>>(device, usage_flags), Buffer(device) {}
+    StagingDynamicArrayBuffer<T>::StagingDynamicArrayBuffer(size_t capacity, std::shared_ptr<Device> device, vk::CommandBufferUsageFlags usage_flags)
+        : DynamicArrayBuffer<T>(capacity, device), StagingBuffer<BasicDynamicArrayBuffer<T>>(device, usage_flags), Buffer(device) {}
 
     template<class T>
     StagingDynamicArrayBuffer<T>* StagingDynamicArrayBuffer<T>::init(vk::DeviceSize size, std::optional<vk::BufferUsageFlags> usage_flags) {
@@ -63,12 +63,12 @@ namespace ao::vulkan {
         }
 
         // Init buffer in host's memory
-        this->host_buffer = std::make_unique<BasicDynamicArrayBuffer<T>>(this->count, Buffer::device);
+        this->host_buffer = std::make_unique<BasicDynamicArrayBuffer<T>>(this->capacity_, Buffer::device);
         this->host_buffer->init(vk::BufferUsageFlagBits::eTransferSrc, vk::SharingMode::eExclusive,
                                 vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent, size);
 
         // Init buffer in device's memory
-        this->device_buffer = std::make_unique<BasicDynamicArrayBuffer<T>>(this->count, Buffer::device);
+        this->device_buffer = std::make_unique<BasicDynamicArrayBuffer<T>>(this->capacity_, Buffer::device);
         this->device_buffer->init(usage_flags ? vk::BufferUsageFlagBits::eTransferDst | *usage_flags : vk::BufferUsageFlagBits::eTransferDst,
                                   vk::SharingMode::eExclusive, vk::MemoryPropertyFlagBits::eDeviceLocal, size);
 

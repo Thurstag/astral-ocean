@@ -138,11 +138,8 @@ void ao::vulkan::Engine::prepareVulkan() {
         throw ao::core::Exception("Render pass isn't initialized");
     }
 
-    // Create pipelines
-    this->createPipelines();
-
-    // Set-up vulkan buffers
-    this->createVulkanBuffers();
+    // Create vulkan objects
+    this->createVulkanObjects();
 
     // Create framebuffers
     this->swapchain->createFramebuffers(this->render_pass);

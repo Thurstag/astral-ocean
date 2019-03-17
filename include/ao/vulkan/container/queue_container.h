@@ -23,7 +23,7 @@ namespace ao::vulkan {
         struct Queue {
            public:
             vk::QueueFlags flags;
-            QueueLevel level;
+            QueueUsage usage;
             u32 family_index;
             vk::Queue value;
 
@@ -31,18 +31,18 @@ namespace ao::vulkan {
              * @brief Construct a new Queue object
              *
              */
-            Queue() : Queue(nullptr, 0, QueueLevel::ePrimary, vk::QueueFlags()) {}
+            Queue() : Queue(nullptr, 0, QueueUsage::eManual, vk::QueueFlags()) {}
 
             /**
              * @brief Construct a new Queue object
              *
              * @param queue Vulkan queue
              * @param family_index Family index
-             * @param level Level
+             * @param usage Usage
              * @param flags Flags
              */
-            explicit Queue(vk::Queue queue, u32 family_index, QueueLevel level, vk::QueueFlags flags)
-                : value(queue), family_index(family_index), level(level), flags(flags) {}
+            explicit Queue(vk::Queue queue, u32 family_index, QueueUsage usage, vk::QueueFlags flags)
+                : value(queue), family_index(family_index), usage(usage), flags(flags) {}
         };
     };  // namespace structs
 

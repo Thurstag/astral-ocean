@@ -7,10 +7,14 @@
 #include "pipeline.h"
 
 namespace ao::vulkan {
+    /**
+     * @brief Graphics pipeline wrapper
+     *
+     */
     class GraphicsPipeline : public Pipeline {
        public:
         /**
-         * @brief Construct a new Graphics Pipeline object
+         * @brief Construct a new GraphicsPipeline object
          *
          * @param device Device
          * @param layout Layout

@@ -161,6 +161,12 @@ namespace ao::test {
         TestBasicDynamicArrayBuffer<Object> b2 = TestBasicDynamicArrayBuffer<Object>(2, instance.device);
         b2.init(vk::BufferUsageFlagBits::eUniformBuffer, vk::SharingMode::eExclusive, vk::MemoryPropertyFlagBits::eHostVisible, sizeof(Object));
 
+        // Check offsets
+        ASSERT_EQ(0, b.offset(0));
+        ASSERT_EQ(sizeof(Object), b.offset(1));
+        ASSERT_EQ(0, b2.offset(0));
+        ASSERT_EQ(sizeof(Object), b2.offset(1));
+
         // Normal update
         b.update({Object(1), Object(2)});
         std::vector<Object> v = {Object(1), Object(2)};
@@ -338,6 +344,12 @@ namespace ao::test {
         b.init(sizeof(Object));
         TestStagingDynamicArrayBuffer<Object> b2(2, instance.device);
         b2.init(sizeof(Object));
+
+        // Check offsets
+        ASSERT_EQ(0, b.offset(0));
+        ASSERT_EQ(sizeof(Object), b.offset(1));
+        ASSERT_EQ(0, b2.offset(0));
+        ASSERT_EQ(sizeof(Object), b2.offset(1));
 
         // Normal update
         b.update({Object(1), Object(2)});

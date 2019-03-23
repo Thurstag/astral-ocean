@@ -114,12 +114,8 @@ namespace ao::vulkan {
         }
 
         // Map each fragment
-        u64 offset = 0;
         for (size_t i = 0; i < sizeof...(T); i++) {
-            this->fragments[i].second = this->device->logical()->mapMemory(this->memory, offset, this->fragments[i].first);
-
-            this->offsets[i] = offset;
-            offset += this->fragments[i].first;
+            this->fragments[i].second = this->device->logical()->mapMemory(this->memory, this->offsets[i], this->fragments[i].first);
         }
 
         this->has_mapper = true;
@@ -138,10 +134,14 @@ namespace ao::vulkan {
             throw core::Exception("Sizes argument should have the same size as template arguments");
         }
 
-        // Init map
+        // Init map/offsets
+        u64 offset = 0;
         size_t i = 0;
-        for (auto& size : sizes) {
+        for (auto size : sizes) {
             this->fragments[i].first = size;
+            this->offsets[i] = offset;
+
+            offset += size;
             i++;
         }
 

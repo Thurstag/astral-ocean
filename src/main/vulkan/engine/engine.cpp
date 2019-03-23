@@ -173,17 +173,17 @@ void ao::vulkan::Engine::render() {
     this->updateCommandBuffers();
 
     // Create submit info
-    vk::SubmitInfo submitInfo(static_cast<u32>(this->semaphores["graphicQueue"].waits.size()),
-                              this->semaphores["graphicQueue"].waits.empty() ? nullptr : this->semaphores["graphicQueue"].waits.data(),
-                              &pipeline_stage, 1, &this->swapchain->currentCommand(),
-                              static_cast<u32>(this->semaphores["graphicQueue"].signals.size()),
-                              this->semaphores["graphicQueue"].signals.empty() ? nullptr : this->semaphores["graphicQueue"].signals.data());
+    vk::SubmitInfo submit_info(static_cast<u32>(this->semaphores["graphicQueue"].waits.size()),
+                               this->semaphores["graphicQueue"].waits.empty() ? nullptr : this->semaphores["graphicQueue"].waits.data(),
+                               &pipeline_stage, 1, &this->swapchain->currentCommand(),
+                               static_cast<u32>(this->semaphores["graphicQueue"].signals.size()),
+                               this->semaphores["graphicQueue"].signals.empty() ? nullptr : this->semaphores["graphicQueue"].signals.data());
 
     // Reset fence
     this->device->logical()->resetFences(fence);
 
     // Submit command buffer
-    this->device->queues()->at(vk::to_string(vk::QueueFlagBits::eGraphics)).value.submit(submitInfo, fence);
+    this->device->queues()->at(vk::to_string(vk::QueueFlagBits::eGraphics)).value.submit(submit_info, fence);
 
     // Submit frame
     this->submitFrame();

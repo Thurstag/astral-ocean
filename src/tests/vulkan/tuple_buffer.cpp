@@ -158,6 +158,10 @@ namespace ao::test {
         b.init(vk::BufferUsageFlagBits::eUniformBuffer, vk::SharingMode::eExclusive, vk::MemoryPropertyFlagBits::eHostVisible,
                {sizeof(Object), sizeof(SecondObject)});
 
+        // Check offsets
+        ASSERT_EQ(0, b.offset(0));
+        ASSERT_EQ(sizeof(Object), b.offset(1));
+
         Object* o = new Object(1);
         SecondObject* sO = new SecondObject(true);
 
@@ -318,6 +322,10 @@ namespace ao::test {
 
         TestStagingTupleBuffer<Object, SecondObject> b(instance.device);
         b.init({sizeof(Object), sizeof(SecondObject)});
+
+        // Check offsets
+        ASSERT_EQ(0, b.offset(0));
+        ASSERT_EQ(sizeof(Object), b.offset(1));
 
         Object* o = new Object(1);
         SecondObject* sO = new SecondObject(true);

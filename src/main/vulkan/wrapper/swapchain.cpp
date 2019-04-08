@@ -23,10 +23,6 @@ ao::vulkan::Swapchain::~Swapchain() {
         this->device->logical()->destroyFramebuffer(framebuffer);
     }
 
-    for (auto& fence : this->fences) {
-        this->device->logical()->destroyFence(fence);
-    }
-
     if (this->stencil_buffer) {
         this->destroyStencilBuffer();
     }
@@ -45,7 +41,7 @@ void ao::vulkan::Swapchain::init(u64& win_width, u64& win_height, bool vsync, bo
         this->extent_ = vk::Extent2D(static_cast<u32>(win_width), static_cast<u32>(win_height));
     } else {
         if (capabilities.currentExtent.width != win_width || capabilities.currentExtent.height != win_height) {
-            LOGGER << ao::core::Logger::Level::warning
+            LOGGER << ao::core::Logger::Level::debug
                    << fmt::format("Surface size is defined, change reference size from {0}x{1} to {2}x{3}", win_width, win_height,
                                   capabilities.currentExtent.width, capabilities.currentExtent.height);
         }
@@ -168,12 +164,6 @@ void ao::vulkan::Swapchain::init(u64& win_width, u64& win_height, bool vsync, bo
     }
 
     if (first_init) {
-        // Create fences
-        this->fences.resize(this->buffers.size());
-        for (auto& fence : this->fences) {
-            fence = this->device->logical()->createFence(vk::FenceCreateInfo(vk::FenceCreateFlagBits::eSignaled));
-        }
-
         // Create command pool
         this->command_pool =
             std::make_unique<ao::vulkan::CommandPool>(this->device->logical(), vk::CommandPoolCreateFlagBits::eResetCommandBuffer,
@@ -299,10 +289,9 @@ vk::Result ao::vulkan::Swapchain::acquireNextImage(vk::Semaphore acquire) {
 }
 
 vk::Result ao::vulkan::Swapchain::enqueueImage(vk::ArrayProxy<vk::Semaphore> waiting_semaphores) {
-    this->state_ = ao::vulkan::SwapchainState::eIdle;
-
     vk::PresentInfoKHR present_info(static_cast<u32>(waiting_semaphores.size()), waiting_semaphores.empty() ? nullptr : waiting_semaphores.data(), 1,
                                     &this->swapchain, &this->frame_index);
+    this->state_ = ao::vulkan::SwapchainState::eEnqueueImage;
 
     // Pass a pointer to don't trigger an exception
     return this->present_queue.presentKHR(&present_info);

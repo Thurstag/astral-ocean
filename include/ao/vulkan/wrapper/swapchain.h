@@ -19,7 +19,7 @@ namespace ao::vulkan {
      * @brief Swapchain states
      *
      */
-    enum class SwapchainState { eIdle, eAcquireImage, eReset };
+    enum class SwapchainState { eIdle, eAcquireImage, eEnqueueImage, eReset };
 
     /**
      * @brief vk::Swapchain wrapper
@@ -83,15 +83,6 @@ namespace ao::vulkan {
          *
          */
         void destroyStencilBuffer();
-
-        /**
-         * @brief Get current fence
-         *
-         * @return vk::Fence Fence
-         */
-        vk::Fence currentFence() const {
-            return this->fences[this->frame_index];
-        }
 
         /**
          * @brief Get current frame
@@ -162,7 +153,7 @@ namespace ao::vulkan {
          * @return size_t Size
          */
         size_t size() const {
-            return this->buffers.size();
+            return this->surface_images_count;
         }
 
         /**
@@ -203,7 +194,6 @@ namespace ao::vulkan {
 
         std::vector<std::pair<vk::Image, vk::ImageView>> buffers;
         std::vector<vk::Framebuffer> frames;
-        std::vector<vk::Fence> fences;
         vk::SwapchainKHR swapchain;
         u32 surface_images_count;
         vk::Queue present_queue;

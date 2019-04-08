@@ -67,12 +67,14 @@ namespace ao::vulkan {
         core::Logger LOGGER = core::Logger::GetInstance<Engine>();
         std::shared_ptr<EngineSettings> settings_;
         std::atomic_bool enforce_resize;
+        u32 current_frame;
 
         vk::DebugUtilsMessengerEXT debug_callBack;
         std::shared_ptr<vk::Instance> instance;
         std::shared_ptr<Swapchain> swapchain;
         std::shared_ptr<Device> device;
         SemaphoreContainer semaphores;
+        std::vector<vk::Fence> fences;
         PipelineContainer pipelines;
         vk::RenderPass render_pass;
 
@@ -112,6 +114,12 @@ namespace ao::vulkan {
          *
          */
         virtual void createSemaphores();
+
+        /**
+         * @brief Create fences
+         *
+         */
+        virtual void createFences();
 
         /**
          * @brief Create vulkan objects (Pipelines, buffers...)

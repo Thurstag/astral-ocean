@@ -22,7 +22,7 @@ namespace ao::core {
          *
          * @param range Range
          */
-        explicit IndexOutOfRangeException(std::optional<std::pair<u64, u64>> const& range = std::nullopt);
+        explicit IndexOutOfRangeException(std::optional<std::pair<u32, u32>> const& range = std::nullopt);
 
         /**
          * @brief Destroy the IndexOutOfRangeException object

@@ -150,7 +150,7 @@ namespace ao::vulkan {
 
         // Update fragments
         for (size_t i = 0; i < this->capacity_; i++) {
-            std::memcpy((void*)((u64)this->mapper + i * this->size_ / this->capacity_), &data[i], this->size_ / this->capacity_);
+            std::memcpy((void*)(static_cast<char*>(this->mapper) + i * this->size_ / this->capacity_), &data[i], this->size_ / this->capacity_);
         }
 
         // Notify changes
@@ -169,7 +169,7 @@ namespace ao::vulkan {
 
         // Check index
         if (index >= this->capacity_) {
-            throw core::IndexOutOfRangeException(std::make_pair(static_cast<u64>(0), static_cast<u64>(this->capacity_)));
+            throw core::IndexOutOfRangeException(std::make_pair<u32, u32>(0, static_cast<u32>(this->capacity_)));
         }
 
         // Map memory
@@ -178,7 +178,7 @@ namespace ao::vulkan {
         }
 
         // Copy into buffer
-        std::memcpy((void*)((u64)this->mapper + (index * this->size_ / this->capacity_)), data, this->size_ / this->capacity_);
+        std::memcpy((void*)(static_cast<char*>(this->mapper) + (index * this->size_ / this->capacity_)), data, this->size_ / this->capacity_);
 
         // Notify changes
         if (!(this->memory_flags & vk::MemoryPropertyFlagBits::eHostCoherent)) {
@@ -191,7 +191,7 @@ namespace ao::vulkan {
     template<class T>
     vk::DeviceSize BasicDynamicArrayBuffer<T>::offset(size_t index) const {
         if (index >= this->capacity_) {
-            throw core::IndexOutOfRangeException(std::make_pair(static_cast<u64>(0), static_cast<u64>(this->capacity_)));
+            throw core::IndexOutOfRangeException(std::make_pair<u32, u32>(0, static_cast<u32>(this->capacity_)));
         }
         return index * this->size_ / this->capacity_;
     }
@@ -353,7 +353,7 @@ namespace ao::vulkan {
 
         // Update fragments
         for (size_t i = 0; i < N; i++) {
-            std::memcpy((void*)((u64)this->mapper + i * this->size_ / N), &data[i], this->size_ / N);
+            std::memcpy((void*)(static_cast<char*>(this->mapper) + i * this->size_ / N), &data[i], this->size_ / N);
         }
 
         // Notify changes
@@ -372,7 +372,7 @@ namespace ao::vulkan {
 
         // Check index
         if (index >= N) {
-            throw core::IndexOutOfRangeException(std::make_pair(static_cast<u64>(0), static_cast<u64>(N)));
+            throw core::IndexOutOfRangeException(std::make_pair<u32, u32>(0, static_cast<u32>(N)));
         }
 
         // Map memory
@@ -381,7 +381,7 @@ namespace ao::vulkan {
         }
 
         // Copy into buffer
-        std::memcpy((void*)((u64)this->mapper + (index * this->size_ / N)), data, this->size_ / N);
+        std::memcpy((void*)(static_cast<char*>(this->mapper) + (index * this->size_ / N)), data, this->size_ / N);
 
         // Notify changes
         if (!(this->memory_flags & vk::MemoryPropertyFlagBits::eHostCoherent)) {
@@ -394,7 +394,7 @@ namespace ao::vulkan {
     template<class T, size_t N>
     vk::DeviceSize BasicArrayBuffer<T, N>::offset(size_t index) const {
         if (index >= N) {
-            throw core::IndexOutOfRangeException(std::make_pair(static_cast<u64>(0), static_cast<u64>(N)));
+            throw core::IndexOutOfRangeException(std::make_pair<u32, u32>(0, static_cast<u32>(N)));
         }
         return index * this->size_ / N;
     }

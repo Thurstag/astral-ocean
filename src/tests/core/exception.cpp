@@ -31,6 +31,6 @@ namespace ao::test {
 
     TEST(IndexOutOfRangeException, Constructor) {
         ASSERT_STREQ("Index out of range", core::IndexOutOfRangeException().what());
-        ASSERT_STREQ("Index out of range, range is: 0 -> 10", core::IndexOutOfRangeException(std::make_pair<u64, u64>(0, 10)).what());
+        ASSERT_STREQ("Index out of range, range is: 0 -> 10", core::IndexOutOfRangeException(std::make_pair<u32, u32>(0, 10)).what());
     }
 }  // namespace ao::test

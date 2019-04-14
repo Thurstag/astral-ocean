@@ -135,7 +135,7 @@ namespace ao::vulkan {
         }
 
         // Init map/offsets
-        u64 offset = 0;
+        vk::DeviceSize offset = 0;
         size_t i = 0;
         for (auto size : sizes) {
             this->fragments[i].first = size;
@@ -199,7 +199,7 @@ namespace ao::vulkan {
 
         // Check index
         if (index >= sizeof...(T)) {
-            throw core::IndexOutOfRangeException(std::make_pair(static_cast<u64>(0), static_cast<u64>(sizeof...(T))));
+            throw core::IndexOutOfRangeException(std::make_pair<u32, u32>(0, static_cast<u32>(sizeof...(T))));
         }
 
         // Map memory
@@ -231,7 +231,7 @@ namespace ao::vulkan {
     template<class... T>
     vk::DeviceSize BasicTupleBuffer<T...>::offset(size_t index) const {
         if (index >= sizeof...(T)) {
-            throw core::IndexOutOfRangeException(std::make_pair(static_cast<u64>(0), static_cast<u64>(sizeof...(T))));
+            throw core::IndexOutOfRangeException(std::make_pair<u32, u32>(0, static_cast<u32>(sizeof...(T))));
         }
         return this->offsets[index];
     }

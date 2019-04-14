@@ -51,7 +51,7 @@ namespace ao::vulkan {
          * @param vsync Enable vsync
          * @param stencil_buffer Enable stencil buffer
          */
-        void init(u64& win_width, u64& win_height, bool vsync, bool stencil_buffer);
+        void init(u32& win_width, u32& win_height, bool vsync, bool stencil_buffer);
 
         /**
          * @brief Initialize surface

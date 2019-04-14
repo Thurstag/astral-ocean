@@ -28,7 +28,7 @@ ao::vulkan::Swapchain::~Swapchain() {
     }
 }
 
-void ao::vulkan::Swapchain::init(u64& win_width, u64& win_height, bool vsync, bool stencil_buffer) {
+void ao::vulkan::Swapchain::init(u32& win_width, u32& win_height, bool vsync, bool stencil_buffer) {
     // Back-up swap chain
     vk::SwapchainKHR old = this->swapchain;
     bool first_init = !old;
@@ -38,7 +38,7 @@ void ao::vulkan::Swapchain::init(u64& win_width, u64& win_height, bool vsync, bo
 
     // Find best swap chain size
     if (capabilities.currentExtent.width == (u32)-1) {
-        this->extent_ = vk::Extent2D(static_cast<u32>(win_width), static_cast<u32>(win_height));
+        this->extent_ = vk::Extent2D(win_width, win_height);
     } else {
         if (capabilities.currentExtent.width != win_width || capabilities.currentExtent.height != win_height) {
             LOGGER << ao::core::Logger::Level::debug

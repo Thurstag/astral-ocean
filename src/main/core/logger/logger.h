@@ -8,7 +8,7 @@
 
 namespace ao::core {
     namespace logger {
-        constexpr char const* DefaultFormat = "[%TimeStamp%] [Thread-%ThreadID%] [%Severity%] %Message%";
+        static constexpr char const* DefaultFormat = "[%TimeStamp%] [Thread-%ThreadID%] [%Severity%] %Message%";
     }
 
     /**

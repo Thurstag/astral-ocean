@@ -13,18 +13,18 @@
 
 namespace ao::vulkan {
     namespace settings {
-        constexpr char const* WindowWidth = "window.width";
-        constexpr char const* WindowHeight = "window.height";
-        constexpr char const* WindowVsync = "window.vsync";
+        static constexpr char const* WindowWidth = "window.width";
+        static constexpr char const* WindowHeight = "window.height";
+        static constexpr char const* WindowVsync = "window.vsync";
 
-        constexpr char const* AppName = "application.name";
-        constexpr char const* AppVersion = "application.version";
+        static constexpr char const* AppName = "application.name";
+        static constexpr char const* AppVersion = "application.version";
 
-        constexpr char const* EngineName = "engine.name";
-        constexpr char const* EngineVersion = "engine.version";
+        static constexpr char const* EngineName = "engine.name";
+        static constexpr char const* EngineVersion = "engine.version";
 
-        constexpr char const* ValidationLayers = "vulkan.validation_layers";
-        constexpr char const* StencilBuffer = "vulkan.stencil_buffer";
+        static constexpr char const* ValidationLayers = "vulkan.validation_layers";
+        static constexpr char const* StencilBuffer = "vulkan.stencil_buffer";
     };  // namespace settings
 
     /**

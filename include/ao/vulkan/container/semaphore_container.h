@@ -39,7 +39,7 @@ namespace ao::vulkan {
      * @brief Semaphore container
      *
      */
-    class SemaphoreContainer : public core::MapContainer<std::string, structs::Semaphores> {
+    class SemaphoreContainer {
        public:
         /**
          * @brief Construct a new SemaphoreContainer object
@@ -60,9 +60,30 @@ namespace ao::vulkan {
          */
         virtual ~SemaphoreContainer();
 
-        virtual void clear() override;
+        /**
+         * @brief Operator []
+         *
+         * @param index Index
+         * @return structs::Semaphores&
+         */
+        virtual structs::Semaphores& operator[](size_t index);
+
+        /**
+         * @brief Clear content
+         *
+         */
+        virtual void clear();
+
+        /**
+         * @brief Resize container
+         *
+         * @param size Size
+         */
+        virtual void resize(size_t size);
 
        protected:
         std::shared_ptr<vk::Device> device;
+
+        std::vector<structs::Semaphores> content;
     };
 }  // namespace ao::vulkan

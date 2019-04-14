@@ -113,17 +113,18 @@ void ao::vulkan::Engine::createSemaphores() {
     this->semaphores = SemaphoreContainer(this->device->logical());
 
     // Create semaphores
+    this->semaphores.resize(3 * this->swapchain->size());
     for (size_t i = 0; i < this->swapchain->size(); i++) {
         vk::Semaphore acquire = this->device->logical()->createSemaphore(vk::SemaphoreCreateInfo());
         vk::Semaphore render = this->device->logical()->createSemaphore(vk::SemaphoreCreateInfo());
 
         // Fill container
-        this->semaphores[fmt::format("acquireNextImage-{}", i)].signals.push_back(acquire);
+        this->semaphores[(ao::vulkan::semaphore::AcquireImage * this->swapchain->size()) + i].signals.push_back(acquire);
 
-        this->semaphores[fmt::format("graphicQueue-{}", i)].waits.push_back(acquire);
-        this->semaphores[fmt::format("graphicQueue-{}", i)].signals.push_back(render);
+        this->semaphores[(ao::vulkan::semaphore::GraphicProcess * this->swapchain->size()) + i].waits.push_back(acquire);
+        this->semaphores[(ao::vulkan::semaphore::GraphicProcess * this->swapchain->size()) + i].signals.push_back(render);
 
-        this->semaphores[fmt::format("presentQueue-{}", i)].waits.push_back(render);
+        this->semaphores[(ao::vulkan::semaphore::PresentImage * this->swapchain->size()) + i].waits.push_back(render);
     }
 }
 
@@ -193,11 +194,11 @@ void ao::vulkan::Engine::render() {
     this->updateCommandBuffers();
 
     // Create submit info
-    auto sem_key = fmt::format("graphicQueue-{}", this->current_frame);
-    vk::SubmitInfo submit_info(static_cast<u32>(this->semaphores[sem_key].waits.size()),
-                               this->semaphores[sem_key].waits.empty() ? nullptr : this->semaphores[sem_key].waits.data(), &pipeline_stage, 1,
-                               &this->swapchain->currentCommand(), static_cast<u32>(this->semaphores[sem_key].signals.size()),
-                               this->semaphores[sem_key].signals.empty() ? nullptr : this->semaphores[sem_key].signals.data());
+    auto sem_index = (ao::vulkan::semaphore::GraphicProcess * this->swapchain->size()) + this->current_frame;
+    vk::SubmitInfo submit_info(static_cast<u32>(this->semaphores[sem_index].waits.size()),
+                               this->semaphores[sem_index].waits.empty() ? nullptr : this->semaphores[sem_index].waits.data(), &pipeline_stage, 1,
+                               &this->swapchain->currentCommand(), static_cast<u32>(this->semaphores[sem_index].signals.size()),
+                               this->semaphores[sem_index].signals.empty() ? nullptr : this->semaphores[sem_index].signals.data());
 
     // Reset fence
     this->device->logical()->resetFences(fence);
@@ -213,7 +214,8 @@ void ao::vulkan::Engine::render() {
 }
 
 void ao::vulkan::Engine::prepareFrame() {
-    vk::Result result = this->swapchain->acquireNextImage(this->semaphores[fmt::format("acquireNextImage-{}", this->current_frame)].signals.front());
+    vk::Result result = this->swapchain->acquireNextImage(
+        this->semaphores[(ao::vulkan::semaphore::AcquireImage * this->swapchain->size()) + this->current_frame].signals.front());
 
     // Check result
     if (result == vk::Result::eErrorOutOfDateKHR || result == vk::Result::eSuboptimalKHR || this->enforce_resize) {
@@ -226,7 +228,8 @@ void ao::vulkan::Engine::prepareFrame() {
 }
 
 void ao::vulkan::Engine::submitFrame() {
-    vk::Result result = this->swapchain->enqueueImage(this->semaphores[fmt::format("presentQueue-{}", this->current_frame)].waits);
+    vk::Result result =
+        this->swapchain->enqueueImage(this->semaphores[(ao::vulkan::semaphore::PresentImage * this->swapchain->size()) + this->current_frame].waits);
 
     // Check result
     if (result == vk::Result::eErrorOutOfDateKHR || result == vk::Result::eSuboptimalKHR || this->enforce_resize) {

@@ -23,6 +23,12 @@
 namespace ao::vulkan {
     struct ValidationLayers {};
 
+    namespace semaphore {
+        static constexpr size_t AcquireImage = 0;
+        static constexpr size_t GraphicProcess = 1;
+        static constexpr size_t PresentImage = 2;
+    }  // namespace semaphore
+
     /**
      * @brief Engine class
      *

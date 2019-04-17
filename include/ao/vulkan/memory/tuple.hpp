@@ -19,9 +19,8 @@ namespace ao::vulkan {
         template<class... T>
         inline size_t sizeOf(std::shared_ptr<Allocator> allocator) {
             size_t sizes[] = {allocator->alignSize(sizeof(T))...};
-            constexpr auto ArgCount = sizeof...(T);
 
-            return std::accumulate(sizes, sizes + ArgCount, size_t(0), std::plus<size_t>());
+            return std::accumulate(sizes, sizes + sizeof...(T), size_t(0), std::plus<size_t>());
         }
     }  // namespace
 

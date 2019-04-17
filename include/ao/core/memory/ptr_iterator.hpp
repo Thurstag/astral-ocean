@@ -20,9 +20,9 @@ namespace ao::core {
          * @brief Construct a new PtrIterator object
          *
          * @param pointer Pointer
-         * @param stride Stride
+         * @param stride Stride (in bytes)
          */
-        PtrIterator(T* pointer, size_t stride = 0) : ptr(pointer), stride(stride) {}
+        PtrIterator(T* pointer, size_t stride = sizeof(T)) : ptr(pointer), stride(stride) {}
 
         /**
          * @brief Operator++
@@ -30,11 +30,7 @@ namespace ao::core {
          * @return PtrIterator& Iterator
          */
         PtrIterator& operator++() {
-            if (this->stride == 0) {
-                this->ptr++;
-            } else {
-                this->ptr = reinterpret_cast<T*>(reinterpret_cast<char*>((void*)this->ptr) + this->stride);
-            }
+            this->ptr = reinterpret_cast<T*>(reinterpret_cast<char*>((void*)this->ptr) + this->stride);
 
             return *this;
         }

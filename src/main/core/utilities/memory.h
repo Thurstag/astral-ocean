@@ -4,6 +4,8 @@
 
 #pragma once
 
+#include <stdio.h>
+
 namespace ao::core::utilities {
     /**
      * @brief Calculate aligned size based on a alignment

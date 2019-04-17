@@ -28,11 +28,7 @@ namespace ao::vulkan {
          * @brief Destroy the Buffer object
          *
          */
-        virtual ~Buffer() {
-            if (this->allocator_->own(*this->buffer_info)) {  // TODO: Necessary ???
-                this->allocator_->free(*this->buffer_info);
-            }
-        }
+        virtual ~Buffer();
 
         /**
          * @brief Get buffer info

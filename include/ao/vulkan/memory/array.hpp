@@ -84,7 +84,7 @@ namespace ao::vulkan {
          *
          * @return size_t Size
          */
-        virtual constexpr size_t size() const {
+        constexpr size_t size() const {
             return N;
         }
 

@@ -7,6 +7,7 @@
 #include <fstream>
 #include <iostream>
 #include <map>
+#include <mutex>
 #include <string>
 #include <vector>
 
@@ -52,6 +53,7 @@ namespace ao::vulkan {
        protected:
         std::map<vk::ShaderStageFlagBits, vk::PipelineShaderStageCreateInfo> shaders;
         std::shared_ptr<vk::Device> device;
+        std::mutex shaders_mutex;
 
         /**
          * @brief Read a file

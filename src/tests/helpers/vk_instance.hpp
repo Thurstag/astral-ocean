@@ -24,11 +24,18 @@ namespace ao::test {
          * @return false Fail to initialize vulkan
          */
         bool init();
+
+        /**
+         * @brief Get minimal alignment for a buffer
+         *
+         * @return vk::DeviceSize Alignment
+         */
+        vk::DeviceSize minAligment();
     };
 
     inline VkInstance::~VkInstance() {
         this->device.reset();
-        this->instance.reset();
+        this->instance->destroy();
     }
 
     bool VkInstance::init() {
@@ -63,5 +70,13 @@ namespace ao::test {
             return false;
         }
         return true;
+    }
+
+    vk::DeviceSize VkInstance::minAligment() {
+        auto properties = this->device->physical().getProperties();
+        std::array<vk::DeviceSize, 4> sizes = {properties.limits.minMemoryMapAlignment, properties.limits.minTexelBufferOffsetAlignment,
+                                               properties.limits.minUniformBufferOffsetAlignment, properties.limits.minStorageBufferOffsetAlignment};
+
+        return *std::max_element(sizes.begin(), sizes.end());
     }
 }  // namespace ao::test

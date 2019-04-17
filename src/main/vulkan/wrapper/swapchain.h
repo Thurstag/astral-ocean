@@ -16,7 +16,7 @@
 
 namespace ao::vulkan {
     /**
-     * @brief Swapchain states
+     * @brief Swap chain states
      *
      */
     enum class SwapchainState { eIdle, eAcquireImage, eEnqueueImage, eReset };
@@ -44,14 +44,14 @@ namespace ao::vulkan {
         virtual ~Swapchain();
 
         /**
-         * @brief Initialize swapchain
+         * @brief Initialize swap chain
          *
-         * @param win_width Window's width
-         * @param win_height Window's height
+         * @param surface_width Surface's width
+         * @param surface_height Surface's height
          * @param vsync Enable vsync
          * @param stencil_buffer Enable stencil buffer
          */
-        void init(u32& win_width, u32& win_height, bool vsync, bool stencil_buffer);
+        void init(u32& surface_width, u32& surface_height, bool vsync, bool stencil_buffer);
 
         /**
          * @brief Initialize surface

@@ -10,8 +10,8 @@ void ao::vulkan::Engine::run() {
     // Init window
     this->initWindow();
     LOGGER << ao::core::Logger::Level::info
-           << fmt::format("Init {0}x{1} window", this->settings_->get<u32>(ao::vulkan::settings::WindowWidth),
-                          this->settings_->get<u32>(ao::vulkan::settings::WindowHeight));
+           << fmt::format("Init {0}x{1} window", this->settings_->get<u32>(ao::vulkan::settings::SurfaceWidth),
+                          this->settings_->get<u32>(ao::vulkan::settings::SurfaceHeight));
 
     // Init vulkan
     this->initVulkan();
@@ -95,7 +95,8 @@ void ao::vulkan::Engine::recreateSwapChain() {
     this->swapchain->destroyFramebuffers();
 
     // Recreate swap chain
-    this->swapchain->init(this->settings_->get<u32>(ao::vulkan::settings::WindowWidth), this->settings_->get<u32>(ao::vulkan::settings::WindowHeight),
+    this->swapchain->init(this->settings_->get<u32>(ao::vulkan::settings::SurfaceWidth),
+                          this->settings_->get<u32>(ao::vulkan::settings::SurfaceHeight),
                           this->settings_->get(ao::vulkan::settings::WindowVsync, std::make_optional(false)),
                           this->settings_->get(ao::vulkan::settings::StencilBuffer, std::make_optional(false)));
 
@@ -141,7 +142,8 @@ void ao::vulkan::Engine::prepareVulkan() {
     this->swapchain->setSurface(this->createSurface())->initSurface();
 
     // Init swap chain
-    this->swapchain->init(this->settings_->get<u32>(ao::vulkan::settings::WindowWidth), this->settings_->get<u32>(ao::vulkan::settings::WindowHeight),
+    this->swapchain->init(this->settings_->get<u32>(ao::vulkan::settings::SurfaceWidth),
+                          this->settings_->get<u32>(ao::vulkan::settings::SurfaceHeight),
                           this->settings_->get(ao::vulkan::settings::WindowVsync, std::make_optional(false)),
                           this->settings_->get(ao::vulkan::settings::StencilBuffer, std::make_optional(false)));
 

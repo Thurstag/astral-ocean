@@ -13,8 +13,9 @@
 
 namespace ao::vulkan {
     namespace settings {
-        static constexpr char const* WindowWidth = "window.width";
-        static constexpr char const* WindowHeight = "window.height";
+        static constexpr char const* SurfaceWidth = "surface.width";
+        static constexpr char const* SurfaceHeight = "surface.height";
+
         static constexpr char const* WindowVsync = "window.vsync";
 
         static constexpr char const* AppName = "application.name";

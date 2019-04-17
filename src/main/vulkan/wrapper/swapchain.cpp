@@ -28,7 +28,7 @@ ao::vulkan::Swapchain::~Swapchain() {
     }
 }
 
-void ao::vulkan::Swapchain::init(u32& win_width, u32& win_height, bool vsync, bool stencil_buffer) {
+void ao::vulkan::Swapchain::init(u32& surface_width, u32& surface_height, bool vsync, bool stencil_buffer) {
     // Back-up swap chain
     vk::SwapchainKHR old = this->swapchain;
     bool first_init = !old;
@@ -38,17 +38,17 @@ void ao::vulkan::Swapchain::init(u32& win_width, u32& win_height, bool vsync, bo
 
     // Find best swap chain size
     if (capabilities.currentExtent.width == (u32)-1) {
-        this->extent_ = vk::Extent2D(win_width, win_height);
+        this->extent_ = vk::Extent2D(surface_width, surface_height);
     } else {
-        if (capabilities.currentExtent.width != win_width || capabilities.currentExtent.height != win_height) {
+        if (capabilities.currentExtent.width != surface_width || capabilities.currentExtent.height != surface_height) {
             LOGGER << ao::core::Logger::Level::debug
-                   << fmt::format("Surface size is defined, change reference size from {0}x{1} to {2}x{3}", win_width, win_height,
+                   << fmt::format("Surface size is defined, change reference size from {0}x{1} to {2}x{3}", surface_width, surface_height,
                                   capabilities.currentExtent.width, capabilities.currentExtent.height);
         }
 
         this->extent_ = capabilities.currentExtent;
-        win_width = capabilities.currentExtent.width;
-        win_height = capabilities.currentExtent.height;
+        surface_width = capabilities.currentExtent.width;
+        surface_height = capabilities.currentExtent.height;
     }
 
     // Select best present mode

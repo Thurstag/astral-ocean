@@ -13,7 +13,6 @@ ao::vulkan::ShaderModule::~ShaderModule() {
     for (auto& [key, value] : this->shaders) {
         this->device->destroyShaderModule(value.module);
     }
-    this->shaders.clear();
 }
 
 std::vector<char> ao::vulkan::ShaderModule::read(std::string const& filename) {
@@ -49,6 +48,9 @@ ao::vulkan::ShaderModule& ao::vulkan::ShaderModule::loadShader(vk::ShaderStageFl
     std::vector<char> code = ao::vulkan::ShaderModule::read(filename);
     vk::ShaderModule module = ao::vulkan::ShaderModule::createModule(code);
 
+    // Lock mutex
+    std::lock_guard lock(this->shaders_mutex);
+
     // Destroy old one
     auto it = this->shaders.find(flag);
     if (it != this->shaders.end()) {
@@ -59,6 +61,7 @@ ao::vulkan::ShaderModule& ao::vulkan::ShaderModule::loadShader(vk::ShaderStageFl
 
     // Add to map
     this->shaders[flag] = vk::PipelineShaderStageCreateInfo(vk::PipelineShaderStageCreateFlags(), flag, module, "main");
+
     return *this;
 }
 

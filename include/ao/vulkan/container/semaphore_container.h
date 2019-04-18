@@ -6,7 +6,6 @@
 
 #include <string>
 
-#include <ao/core/memory/map_container.hpp>
 #include <vulkan/vulkan.hpp>
 
 namespace ao::vulkan {

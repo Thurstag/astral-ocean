@@ -38,6 +38,7 @@ ao::vulkan::QueueContainer::QueueContainer(std::shared_ptr<vk::Device> device, s
 }
 
 void ao::vulkan::QueueContainer::submit(vk::QueueFlagBits flag, vk::ArrayProxy<vk::SubmitInfo const> submits, ao::vulkan::Fence fence) {
+    std::lock_guard lock(this->mutex);
     std::optional<std::string> queue;
 
     // Find queue

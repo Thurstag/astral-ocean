@@ -79,6 +79,7 @@ namespace ao::vulkan {
 
        protected:
         ao::core::Logger LOGGER = ao::core::Logger::GetInstance<QueueContainer>();
+        std::mutex mutex;
 
         std::map<vk::QueueFlagBits, u32> queue_families;
         std::map<std::string, Fence> fences;

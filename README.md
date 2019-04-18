@@ -13,7 +13,7 @@ TODO
 
 |       |     Version      |
 | ----- | :--------------: |
-| CMake |    2.8.0 or +    |
+| CMake |   3.12.3 or +    |
 | C++   | Standard 17 or + |
 
 ## Dependencies

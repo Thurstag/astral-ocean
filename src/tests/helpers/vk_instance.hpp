@@ -35,7 +35,9 @@ namespace ao::test {
 
     inline VkInstance::~VkInstance() {
         this->device.reset();
-        this->instance->destroy();
+        if (this->instance) {
+            this->instance->destroy();
+        }
     }
 
     bool VkInstance::init() {

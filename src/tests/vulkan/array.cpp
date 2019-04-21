@@ -89,7 +89,8 @@ namespace ao::test {
         auto allocator = std::make_shared<vulkan::HostAllocator>(instance.device);
         vulkan::Array<10, Object> array(Object(15), allocator);
 
-        array.update(3, [](Object& object) { object.i = 10; });
+        array[3].i = 10;
+        array.invalidate(3);
 
         // Assert content
         ASSERT_EQ(10, array[3].i);
@@ -103,7 +104,8 @@ namespace ao::test {
         auto allocator = std::make_shared<vulkan::DeviceAllocator>(instance.device, vk::CommandBufferUsageFlagBits::eRenderPassContinue);
         vulkan::Array<10, Object> array(Object(15), allocator);
 
-        array.update(3, [](Object& object) { object.i = 10; });
+        array[3].i = 10;
+        array.invalidate(3);
 
         // Assert content
         ASSERT_EQ(10, array[3].i);

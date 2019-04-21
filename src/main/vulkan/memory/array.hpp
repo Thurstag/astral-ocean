@@ -47,19 +47,21 @@ namespace ao::vulkan {
          * @brief Operator[]
          *
          * @param index Index
-         * @return T const& Value
+         * @return T& Value
          */
-        virtual T const& operator[](size_t index) const {
+        virtual T& operator[](size_t index) {
             return *(reinterpret_cast<T*>(static_cast<char*>(*this->buffer_info->ptr) + (index * this->stride)));
         }
 
         /**
-         * @brief Update element at index {index} with {update_code}
+         * @brief Get a reference of object at index {index}
          *
          * @param index Index
-         * @param update_code Function to apply
+         * @return T& Value
          */
-        virtual void update(size_t index, std::function<void(T&)> update_code);
+        virtual T& at(size_t index) {
+            return *(reinterpret_cast<T*>(static_cast<char*>(*this->buffer_info->ptr) + (index * this->stride)));
+        }
 
         /**
          * @brief Get begin iterator
@@ -98,18 +100,18 @@ namespace ao::vulkan {
             return this->stride * index;
         }
 
-       protected:
-        size_t stride;
-
         /**
-         * @brief Get a reference of object at index {index}
+         * @brief Invalidate {count} objects from {index}
          *
          * @param index Index
-         * @return T& Value
+         * @param count Count
          */
-        virtual T& at(size_t index) {
-            return *(reinterpret_cast<T*>(static_cast<char*>(*this->buffer_info->ptr) + (index * this->stride)));
+        virtual void invalidate(size_t index, size_t count = 1) {
+            this->allocator_->invalidate(*this->buffer_info, this->offset(index), count * this->stride);
         }
+
+       protected:
+        size_t stride;
     };
 
     template<size_t N, class T>
@@ -121,14 +123,5 @@ namespace ao::vulkan {
 
         // Notify
         this->allocator_->invalidate(*this->buffer_info, 0, this->buffer_info->size);
-    }
-
-    template<size_t N, class T>
-    void Array<N, T>::update(size_t index, std::function<void(T&)> update_code) {
-        // Run update
-        update_code(this->at(index));
-
-        // Notify
-        this->allocator_->invalidate(*this->buffer_info, this->offset(index), sizeof(T));
     }
 }  // namespace ao::vulkan

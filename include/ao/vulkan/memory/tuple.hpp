@@ -56,6 +56,18 @@ namespace ao::vulkan {
             return this->offsets[index];
         }
 
+        /**
+         * @brief Invalidate {count} objects from {index}
+         *
+         * @param index Index
+         * @param count Count
+         */
+        virtual void invalidate(size_t index, size_t count = 1) {
+            this->allocator_->invalidate(*this->buffer_info, this->offset(index),
+                                         std::accumulate(this->offsets.begin() + index, this->offsets.begin() + index + count, vk::DeviceSize(0),
+                                                         std::plus<vk::DeviceSize>()));
+        }
+
        protected:
         std::array<vk::DeviceSize, sizeof...(T)> offsets;
     };
@@ -79,29 +91,12 @@ namespace ao::vulkan {
          * @tparam Index Index
          * @tparam T Tuple's types
          * @param tuple Tuple
-         * @return std::tuple_element<Index, std::tuple<T...>>::type const& Value
+         * @return std::tuple_element<Index, std::tuple<T...>>::type& Value
          */
         template<size_t Index, class... T>
-        inline typename std::tuple_element<Index, std::tuple<T...>>::type const& get(Tuple<T...> const& tuple) {
+        inline typename std::tuple_element<Index, std::tuple<T...>>::type& get(Tuple<T...>& tuple) {
             return *reinterpret_cast<typename std::tuple_element<Index, std::tuple<T...>>::type*>(static_cast<char*>(*tuple.info().ptr) +
                                                                                                   tuple.offset(Index));
-        }
-
-        /**
-         * @brief Update element at index {Index} with {update_code}
-         *
-         * @tparam Index Index
-         * @tparam T Tuple's types
-         * @param tuple Tuple
-         * @param update_code Function to apply
-         */
-        template<size_t Index, class... T>
-        void update(Tuple<T...>& tuple, std::function<void(typename std::tuple_element<Index, std::tuple<T...>>::type&)> update_code) {
-            update_code(*reinterpret_cast<typename std::tuple_element<Index, std::tuple<T...>>::type*>(static_cast<char*>(*tuple.info().ptr) +
-                                                                                                       tuple.offset(Index)));
-
-            // Notify allocator
-            tuple.allocator()->invalidate(tuple.info(), tuple.offset(Index), sizeof(typename std::tuple_element<Index, std::tuple<T...>>::type));
         }
     }  // namespace
 }  // namespace ao::vulkan

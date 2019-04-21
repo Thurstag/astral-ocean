@@ -25,8 +25,8 @@ namespace ao::test {
         auto allocator = std::make_shared<vulkan::HostAllocator>(instance.device);
         vulkan::Tuple<size_t, char*> tuple(allocator);
 
-        ASSERT_EQ(typeid(size_t const&), typeid(decltype(vulkan::get<0>(tuple))));
-        ASSERT_EQ(typeid(char* const&), typeid(decltype(vulkan::get<1>(tuple))));
+        ASSERT_EQ(typeid(size_t&), typeid(decltype(vulkan::get<0>(tuple))));
+        ASSERT_EQ(typeid(char*&), typeid(decltype(vulkan::get<1>(tuple))));
     }
 
     TEST(HostTuple, BufferInfo) {
@@ -91,12 +91,11 @@ namespace ao::test {
         auto allocator = std::make_shared<vulkan::HostAllocator>(instance.device);
         vulkan::Tuple<size_t, size_t[10]> tuple(allocator);
 
-        vulkan::update<0>(tuple, [](auto& a) { a = 11; });
-        vulkan::update<1>(tuple, [](auto& a) {
-            for (size_t i = 0; i < 10; i++) {
-                a[i] = i;
-            }
-        });
+        vulkan::get<0>(tuple) = 11;
+        for (size_t i = 0; i < 10; i++) {
+            vulkan::get<1>(tuple)[i] = i;
+        }
+        tuple.invalidate(0, 2);
 
         // Assert
         ASSERT_EQ(11, vulkan::get<0>(tuple));
@@ -113,12 +112,11 @@ namespace ao::test {
         auto allocator = std::make_shared<vulkan::DeviceAllocator>(instance.device, vk::CommandBufferUsageFlagBits::eRenderPassContinue);
         vulkan::Tuple<size_t, size_t[10]> tuple(allocator);
 
-        vulkan::update<0>(tuple, [](auto& a) { a = 11; });
-        vulkan::update<1>(tuple, [](auto& a) {
-            for (size_t i = 0; i < 10; i++) {
-                a[i] = i;
-            }
-        });
+        vulkan::get<0>(tuple) = 11;
+        for (size_t i = 0; i < 10; i++) {
+            vulkan::get<1>(tuple)[i] = i;
+        }
+        tuple.invalidate(0, 2);
 
         // Assert
         ASSERT_EQ(11, vulkan::get<0>(tuple));

@@ -68,19 +68,19 @@ namespace ao::vulkan {
         /**
          * @brief Get begin iterator
          *
-         * @return core::PtrIterator<T const> Iterator
+         * @return core::PtrIterator<T> Iterator
          */
-        virtual core::PtrIterator<T const> begin() const {
-            return core::PtrIterator<T const>(static_cast<T*>(*this->buffer_info->ptr), this->stride);
+        virtual core::PtrIterator<T> begin() {
+            return core::PtrIterator<T>(static_cast<T*>(*this->buffer_info->ptr), this->stride);
         }
 
         /**
          * @brief Get end iterator
          *
-         * @return core::PtrIterator<T const> Iterator
+         * @return core::PtrIterator<T> Iterator
          */
-        virtual core::PtrIterator<T const> end() const {
-            return core::PtrIterator<T const>(static_cast<T*>(*this->buffer_info->ptr) + this->capacity);
+        virtual core::PtrIterator<T> end() {
+            return core::PtrIterator<T>(static_cast<T*>(*this->buffer_info->ptr) + this->capacity);
         }
 
         /**

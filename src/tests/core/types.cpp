@@ -16,5 +16,7 @@ namespace ao::test {
         ASSERT_EQ(sizeof(s16), sizeof(std::int16_t));
         ASSERT_EQ(sizeof(s32), sizeof(std::int32_t));
         ASSERT_EQ(sizeof(s64), sizeof(std::int64_t));
+
+        ASSERT_EQ(sizeof(byte), sizeof(unsigned char));
     }
 }  // namespace ao::test

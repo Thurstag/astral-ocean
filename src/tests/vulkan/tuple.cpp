@@ -95,7 +95,7 @@ namespace ao::test {
         for (size_t i = 0; i < 10; i++) {
             vulkan::get<1>(tuple)[i] = i;
         }
-        tuple.invalidate(0, 2);
+        tuple.invalidateAll();
 
         // Assert
         ASSERT_EQ(11, vulkan::get<0>(tuple));
@@ -116,7 +116,7 @@ namespace ao::test {
         for (size_t i = 0; i < 10; i++) {
             vulkan::get<1>(tuple)[i] = i;
         }
-        tuple.invalidate(0, 2);
+        tuple.invalidateAll();
 
         // Assert
         ASSERT_EQ(11, vulkan::get<0>(tuple));

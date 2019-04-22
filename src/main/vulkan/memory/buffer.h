@@ -48,6 +48,14 @@ namespace ao::vulkan {
             return this->allocator_;
         }
 
+        /**
+         * @brief Invalidate entire buffer
+         *
+         */
+        virtual void invalidateAll() {
+            this->allocator_->invalidate(*this->buffer_info, 0, this->buffer_info->size);
+        }
+
        protected:
         std::shared_ptr<Allocator> allocator_;
         std::unique_ptr<Allocator::BufferInfo> buffer_info;

@@ -8,7 +8,7 @@ cd build
 cmake ../
 
 # Build
-cmake --build .
+cmake --build . --config Release
 
 # Run tests
-ctest -C debug -VV -j 4
+ctest -C Release -VV -j 4

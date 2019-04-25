@@ -1,0 +1,52 @@
+#### CONFIG ####
+
+version: '{build}'
+
+configuration: Release
+
+build:
+  parallel: true
+
+platform: x64
+
+##### GIT ######
+
+branches:
+  only:
+  - master
+
+only_commits:
+  files:
+    - CMakeLists.txt
+    - .appveyor.yml
+    - include/
+    - src/
+    - submodules/
+
+#### BUILD ####
+  
+image:
+  - Visual Studio 2017
+
+environment:
+  SHELL: "windows"
+  matrix:
+    - GENERATOR: "Visual Studio 15 2017 Win64"
+      BUILDFLAGS: "/verbosity:normal"
+      CMAKEARGS: ""
+
+before_build:
+  - git submodule update --init
+
+build_script:
+  - cmake -H. -Bbuild
+          -G "%GENERATOR%"
+          -DCMAKE_BUILD_TYPE=%CONFIGURATION%
+          %CMAKEARGS%
+  - cmake --build build
+          --config %CONFIGURATION%
+          -- %BUILDFLAGS%
+
+after_build:
+  - cd build
+  - ctest -C Release -VV -j 4

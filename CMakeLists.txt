@@ -58,9 +58,9 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 # Define compile definitions
 if(APPLE)
-	add_compile_definitions(_GNU_SOURCE BOOST_LOG_DYN_LINK)
+	add_compile_definitions(_GNU_SOURCE BOOST_THREAD_USES_DATETIME)
 elseif(UNIX)
-	add_compile_definitions(BOOST_LOG_DYN_LINK)
+	add_compile_definitions(BOOST_THREAD_USES_DATETIME)
 else()
 endif()
 

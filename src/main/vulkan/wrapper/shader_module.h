@@ -18,6 +18,7 @@ namespace ao::vulkan {
     /**
      * @brief vk::ShaderModule wrapper
      *
+     * TODO: Disable copy + refactor loading
      */
     class ShaderModule {
        public:

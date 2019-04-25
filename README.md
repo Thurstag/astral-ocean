@@ -21,7 +21,7 @@ TODO
 |                  |      Version      |
 | ---------------- | :---------------: |
 | Vulkan / Volk    |   **1.1.97.0**    |
-| Boost (All libs) | **1.68.0** (or +) |
+| Boost (All libs) | **1.70.0** (or +) |
 | Google Test      | **1.8.1**@88c15b5 |
 | FMT              | **5.2.1**@6c95fb3 |
 

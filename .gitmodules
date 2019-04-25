@@ -10,3 +10,7 @@
 	path = submodules/volk
 	url = https://github.com/zeux/volk.git
 	ignore = dirty
+[submodule "submodules/boost-cmake"]
+	path = submodules/boost-cmake
+	url = https://github.com/Orphis/boost-cmake.git
+	ignore = dirty

@@ -12,6 +12,8 @@ namespace ao::vulkan {
     /**
      * @brief Pipelines container
      *
+     * TODO: Disable copy
+     *
      */
     class PipelineContainer : public core::MapContainer<std::string, Pipeline*> {
        public:

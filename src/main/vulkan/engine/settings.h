@@ -31,6 +31,8 @@ namespace ao::vulkan {
     /**
      * @brief Engine settings
      *
+     * TODO: Disable copy
+     *
      */
     class EngineSettings {
        public:

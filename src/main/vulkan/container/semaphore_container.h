@@ -37,6 +37,8 @@ namespace ao::vulkan {
     /**
      * @brief Semaphore container
      *
+     * TODO: Disable copy
+     *
      */
     class SemaphoreContainer {
        public:
@@ -62,10 +64,22 @@ namespace ao::vulkan {
         /**
          * @brief Operator []
          *
-         * @param index Index
-         * @return structs::Semaphores&
+         * @param index Index Index
+         * @return structs::Semaphores& Element
          */
-        virtual structs::Semaphores& operator[](size_t index);
+        virtual structs::Semaphores& operator[](size_t index) {
+            return this->content[index];
+        }
+
+        /**
+         * @brief Get element at index {index}
+         *
+         * @param index Index
+         * @return structs::Semaphores& Element
+         */
+        virtual structs::Semaphores& at(size_t index) {
+            return this->content[index];
+        }
 
         /**
          * @brief Clear content

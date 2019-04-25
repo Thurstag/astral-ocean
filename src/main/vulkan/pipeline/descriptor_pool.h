@@ -11,6 +11,7 @@ namespace ao::vulkan {
     /**
      * @brief vk::DescriptorPool wrapper
      *
+     * TODO: Disable copy
      */
     class DescriptorPool {
        public:

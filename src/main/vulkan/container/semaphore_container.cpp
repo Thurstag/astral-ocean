@@ -5,13 +5,7 @@
 #include "semaphore_container.h"
 
 ao::vulkan::SemaphoreContainer::~SemaphoreContainer() {
-    if (!this->content.empty()) {
-        ao::vulkan::SemaphoreContainer::clear();
-    }
-}
-
-ao::vulkan::structs::Semaphores& ao::vulkan::SemaphoreContainer::operator[](size_t index) {
-    return this->content[index];
+    ao::vulkan::SemaphoreContainer::clear();
 }
 
 void ao::vulkan::SemaphoreContainer::clear() {

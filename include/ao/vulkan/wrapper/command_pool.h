@@ -20,6 +20,8 @@ namespace ao::vulkan {
     /**
      * @brief vk::CommanPool wrapper
      *
+     * TODO: Disable copy
+     *
      */
     class CommandPool {
        public:

@@ -4,6 +4,7 @@
 
 #include "shader_module.h"
 
+#include <ao/core/exception/file_not_found.h>
 #include <ao/core/utilities/types.h>
 #include <fmt/format.h>
 
@@ -15,12 +16,12 @@ ao::vulkan::ShaderModule::~ShaderModule() {
     }
 }
 
-std::vector<char> ao::vulkan::ShaderModule::read(std::string const& filename) {
+std::vector<char> ao::vulkan::ShaderModule::load(std::string const& filename) {
     std::ifstream file(filename, std::ios::in | std::ios::binary);
 
     // Check file
     if (!file.is_open()) {
-        throw ao::core::Exception(fmt::format("Fail to open: {0}", filename));
+        throw ao::core::FileNotFoundException(filename);
     }
 
     // Copy file into vector
@@ -29,12 +30,6 @@ std::vector<char> ao::vulkan::ShaderModule::read(std::string const& filename) {
 
     // Close file
     file.close();
-
-    // Check vector
-    if (vector.empty()) {
-        throw ao::core::Exception("Fail to copy code into vector");
-    }
-
     return vector;
 }
 
@@ -45,11 +40,16 @@ vk::ShaderModule ao::vulkan::ShaderModule::createModule(std::vector<char> const&
 
 ao::vulkan::ShaderModule& ao::vulkan::ShaderModule::loadShader(vk::ShaderStageFlagBits flag, std::string const& filename) {
     // Create module
-    std::vector<char> code = ao::vulkan::ShaderModule::read(filename);
+    std::vector<char> code = ao::vulkan::ShaderModule::load(filename);
     vk::ShaderModule module = ao::vulkan::ShaderModule::createModule(code);
 
+    // Check code
+    if (code.empty()) {
+        throw ao::core::Exception("Fail load shader");
+    }
+
     // Lock mutex
-    std::lock_guard lock(this->shaders_mutex);
+    std::lock_guard lock(*this->shaders_mutex);
 
     // Destroy old one
     auto it = this->shaders.find(flag);

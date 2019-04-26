@@ -52,16 +52,16 @@ namespace ao::vulkan {
 
        protected:
         std::map<vk::ShaderStageFlagBits, vk::PipelineShaderStageCreateInfo> shaders;
+        std::unique_ptr<std::mutex> shaders_mutex;
         std::shared_ptr<vk::Device> device;
-        std::mutex shaders_mutex;
 
         /**
-         * @brief Read a file
+         * @brief Load a file into a vector<char>
          *
          * @param filename File's name
          * @return std::vector<char> File's content
          */
-        std::vector<char> read(std::string const& filename);
+        std::vector<char> load(std::string const& filename);
 
         /**
          * @brief Create a ShaderModule

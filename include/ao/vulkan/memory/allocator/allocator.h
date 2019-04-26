@@ -13,6 +13,8 @@ namespace ao::vulkan {
     /**
      * @brief Allocator
      *
+     * TODO: Disable copy
+     *
      */
     class Allocator {
        public:

@@ -12,6 +12,8 @@ namespace ao::vulkan {
     /**
      * @brief vk::PipelineLayout wrapper
      *
+     * TODO: Disable copy
+     *
      */
     class PipelineLayout {
        public:

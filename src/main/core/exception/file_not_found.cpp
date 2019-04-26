@@ -6,4 +6,5 @@
 
 #include <fmt/format.h>
 
-ao::core::FileNotFoundException::FileNotFoundException(std::string filename) : ao::core::Exception(fmt::format("Fail to open: {0}", filename)) {}
+ao::core::FileNotFoundException::FileNotFoundException(std::string const& filename)
+    : ao::core::Exception(fmt::format("Fail to open: {0}", filename)) {}

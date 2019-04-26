@@ -16,9 +16,9 @@ namespace ao::core {
         /**
          * @brief Construct a new FileNotFound Exception object
          *
-         * @param filename
+         * @param filename File's name
          */
-        FileNotFoundException(std::string filename);
+        FileNotFoundException(std::string const& filename);
 
         /**
          * @brief Destroy the FileNotFound Exception object

@@ -26,7 +26,7 @@ namespace ao::test {
 
         // Init instance
         VkInstance instance;
-        SKIP_TEST(!instance.init(), FAIL_INIT_VULKAN);
+        SKIP_TEST(!instance.init(), VULKAN_INIT_FAILURE);
 
         auto allocator = std::make_shared<vulkan::HostAllocator>(instance.device);
         vulkan::Array<10, Object> array(Object(15), allocator);
@@ -41,7 +41,7 @@ namespace ao::test {
     TEST(DeviceArray, ValueConstructor) {
         // Init instance
         VkInstance instance;
-        SKIP_TEST(!instance.init(), FAIL_INIT_VULKAN);
+        SKIP_TEST(!instance.init(), VULKAN_INIT_FAILURE);
 
         auto allocator = std::make_shared<vulkan::DeviceAllocator>(instance.device, vk::CommandBufferUsageFlagBits::eOneTimeSubmit);
         vulkan::Array<10, Object> array(Object(15), allocator);
@@ -56,7 +56,7 @@ namespace ao::test {
     TEST(HostArray, AccessOperator) {
         // Init instance
         VkInstance instance;
-        SKIP_TEST(!instance.init(), FAIL_INIT_VULKAN);
+        SKIP_TEST(!instance.init(), VULKAN_INIT_FAILURE);
 
         auto allocator = std::make_shared<vulkan::HostAllocator>(instance.device);
         vulkan::Array<10, Object> array(Object(15), allocator);
@@ -70,7 +70,7 @@ namespace ao::test {
     TEST(DeviceArray, AccessOperator) {
         // Init instance
         VkInstance instance;
-        SKIP_TEST(!instance.init(), FAIL_INIT_VULKAN);
+        SKIP_TEST(!instance.init(), VULKAN_INIT_FAILURE);
 
         auto allocator = std::make_shared<vulkan::DeviceAllocator>(instance.device, vk::CommandBufferUsageFlagBits::eOneTimeSubmit);
         vulkan::Array<10, Object> array(Object(15), allocator);
@@ -84,7 +84,7 @@ namespace ao::test {
     TEST(HostArray, Update) {
         // Init instance
         VkInstance instance;
-        SKIP_TEST(!instance.init(), FAIL_INIT_VULKAN);
+        SKIP_TEST(!instance.init(), VULKAN_INIT_FAILURE);
 
         auto allocator = std::make_shared<vulkan::HostAllocator>(instance.device);
         vulkan::Array<10, Object> array(Object(15), allocator);
@@ -99,7 +99,7 @@ namespace ao::test {
     TEST(DeviceArray, Update) {
         // Init instance
         VkInstance instance;
-        SKIP_TEST(!instance.init(), FAIL_INIT_VULKAN);
+        SKIP_TEST(!instance.init(), VULKAN_INIT_FAILURE);
 
         auto allocator = std::make_shared<vulkan::DeviceAllocator>(instance.device, vk::CommandBufferUsageFlagBits::eRenderPassContinue);
         vulkan::Array<10, Object> array(Object(15), allocator);
@@ -114,7 +114,7 @@ namespace ao::test {
     TEST(HostArray, BufferInfo) {
         // Init instance
         VkInstance instance;
-        SKIP_TEST(!instance.init(), FAIL_INIT_VULKAN);
+        SKIP_TEST(!instance.init(), VULKAN_INIT_FAILURE);
 
         auto allocator = std::make_shared<vulkan::HostAllocator>(instance.device);
         vulkan::Array<10, Object> array(Object(15), allocator, vk::BufferUsageFlagBits::eStorageBuffer);
@@ -128,7 +128,7 @@ namespace ao::test {
     TEST(DeviceArray, BufferInfo) {
         // Init instance
         VkInstance instance;
-        SKIP_TEST(!instance.init(), FAIL_INIT_VULKAN);
+        SKIP_TEST(!instance.init(), VULKAN_INIT_FAILURE);
 
         auto allocator = std::make_shared<vulkan::DeviceAllocator>(instance.device, vk::CommandBufferUsageFlagBits::eOneTimeSubmit);
         vulkan::Array<10, Object> array(Object(15), allocator);
@@ -142,7 +142,7 @@ namespace ao::test {
     TEST(HostArray, Offset) {
         // Init instance
         VkInstance instance;
-        SKIP_TEST(!instance.init(), FAIL_INIT_VULKAN);
+        SKIP_TEST(!instance.init(), VULKAN_INIT_FAILURE);
 
         auto allocator = std::make_shared<vulkan::HostAllocator>(instance.device);
         vulkan::Array<10, Object> array(Object(15), allocator);
@@ -154,7 +154,7 @@ namespace ao::test {
     TEST(DeviceArray, Offset) {
         // Init instance
         VkInstance instance;
-        SKIP_TEST(!instance.init(), FAIL_INIT_VULKAN);
+        SKIP_TEST(!instance.init(), VULKAN_INIT_FAILURE);
 
         auto allocator = std::make_shared<vulkan::DeviceAllocator>(instance.device, vk::CommandBufferUsageFlagBits::eOneTimeSubmit);
         vulkan::Array<10, Object> array(Object(15), allocator);

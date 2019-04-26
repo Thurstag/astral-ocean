@@ -20,7 +20,7 @@ namespace ao::test {
 
         // Init instance
         VkInstance instance;
-        SKIP_TEST(!instance.init(), FAIL_INIT_VULKAN);
+        SKIP_TEST(!instance.init(), VULKAN_INIT_FAILURE);
 
         auto allocator = std::make_shared<vulkan::HostAllocator>(instance.device);
         vulkan::Tuple<size_t, char*> tuple(allocator);
@@ -32,7 +32,7 @@ namespace ao::test {
     TEST(HostTuple, BufferInfo) {
         // Init instance
         VkInstance instance;
-        SKIP_TEST(!instance.init(), FAIL_INIT_VULKAN);
+        SKIP_TEST(!instance.init(), VULKAN_INIT_FAILURE);
 
         auto allocator = std::make_shared<vulkan::HostAllocator>(instance.device);
         vulkan::Tuple<size_t, char*> tuple(allocator);
@@ -46,7 +46,7 @@ namespace ao::test {
     TEST(DeviceTuple, BufferInfo) {
         // Init instance
         VkInstance instance;
-        SKIP_TEST(!instance.init(), FAIL_INIT_VULKAN);
+        SKIP_TEST(!instance.init(), VULKAN_INIT_FAILURE);
 
         auto allocator = std::make_shared<vulkan::DeviceAllocator>(instance.device, vk::CommandBufferUsageFlagBits::eOneTimeSubmit);
         vulkan::Tuple<size_t, char*> tuple(allocator);
@@ -60,7 +60,7 @@ namespace ao::test {
     TEST(HostTuple, Offset) {
         // Init instance
         VkInstance instance;
-        SKIP_TEST(!instance.init(), FAIL_INIT_VULKAN);
+        SKIP_TEST(!instance.init(), VULKAN_INIT_FAILURE);
 
         auto allocator = std::make_shared<vulkan::HostAllocator>(instance.device);
         vulkan::Tuple<size_t, char*> tuple(allocator);
@@ -73,7 +73,7 @@ namespace ao::test {
     TEST(DeviceTuple, Offset) {
         // Init instance
         VkInstance instance;
-        SKIP_TEST(!instance.init(), FAIL_INIT_VULKAN);
+        SKIP_TEST(!instance.init(), VULKAN_INIT_FAILURE);
 
         auto allocator = std::make_shared<vulkan::DeviceAllocator>(instance.device, vk::CommandBufferUsageFlagBits::eOneTimeSubmit);
         vulkan::Tuple<size_t, char*> tuple(allocator);
@@ -86,7 +86,7 @@ namespace ao::test {
     TEST(HostTuple, UpdateAndGet) {
         // Init instance
         VkInstance instance;
-        SKIP_TEST(!instance.init(), FAIL_INIT_VULKAN);
+        SKIP_TEST(!instance.init(), VULKAN_INIT_FAILURE);
 
         auto allocator = std::make_shared<vulkan::HostAllocator>(instance.device);
         vulkan::Tuple<size_t, size_t[10]> tuple(allocator);
@@ -107,7 +107,7 @@ namespace ao::test {
     TEST(DeviceTuple, UpdateAndGet) {
         // Init instance
         VkInstance instance;
-        SKIP_TEST(!instance.init(), FAIL_INIT_VULKAN);
+        SKIP_TEST(!instance.init(), VULKAN_INIT_FAILURE);
 
         auto allocator = std::make_shared<vulkan::DeviceAllocator>(instance.device, vk::CommandBufferUsageFlagBits::eRenderPassContinue);
         vulkan::Tuple<size_t, size_t[10]> tuple(allocator);

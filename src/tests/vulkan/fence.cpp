@@ -22,7 +22,7 @@ namespace ao::test {
     TEST(Fence, Constructor) {
         // Init instance
         VkInstance instance;
-        SKIP_TEST(!instance.init(), FAIL_INIT_VULKAN);
+        SKIP_TEST(!instance.init(), VULKAN_INIT_FAILURE);
 
         // Create fence
         vulkan::Fence fence(instance.device->logical());
@@ -36,7 +36,7 @@ namespace ao::test {
     TEST(Fence, Copy) {
         // Init instance
         VkInstance instance;
-        SKIP_TEST(!instance.init(), FAIL_INIT_VULKAN);
+        SKIP_TEST(!instance.init(), VULKAN_INIT_FAILURE);
 
         // Create fence
         vulkan::Fence fence(instance.device->logical());
@@ -56,7 +56,7 @@ namespace ao::test {
     TEST(Fence, Destroy) {
         // Init instance
         VkInstance instance;
-        SKIP_TEST(!instance.init(), FAIL_INIT_VULKAN);
+        SKIP_TEST(!instance.init(), VULKAN_INIT_FAILURE);
 
         // Create fence
         vulkan::Fence fence(instance.device->logical());
@@ -75,7 +75,7 @@ namespace ao::test {
     TEST(Fence, SharedStatus) {
         // Init instance
         VkInstance instance;
-        SKIP_TEST(!instance.init(), FAIL_INIT_VULKAN);
+        SKIP_TEST(!instance.init(), VULKAN_INIT_FAILURE);
 
         // Create fences
         vulkan::Fence fence(instance.device->logical());

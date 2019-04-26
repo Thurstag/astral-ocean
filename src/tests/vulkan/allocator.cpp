@@ -18,7 +18,7 @@ namespace ao::test {
 
         // Init instance
         VkInstance instance;
-        SKIP_TEST(!instance.init(), FAIL_INIT_VULKAN);
+        SKIP_TEST(!instance.init(), VULKAN_INIT_FAILURE);
 
         auto allocator = std::make_shared<vulkan::HostAllocator>(instance.device);
 
@@ -32,7 +32,7 @@ namespace ao::test {
     TEST(DeviceAllocator, Allocate) {
         // Init instance
         VkInstance instance;
-        SKIP_TEST(!instance.init(), FAIL_INIT_VULKAN);
+        SKIP_TEST(!instance.init(), VULKAN_INIT_FAILURE);
 
         auto allocator = std::make_shared<vulkan::DeviceAllocator>(instance.device, vk::CommandBufferUsageFlagBits::eOneTimeSubmit);
 
@@ -46,7 +46,7 @@ namespace ao::test {
     TEST(HostAllocator, Free) {
         // Init instance
         VkInstance instance;
-        SKIP_TEST(!instance.init(), FAIL_INIT_VULKAN);
+        SKIP_TEST(!instance.init(), VULKAN_INIT_FAILURE);
 
         auto allocator = std::make_shared<vulkan::HostAllocator>(instance.device);
         auto info = allocator->allocate(sizeof(size_t), vk::BufferUsageFlagBits());
@@ -60,7 +60,7 @@ namespace ao::test {
     TEST(DeviceAllocator, Free) {
         // Init instance
         VkInstance instance;
-        SKIP_TEST(!instance.init(), FAIL_INIT_VULKAN);
+        SKIP_TEST(!instance.init(), VULKAN_INIT_FAILURE);
 
         auto allocator = std::make_shared<vulkan::DeviceAllocator>(instance.device, vk::CommandBufferUsageFlagBits::eOneTimeSubmit);
         auto info = allocator->allocate(sizeof(size_t), vk::BufferUsageFlagBits());
@@ -74,7 +74,7 @@ namespace ao::test {
     TEST(HostAllocator, Own) {
         // Init instance
         VkInstance instance;
-        SKIP_TEST(!instance.init(), FAIL_INIT_VULKAN);
+        SKIP_TEST(!instance.init(), VULKAN_INIT_FAILURE);
 
         auto allocator = std::make_shared<vulkan::HostAllocator>(instance.device);
         auto info = allocator->allocate(sizeof(size_t), vk::BufferUsageFlagBits());
@@ -87,7 +87,7 @@ namespace ao::test {
     TEST(DeviceAllocator, Own) {
         // Init instance
         VkInstance instance;
-        SKIP_TEST(!instance.init(), FAIL_INIT_VULKAN);
+        SKIP_TEST(!instance.init(), VULKAN_INIT_FAILURE);
 
         auto allocator = std::make_shared<vulkan::DeviceAllocator>(instance.device, vk::CommandBufferUsageFlagBits::eOneTimeSubmit);
         auto info = allocator->allocate(sizeof(size_t), vk::BufferUsageFlagBits());
@@ -100,7 +100,7 @@ namespace ao::test {
     TEST(HostAllocator, AlignSize) {
         // Init instance
         VkInstance instance;
-        SKIP_TEST(!instance.init(), FAIL_INIT_VULKAN);
+        SKIP_TEST(!instance.init(), VULKAN_INIT_FAILURE);
         auto uniform_alignment = instance.device->physical().getProperties().limits.minUniformBufferOffsetAlignment;
 
         auto uniform_allocator = std::make_shared<vulkan::HostAllocator>(instance.device, uniform_alignment);
@@ -114,7 +114,7 @@ namespace ao::test {
     TEST(DeviceAllocator, AlignSize) {
         // Init instance
         VkInstance instance;
-        SKIP_TEST(!instance.init(), FAIL_INIT_VULKAN);
+        SKIP_TEST(!instance.init(), VULKAN_INIT_FAILURE);
         auto uniform_alignment = instance.device->physical().getProperties().limits.minUniformBufferOffsetAlignment;
 
         auto uniform_allocator =
@@ -129,7 +129,7 @@ namespace ao::test {
     TEST(HostAllocator, Size) {
         // Init instance
         VkInstance instance;
-        SKIP_TEST(!instance.init(), FAIL_INIT_VULKAN);
+        SKIP_TEST(!instance.init(), VULKAN_INIT_FAILURE);
 
         auto allocator = std::make_shared<vulkan::HostAllocator>(instance.device);
         auto info = allocator->allocate(sizeof(size_t), vk::BufferUsageFlagBits());
@@ -141,7 +141,7 @@ namespace ao::test {
     TEST(DeviceAllocator, Size) {
         // Init instance
         VkInstance instance;
-        SKIP_TEST(!instance.init(), FAIL_INIT_VULKAN);
+        SKIP_TEST(!instance.init(), VULKAN_INIT_FAILURE);
 
         auto allocator = std::make_shared<vulkan::DeviceAllocator>(instance.device, vk::CommandBufferUsageFlagBits::eOneTimeSubmit);
         auto info = allocator->allocate(sizeof(size_t), vk::BufferUsageFlagBits());
@@ -153,7 +153,7 @@ namespace ao::test {
     TEST(DeviceAllocator, FreeHost) {
         // Init instance
         VkInstance instance;
-        SKIP_TEST(!instance.init(), FAIL_INIT_VULKAN);
+        SKIP_TEST(!instance.init(), VULKAN_INIT_FAILURE);
 
         auto allocator = std::make_shared<vulkan::DeviceAllocator>(instance.device, vk::CommandBufferUsageFlagBits::eOneTimeSubmit);
         auto info = allocator->allocate(sizeof(size_t), vk::BufferUsageFlagBits());
@@ -171,7 +171,7 @@ namespace ao::test {
     TEST(DeviceAllocator, SizeOnDeviceAndHost) {
         // Init instance
         VkInstance instance;
-        SKIP_TEST(!instance.init(), FAIL_INIT_VULKAN);
+        SKIP_TEST(!instance.init(), VULKAN_INIT_FAILURE);
 
         auto allocator = std::make_shared<vulkan::DeviceAllocator>(instance.device, vk::CommandBufferUsageFlagBits::eOneTimeSubmit);
         auto info = allocator->allocate(sizeof(size_t), vk::BufferUsageFlagBits());

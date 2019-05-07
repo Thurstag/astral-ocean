@@ -8,7 +8,7 @@
 #include <ao/core/utilities/types.h>
 #include <fmt/format.h>
 
-ao::vulkan::ShaderModule::ShaderModule(std::shared_ptr<vk::Device> device) : device(device) {}
+ao::vulkan::ShaderModule::ShaderModule(std::shared_ptr<vk::Device> device) : device(device), shaders_mutex(std::make_unique<std::mutex>()) {}
 
 ao::vulkan::ShaderModule::~ShaderModule() {
     for (auto& [key, value] : this->shaders) {

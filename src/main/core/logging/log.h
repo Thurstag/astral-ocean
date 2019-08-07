@@ -22,28 +22,9 @@ namespace ao::core {
          *
          */
         static void Init();
-
-        /**
-         * @brief Define a logging attribute
-         *
-         * @tparam Type Attribute type
-         * @param name Name
-         * @param value Value
-         * @return Type Value
-         */
-        template<typename Type>
-        static Type SetLogAttribute(const char* name, Type value) {
-            auto attr =
-                boost::log::attribute_cast<boost::log::attributes::mutable_constant<Type>>(boost::log::core::get()->get_thread_attributes()[name]);
-
-            attr.set(value);
-            return attr.get();
-        }
     };
 }  // namespace ao::core
 
-#define LOG_MSG(sev)                                                                                                                \
-    BOOST_LOG_STREAM_WITH_PARAMS(                                                                                                   \
-        ::ao::core::Logger::logger,                                                                                                 \
-        (::ao::core::Logger::SetLogAttribute("File", std::string(__FILE__).substr(std::string(__FILE__).find_last_of("/\\") + 1)))( \
-            ::ao::core::Logger::SetLogAttribute("Line", __LINE__))(::boost::log::keywords::severity = (boost::log::trivial::sev)))
+#define LOG_MSG(sev)                                                    \
+    BOOST_LOG_SEV(::ao::core::Logger::logger, boost::log::trivial::sev) \
+        << "[" << std::string(__FILE__).substr(std::string(__FILE__).find_last_of("/\\") + 1) << ":" << __LINE__ << "] "

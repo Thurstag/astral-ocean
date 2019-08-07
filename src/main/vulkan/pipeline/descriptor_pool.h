@@ -25,10 +25,23 @@ namespace ao::vulkan {
         DescriptorPool(std::shared_ptr<vk::Device> device, vk::DescriptorPoolCreateInfo create_info);
 
         /**
+         * @brief Construct a new DescriptorPool object (Move constructor)
+         *
+         */
+        DescriptorPool(DescriptorPool&&) = default;
+
+        /**
          * @brief Destroy the DescriptorPool object
          *
          */
         virtual ~DescriptorPool();
+
+        /**
+         * @brief Move operator
+         *
+         * @return DescriptorPool& Pool
+         */
+        DescriptorPool& operator=(DescriptorPool&&) = default;
 
         /**
          * @brief Allocate descriptor sets

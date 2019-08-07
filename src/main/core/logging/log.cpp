@@ -17,10 +17,6 @@
 boost::log::sources::severity_logger<boost::log::trivial::severity_level> ao::core::Logger::logger;
 
 void ao::core::Logger::Init() {
-    // Define new attributes
-    boost::log::core::get()->add_thread_attribute("File", boost::log::attributes::mutable_constant<std::string>(""));
-    boost::log::core::get()->add_thread_attribute("Line", boost::log::attributes::mutable_constant<int>(0));
-
     // Console logging
     boost::log::add_console_log(
         std::cout,
@@ -29,8 +25,7 @@ void ao::core::Logger::Init() {
                                         << boost::log::expressions::format_date_time<boost::posix_time::ptime>("TimeStamp", "%Y-%m-%d %H:%M:%S.%f")
                                         << "] [Thread-"
                                         << boost::log::expressions::attr<boost::log::attributes::current_thread_id::value_type>("ThreadID") << "] ["
-                                        << boost::log::trivial::severity << "] [" << boost::log::expressions::attr<std::string>("File") << ':'
-                                        << boost::log::expressions::attr<int>("Line") << "] " << boost::log::expressions::smessage),
+                                        << boost::log::trivial::severity << "] " << boost::log::expressions::smessage),
         boost::log::keywords::auto_flush = true);
 
     // Set minimum level

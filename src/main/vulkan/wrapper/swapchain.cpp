@@ -4,6 +4,8 @@
 
 #include "swapchain.h"
 
+#include <ao/core/logging/log.h>
+
 #include "../utilities/device.h"
 
 ao::vulkan::Swapchain::Swapchain(std::shared_ptr<vk::Instance> instance, std::shared_ptr<Device> device)
@@ -41,9 +43,8 @@ void ao::vulkan::Swapchain::init(u32& surface_width, u32& surface_height, bool v
         this->extent_ = vk::Extent2D(surface_width, surface_height);
     } else {
         if (capabilities.currentExtent.width != surface_width || capabilities.currentExtent.height != surface_height) {
-            LOGGER << ao::core::Logger::Level::debug
-                   << fmt::format("Surface size is defined, change reference size from {0}x{1} to {2}x{3}", surface_width, surface_height,
-                                  capabilities.currentExtent.width, capabilities.currentExtent.height);
+            LOG_MSG(debug) << fmt::format("Surface size is defined, change reference size from {0}x{1} to {2}x{3}", surface_width, surface_height,
+                                          capabilities.currentExtent.width, capabilities.currentExtent.height);
         }
 
         this->extent_ = capabilities.currentExtent;
@@ -75,7 +76,7 @@ void ao::vulkan::Swapchain::init(u32& surface_width, u32& surface_height, bool v
         }
     }
 
-    LOGGER << ao::core::Logger::Level::info << fmt::format("Use present mode: {0}", vk::to_string(present_mode));
+    LOG_MSG(info) << fmt::format("Use present mode: {0}", vk::to_string(present_mode));
 
     // Determine surface image capacity
     if (first_init) {
@@ -151,7 +152,7 @@ void ao::vulkan::Swapchain::init(u32& surface_width, u32& surface_height, bool v
         this->buffers[i].second = this->device->logical()->createImageView(color_info);
     }
 
-    LOGGER << ao::core::Logger::Level::debug << fmt::format("Set-up a swap chain of {0} image{1}", buffers.size(), buffers.size() > 1 ? "s" : "");
+    LOG_MSG(debug) << fmt::format("Set-up a swap chain of {0} image{1}", buffers.size(), buffers.size() > 1 ? "s" : "");
 
     // Create stencil buffer
     if (stencil_buffer) {
@@ -195,7 +196,7 @@ void ao::vulkan::Swapchain::initSurface() {
         throw core::Exception("Fail to find a queue that supports present");
     }
 
-    LOGGER << ao::core::Logger::Level::trace << fmt::format("Use {0} queue to present images", *queue_name);
+    LOG_MSG(trace) << fmt::format("Use {0} queue to present images", *queue_name);
     this->present_queue = this->device->queues()->at(*queue_name).value;
 
     // Get surface formats

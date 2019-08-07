@@ -5,17 +5,18 @@
 #include "descriptor_pool.h"
 
 ao::vulkan::DescriptorPool::DescriptorPool(std::shared_ptr<vk::Device> device, vk::DescriptorPoolCreateInfo create_info) : device(device) {
-    this->pool = std::make_shared<vk::DescriptorPool>(this->device->createDescriptorPool(create_info));
+    // Create pool
+    this->pool = std::unique_ptr<vk::DescriptorPool, std::function<void(vk::DescriptorPool*)>>(
+        new vk::DescriptorPool(this->device->createDescriptorPool(create_info)), [device = *device](vk::DescriptorPool* pool) {
+            device.destroyDescriptorPool(*pool);
+            delete pool;
+        });
 }
 
 ao::vulkan::DescriptorPool::~DescriptorPool() {
     // Free descriptor sets
     if (!this->descriptor_sets.empty()) {
         this->device->freeDescriptorSets(*this->pool, this->descriptor_sets);
-    }
-
-    if (this->pool.use_count() == 1) {
-        this->device->destroyDescriptorPool(*this->pool);
     }
 }
 

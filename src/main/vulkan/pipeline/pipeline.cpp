@@ -6,8 +6,14 @@
 
 ao::vulkan::Pipeline::Pipeline(std::shared_ptr<vk::Device> device, std::shared_ptr<PipelineLayout> layout, vk::Pipeline pipeline,
                                vk::PipelineCacheCreateInfo cache_create_info)
-    : device(device), layout_(layout), pipeline(pipeline) {
+    : device(device), layout_(layout) {
     this->cache = this->device->createPipelineCache(cache_create_info);
+
+    this->pipeline =
+        std::unique_ptr<vk::Pipeline, std::function<void(vk::Pipeline*)>>(new vk::Pipeline(pipeline), [device = *device](vk::Pipeline* pipeline) {
+            device.destroyPipeline(*pipeline);
+            delete pipeline;
+        });
 }
 
 ao::vulkan::Pipeline::~Pipeline() {
@@ -20,9 +26,4 @@ ao::vulkan::Pipeline::~Pipeline() {
 
         this->device->destroyPipelineCache(this->cache);
     }
-    if (this->pipeline) {
-        this->device->destroyPipeline(this->pipeline);
-    }
-
-    this->pools_.clear();
 }

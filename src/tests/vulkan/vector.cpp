@@ -8,6 +8,9 @@
 #include <ao/vulkan/memory/allocator/host_allocator.h>
 #include <gtest/gtest.h>
 #include <ao/vulkan/memory/vector.hpp>
+#include <boost/log/core.hpp>
+#include <boost/log/expressions.hpp>
+#include <boost/log/trivial.hpp>
 
 #include "../helpers/tests.h"
 #include "../helpers/vk_instance.hpp"
@@ -22,7 +25,7 @@ namespace ao::test {
     TEST(HostVector, ValueConstructor) {
         // 'Mute' logger
         core::Logger::Init();
-        core::Logger::SetMinLevel(core::Logger::Level::fatal);
+        boost::log::core::get()->set_filter(boost::log::trivial::severity >= boost::log::trivial::fatal);
 
         // Init instance
         VkInstance instance;

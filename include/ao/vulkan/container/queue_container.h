@@ -4,9 +4,10 @@
 
 #pragma once
 
+#include <functional>
 #include <mutex>
 
-#include <ao/core/logger/logger.h>
+#include <ao/core/utilities/optional.h>
 #include <ao/core/utilities/types.h>
 #include <ao/core/memory/map_container.hpp>
 #include <vulkan/vulkan.hpp>
@@ -78,12 +79,11 @@ namespace ao::vulkan {
         void submit(vk::QueueFlagBits flag, vk::ArrayProxy<vk::SubmitInfo const> submits, Fence fence = Fence());
 
        protected:
-        ao::core::Logger LOGGER = ao::core::Logger::GetInstance<QueueContainer>();
-        std::mutex mutex;
-
         std::map<vk::QueueFlagBits, u32> queue_families;
         std::map<std::string, Fence> fences;
         std::shared_ptr<vk::Device> device;
+
+        std::mutex mutex;
 
         /**
          * @brief Find a queue that supports {flag}

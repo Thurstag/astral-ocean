@@ -9,9 +9,8 @@ ao::vulkan::Engine::Engine(std::shared_ptr<EngineSettings> settings) : settings_
 void ao::vulkan::Engine::run() {
     // Init window
     this->initWindow();
-    LOGGER << ao::core::Logger::Level::info
-           << fmt::format("Init {0}x{1} window", this->settings_->get<u32>(ao::vulkan::settings::SurfaceWidth),
-                          this->settings_->get<u32>(ao::vulkan::settings::SurfaceHeight));
+    LOG_MSG(info) << fmt::format("Init {0}x{1} window", this->settings_->get<u32>(ao::vulkan::settings::SurfaceWidth),
+                                 this->settings_->get<u32>(ao::vulkan::settings::SurfaceHeight));
 
     // Init vulkan
     this->initVulkan();
@@ -48,7 +47,7 @@ void ao::vulkan::Engine::initVulkan() {
     // Select a vk::PhysicalDevice & wrap it
     this->device = std::make_shared<ao::vulkan::Device>(this->selectVkPhysicalDevice(devices));
 
-    LOGGER << ao::core::Logger::Level::info << fmt::format("Select physical device: {0}", this->device->physical().getProperties().deviceName);
+    LOG_MSG(info) << fmt::format("Select physical device: {0}", this->device->physical().getProperties().deviceName);
 
     // Init logical device
     this->device->initLogicalDevice(this->deviceExtensions(), this->deviceFeatures(), this->requestQueues());
@@ -68,7 +67,7 @@ void ao::vulkan::Engine::freeVulkan() {
         this->device->logical()->destroyFence(fence);
     }
 
-    this->semaphores.clear();
+    this->semaphores->clear();
 
     this->device.reset();
 
@@ -111,21 +110,21 @@ void ao::vulkan::Engine::recreateSwapChain() {
 }
 
 void ao::vulkan::Engine::createSemaphores() {
-    this->semaphores = SemaphoreContainer(this->device->logical());
+    this->semaphores = std::make_unique<ao::vulkan::SemaphoreContainer>(this->device->logical());
 
     // Create semaphores
-    this->semaphores.resize(3 * this->swapchain->size());
+    this->semaphores->resize(3 * this->swapchain->size());
     for (size_t i = 0; i < this->swapchain->size(); i++) {
         vk::Semaphore acquire = this->device->logical()->createSemaphore(vk::SemaphoreCreateInfo());
         vk::Semaphore render = this->device->logical()->createSemaphore(vk::SemaphoreCreateInfo());
 
         // Fill container
-        this->semaphores[(ao::vulkan::semaphore::AcquireImage * this->swapchain->size()) + i].signals.push_back(acquire);
+        this->semaphores->at(ao::vulkan::semaphore::AcquireImage * this->swapchain->size() + i).signals.push_back(acquire);
 
-        this->semaphores[(ao::vulkan::semaphore::GraphicProcess * this->swapchain->size()) + i].waits.push_back(acquire);
-        this->semaphores[(ao::vulkan::semaphore::GraphicProcess * this->swapchain->size()) + i].signals.push_back(render);
+        this->semaphores->at(ao::vulkan::semaphore::GraphicProcess * this->swapchain->size() + i).waits.push_back(acquire);
+        this->semaphores->at(ao::vulkan::semaphore::GraphicProcess * this->swapchain->size() + i).signals.push_back(render);
 
-        this->semaphores[(ao::vulkan::semaphore::PresentImage * this->swapchain->size()) + i].waits.push_back(render);
+        this->semaphores->at(ao::vulkan::semaphore::PresentImage * this->swapchain->size() + i).waits.push_back(render);
     }
 }
 
@@ -197,10 +196,11 @@ void ao::vulkan::Engine::render() {
 
     // Create submit info
     auto sem_index = (ao::vulkan::semaphore::GraphicProcess * this->swapchain->size()) + this->current_frame;
-    vk::SubmitInfo submit_info(static_cast<u32>(this->semaphores[sem_index].waits.size()),
-                               this->semaphores[sem_index].waits.empty() ? nullptr : this->semaphores[sem_index].waits.data(), &pipeline_stage, 1,
-                               &this->swapchain->currentCommand(), static_cast<u32>(this->semaphores[sem_index].signals.size()),
-                               this->semaphores[sem_index].signals.empty() ? nullptr : this->semaphores[sem_index].signals.data());
+    vk::SubmitInfo submit_info(static_cast<u32>(this->semaphores->at(sem_index).waits.size()),
+                               this->semaphores->at(sem_index).waits.empty() ? nullptr : this->semaphores->at(sem_index).waits.data(),
+                               &pipeline_stage, 1, &this->swapchain->currentCommand(),
+                               static_cast<u32>(this->semaphores->at(sem_index).signals.size()),
+                               this->semaphores->at(sem_index).signals.empty() ? nullptr : this->semaphores->at(sem_index).signals.data());
 
     // Reset fence
     this->device->logical()->resetFences(fence);
@@ -217,11 +217,11 @@ void ao::vulkan::Engine::render() {
 
 void ao::vulkan::Engine::prepareFrame() {
     vk::Result result = this->swapchain->acquireNextImage(
-        this->semaphores[(ao::vulkan::semaphore::AcquireImage * this->swapchain->size()) + this->current_frame].signals.front());
+        this->semaphores->at(ao::vulkan::semaphore::AcquireImage * this->swapchain->size() + this->current_frame).signals.front());
 
     // Check result
     if (result == vk::Result::eErrorOutOfDateKHR || result == vk::Result::eSuboptimalKHR || this->enforce_resize) {
-        LOGGER << ao::core::Logger::Level::warning << "Swap chain is no longer compatible, re-create it";
+        LOG_MSG(warning) << "Swap chain is no longer compatible, re-create it";
 
         this->enforce_resize = false;
         return this->recreateSwapChain();
@@ -230,12 +230,12 @@ void ao::vulkan::Engine::prepareFrame() {
 }
 
 void ao::vulkan::Engine::submitFrame() {
-    vk::Result result =
-        this->swapchain->enqueueImage(this->semaphores[(ao::vulkan::semaphore::PresentImage * this->swapchain->size()) + this->current_frame].waits);
+    vk::Result result = this->swapchain->enqueueImage(
+        this->semaphores->at(ao::vulkan::semaphore::PresentImage * this->swapchain->size() + this->current_frame).waits);
 
     // Check result
     if (result == vk::Result::eErrorOutOfDateKHR || result == vk::Result::eSuboptimalKHR || this->enforce_resize) {
-        LOGGER << ao::core::Logger::Level::warning << "Swap chain is no longer compatible, re-create it";
+        LOG_MSG(warning) << "Swap chain is no longer compatible, re-create it";
 
         this->enforce_resize = false;
         return this->recreateSwapChain();
@@ -251,26 +251,24 @@ vk::DebugUtilsMessageSeverityFlagsEXT ao::vulkan::Engine::validationLayersSeveri
 VKAPI_ATTR VkBool32 VKAPI_CALL ao::vulkan::Engine::DebugCallBack(VkDebugUtilsMessageSeverityFlagBitsEXT severity,
                                                                  VkDebugUtilsMessageTypeFlagsEXT type,
                                                                  const VkDebugUtilsMessengerCallbackDataEXT* callback_data, void* user_data) {
-    core::Logger LOGGER = core::Logger::GetInstance<ValidationLayers>();
-
     // Format message
     std::string message = fmt::format("[{}] {}", to_string(vk::DebugUtilsMessageTypeFlagsEXT(type)), callback_data->pMessage);
 
     switch (vk::DebugUtilsMessageSeverityFlagBitsEXT(severity)) {
         case vk::DebugUtilsMessageSeverityFlagBitsEXT::eError:
-            LOGGER << ao::core::Logger::Level::error << message;
+            LOG_MSG(error) << message;
             break;
 
         case vk::DebugUtilsMessageSeverityFlagBitsEXT::eInfo:
-            LOGGER << ao::core::Logger::Level::info << message;
+            LOG_MSG(info) << message;
             break;
 
         case vk::DebugUtilsMessageSeverityFlagBitsEXT::eVerbose:
-            LOGGER << ao::core::Logger::Level::trace << message;
+            LOG_MSG(trace) << message;
             break;
 
         case vk::DebugUtilsMessageSeverityFlagBitsEXT::eWarning:
-            LOGGER << ao::core::Logger::Level::warning << message;
+            LOG_MSG(warning) << message;
             break;
 
         default:

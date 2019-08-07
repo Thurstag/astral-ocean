@@ -8,7 +8,10 @@
 
 ao::vulkan::CommandPool::CommandPool(std::shared_ptr<vk::Device> device, vk::CommandPoolCreateFlags flags, u32 queue_family_index,
                                      CommandPoolAccessMode access_mode)
-    : device(device), create_flags(flags), queue_family_index(queue_family_index), access_mode(access_mode) {
+    : device(device),
+      create_flags(std::make_unique<vk::CommandPoolCreateFlags>(flags)),
+      queue_family_index(queue_family_index),
+      access_mode(access_mode) {
     // Create unique command pool
     if (access_mode == ao::vulkan::CommandPoolAccessMode::eSequential) {
         this->command_pools.push_back(device->createCommandPool(vk::CommandPoolCreateInfo(flags, queue_family_index)));
@@ -37,7 +40,7 @@ std::vector<vk::CommandBuffer> ao::vulkan::CommandPool::allocateCommandBuffers(v
     // Allocate
     if (this->access_mode == ao::vulkan::CommandPoolAccessMode::eConcurrent) {
         for (size_t i = 0; i < count; i++) {
-            this->command_pools.push_back(this->device->createCommandPool(vk::CommandPoolCreateInfo(this->create_flags, queue_family_index)));
+            this->command_pools.push_back(this->device->createCommandPool(vk::CommandPoolCreateInfo(*this->create_flags, queue_family_index)));
 
             buffers.push_back(this->device->allocateCommandBuffers(vk::CommandBufferAllocateInfo(this->command_pools.back(), level, 1)).front());
             this->command_buffers[buffers.back()] = this->command_pools.back();

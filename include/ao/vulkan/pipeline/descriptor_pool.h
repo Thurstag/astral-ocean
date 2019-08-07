@@ -4,6 +4,8 @@
 
 #pragma once
 
+#include <functional>
+
 #include <ao/core/utilities/types.h>
 #include <vulkan/vulkan.hpp>
 
@@ -11,7 +13,6 @@ namespace ao::vulkan {
     /**
      * @brief vk::DescriptorPool wrapper
      *
-     * TODO: Disable copy
      */
     class DescriptorPool {
        public:
@@ -48,10 +49,10 @@ namespace ao::vulkan {
         }
 
        protected:
-        std::shared_ptr<vk::Device> device;
-
+        std::unique_ptr<vk::DescriptorPool, std::function<void(vk::DescriptorPool*)>> pool;
         std::vector<vk::DescriptorSet> descriptor_sets;
-        std::shared_ptr<vk::DescriptorPool> pool;
+
+        std::shared_ptr<vk::Device> device;
     };
 
 }  // namespace ao::vulkan

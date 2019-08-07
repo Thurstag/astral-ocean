@@ -26,7 +26,7 @@ void ao::vulkan::Device::initLogicalDevice(vk::ArrayProxy<char const* const> dev
     }
 
     // Print a report of all queue families
-    this->LOGGER << ao::core::Logger::Level::trace << fmt::format("Queue families:\n{}", ao::vulkan::utilities::report(queue_families));
+    LOG_MSG(trace) << fmt::format("Queue families:\n{}", ao::vulkan::utilities::report(queue_families));
 
     // Build queue priority list
     std::vector<float> queue_priorities(

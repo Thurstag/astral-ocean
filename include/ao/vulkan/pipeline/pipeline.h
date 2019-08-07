@@ -11,8 +11,6 @@ namespace ao::vulkan {
     /**
      * @brief vk::Pipeline wrapper
      *
-     * TODO: Disable copy
-     *
      */
     class Pipeline {
        public:
@@ -63,7 +61,7 @@ namespace ao::vulkan {
          * @return vk::Pipeline Pipeline
          */
         vk::Pipeline value() const {
-            return this->pipeline;
+            return *this->pipeline;
         }
 
         /**
@@ -79,10 +77,10 @@ namespace ao::vulkan {
         std::optional<std::function<void(vk::PipelineCache)>> before_cache_destruction;
         std::shared_ptr<vk::Device> device;
 
+        std::unique_ptr<vk::Pipeline, std::function<void(vk::Pipeline*)>> pipeline;
         std::shared_ptr<PipelineLayout> layout_;
         std::vector<DescriptorPool> pools_;
         vk::PipelineCache cache;
-        vk::Pipeline pipeline;
     };
 
 }  // namespace ao::vulkan

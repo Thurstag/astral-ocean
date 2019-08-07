@@ -13,8 +13,6 @@ namespace ao::vulkan {
     /**
      * @brief Allocator
      *
-     * TODO: Disable copy
-     *
      */
     class Allocator {
        public:
@@ -44,6 +42,7 @@ namespace ao::vulkan {
          * @param device Device
          */
         Allocator(std::shared_ptr<Device> device) : device(device) {}
+        Allocator(Allocator const&) = delete;
 
         /**
          * @brief Destroy the Allocator object
@@ -99,6 +98,8 @@ namespace ao::vulkan {
          * @return false Allocator doesn't own buffer
          */
         virtual bool own(BufferInfo const& info) const = 0;
+
+        Allocator& operator=(Allocator const&) = delete;
 
        protected:
         std::shared_ptr<Device> device;

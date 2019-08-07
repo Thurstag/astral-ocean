@@ -7,7 +7,7 @@
 #include <map>
 
 #include <ao/core/exception/exception.h>
-#include <ao/core/logger/logger.h>
+#include <ao/core/logging/log.h>
 #include <ao/core/utilities/optional.h>
 #include <fmt/format.h>
 
@@ -31,8 +31,6 @@ namespace ao::vulkan {
     /**
      * @brief Engine settings
      *
-     * TODO: Disable copy
-     *
      */
     class EngineSettings {
        public:
@@ -41,6 +39,7 @@ namespace ao::vulkan {
          *
          */
         EngineSettings() = default;
+        EngineSettings(EngineSettings const&) = delete;
 
         /**
          * @brief Destroy the EngineSettings object
@@ -93,7 +92,7 @@ namespace ao::vulkan {
             // Check type
             if constexpr (!is_string) {
                 if (this->values[key].first.first != typeid(T*).hash_code()) {
-                    this->LOGGER << core::Logger::Level::warning << fmt::format("Cast {} into {}", this->values[key].first.second, typeid(T*).name());
+                    LOG_MSG(warning) << fmt::format("Cast {} into {}", this->values[key].first.second, typeid(T*).name());
                 }
             }
 
@@ -104,9 +103,9 @@ namespace ao::vulkan {
             return *static_cast<T*>(this->values[key].second);
         }
 
-       protected:
-        core::Logger LOGGER = core::Logger::GetInstance<EngineSettings>();
+        EngineSettings& operator=(EngineSettings const&) = delete;
 
+       protected:
         std::map<std::string, std::pair<std::pair<size_t, std::string>, void*>> values;
         std::map<std::string, std::string> str_values;
 

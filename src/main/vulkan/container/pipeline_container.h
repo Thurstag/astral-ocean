@@ -12,8 +12,6 @@ namespace ao::vulkan {
     /**
      * @brief Pipelines container
      *
-     * TODO: Disable copy
-     *
      */
     class PipelineContainer : public core::MapContainer<std::string, Pipeline*> {
        public:
@@ -22,6 +20,7 @@ namespace ao::vulkan {
          *
          */
         PipelineContainer() = default;
+        PipelineContainer(PipelineContainer const&) = delete;
 
         /**
          * @brief Destroy the PipelineContainer object
@@ -36,6 +35,7 @@ namespace ao::vulkan {
          */
         void setBeforePipelineCacheDestruction(std::function<void(std::string, vk::PipelineCache)> callback);
 
+        PipelineContainer& operator=(PipelineContainer const&) = delete;
         virtual void clear() override;
     };
 

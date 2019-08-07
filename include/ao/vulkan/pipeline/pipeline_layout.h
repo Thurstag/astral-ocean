@@ -12,8 +12,6 @@ namespace ao::vulkan {
     /**
      * @brief vk::PipelineLayout wrapper
      *
-     * TODO: Disable copy
-     *
      */
     class PipelineLayout {
        public:
@@ -39,7 +37,7 @@ namespace ao::vulkan {
          * @return vk::PipelineLayout Layout
          */
         vk::PipelineLayout value() const {
-            return this->layout;
+            return *this->layout;
         }
 
         /**
@@ -63,9 +61,9 @@ namespace ao::vulkan {
        protected:
         std::shared_ptr<vk::Device> device;
 
+        std::unique_ptr<vk::PipelineLayout, std::function<void(vk::PipelineLayout*)>> layout;
         std::vector<vk::DescriptorSetLayout> descriptor_layouts;
         std::vector<vk::PushConstantRange> push_constants;
-        vk::PipelineLayout layout;
     };
 
 }  // namespace ao::vulkan

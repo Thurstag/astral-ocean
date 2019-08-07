@@ -7,6 +7,7 @@
 #include <optional>
 
 #include <ao/core/exception/exception.h>
+#include <ao/core/logging/log.h>
 #include <fmt/format.h>
 
 ao::vulkan::QueueContainer::QueueContainer(std::shared_ptr<vk::Device> device, std::vector<QueueCreateInfo> const& queue_create_info,
@@ -70,7 +71,7 @@ void ao::vulkan::QueueContainer::submit(vk::QueueFlagBits flag, vk::ArrayProxy<v
     this->fences[*queue] = fence;
 
     // Submit
-    this->LOGGER << ao::core::Logger::Level::trace << fmt::format("Submit into '{}' queue for flag: {}", *queue, vk::to_string(flag));
+    LOG_MSG(trace) << fmt::format("Submit into '{}' queue for flag: {}", *queue, vk::to_string(flag));
     this->map.at(*queue).value.submit(submits, fence);
 }
 

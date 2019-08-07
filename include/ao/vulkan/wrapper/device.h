@@ -10,7 +10,6 @@
 #include <vector>
 
 #include <ao/core/exception/exception.h>
-#include <ao/core/logger/logger.h>
 #include <vulkan/vulkan.hpp>
 
 #include "../container/queue_container.h"
@@ -111,8 +110,6 @@ namespace ao::vulkan {
         }
 
        protected:
-        core::Logger LOGGER = core::Logger::GetInstance<Device>();
-
         std::unique_ptr<CommandPool> transfer_command_pool;
         std::unique_ptr<CommandPool> graphics_command_pool;
         std::unique_ptr<QueueContainer> queues_;

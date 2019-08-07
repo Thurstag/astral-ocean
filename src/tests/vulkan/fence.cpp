@@ -4,6 +4,9 @@
 
 #include <ao/vulkan/wrapper/fence.h>
 #include <gtest/gtest.h>
+#include <boost/log/core.hpp>
+#include <boost/log/expressions.hpp>
+#include <boost/log/trivial.hpp>
 
 #include "../helpers/tests.h"
 #include "../helpers/vk_instance.hpp"
@@ -12,7 +15,7 @@ namespace ao::test {
     TEST(Fence, DefaultConstructor) {
         // 'Mute' logger
         core::Logger::Init();
-        core::Logger::SetMinLevel(core::Logger::Level::fatal);
+        boost::log::core::get()->set_filter(boost::log::trivial::severity >= boost::log::trivial::fatal);
 
         vulkan::Fence fence;
 

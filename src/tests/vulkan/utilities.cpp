@@ -31,6 +31,8 @@ namespace ao::test {
     }
 
     TEST(VulkanUtils, FindQueueFamilyIndex) {
+        ao::core::Logger::Init();
+
         // Create a new output for logger
         std::stringbuf ss;
         std::ostream os(&ss);

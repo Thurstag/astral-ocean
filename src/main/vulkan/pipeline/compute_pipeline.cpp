@@ -8,8 +8,8 @@ ao::vulkan::ComputePipeline::ComputePipeline(std::shared_ptr<vk::Device> device,
                                              vk::PipelineShaderStageCreateInfo shader_stage, vk::PipelineCacheCreateInfo cache_create_info,
                                              vk::Pipeline base_pipeline)
     : ao::vulkan::Pipeline(device, layout, vk::Pipeline(), cache_create_info) {
-    this->pipeline = this->device
-                         ->createComputePipelines(
-                             this->cache, vk::ComputePipelineCreateInfo(vk::PipelineCreateFlags(), shader_stage, layout->value(), base_pipeline))
-                         .front();
+    *this->pipeline = this->device
+                          ->createComputePipelines(
+                              this->cache, vk::ComputePipelineCreateInfo(vk::PipelineCreateFlags(), shader_stage, layout->value(), base_pipeline))
+                          .front();
 }

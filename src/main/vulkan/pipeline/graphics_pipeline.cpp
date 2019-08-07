@@ -26,5 +26,5 @@ ao::vulkan::GraphicsPipeline::GraphicsPipeline(std::shared_ptr<vk::Device> devic
         dynamic_state_create_info ? &(*dynamic_state_create_info) : nullptr, layout->value(), render_pass, subpass, base_pipeline);
 
     // Create pipeline
-    this->pipeline = this->device->createGraphicsPipelines(this->cache, create_info).front();
+    *this->pipeline = this->device->createGraphicsPipelines(this->cache, create_info).front();
 }

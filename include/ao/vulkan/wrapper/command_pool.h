@@ -20,8 +20,6 @@ namespace ao::vulkan {
     /**
      * @brief vk::CommanPool wrapper
      *
-     * TODO: Disable copy
-     *
      */
     class CommandPool {
        public:
@@ -62,7 +60,7 @@ namespace ao::vulkan {
         std::shared_ptr<vk::Device> device;
         std::mutex mutex;
 
-        vk::CommandPoolCreateFlags create_flags;
+        std::unique_ptr<vk::CommandPoolCreateFlags> create_flags;
         CommandPoolAccessMode access_mode;
         u32 queue_family_index;
 

@@ -28,6 +28,7 @@ namespace ao::test {
     };
 
     TEST(EngineSettings, Default) {
+        ao::core::Logger::Init();
         vulkan::EngineSettings s;
 
         ASSERT_FALSE(s.exists("test"));

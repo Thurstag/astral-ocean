@@ -190,8 +190,6 @@ namespace ao::vulkan {
         Swapchain* setSurface(vk::SurfaceKHR surface);
 
        protected:
-        core::Logger LOGGER = core::Logger::GetInstance<Swapchain>();
-
         std::vector<std::pair<vk::Image, vk::ImageView>> buffers;
         std::vector<vk::Framebuffer> frames;
         vk::SwapchainKHR swapchain;

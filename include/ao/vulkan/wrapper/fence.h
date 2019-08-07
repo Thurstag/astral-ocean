@@ -37,7 +37,7 @@ namespace ao::vulkan {
          * @brief Destroy the Fence object
          *
          */
-        virtual ~Fence();
+        virtual ~Fence() = default;
 
         /**
          * @brief Convert a vk::Result into a FenceStatus
@@ -79,7 +79,7 @@ namespace ao::vulkan {
          * @return vk::Fence fence
          */
         operator vk::Fence() const {
-            return *this->fence;
+            return this->fence->first;
         }
 
         /**
@@ -89,13 +89,11 @@ namespace ao::vulkan {
          * @return false Fence doesn't exist
          */
         operator bool() const {
-            return this->fence && *this->status_ != FenceStatus::eDestroyed;
+            return this->fence && this->fence->second != FenceStatus::eDestroyed;
         }
 
        protected:
-        std::shared_ptr<FenceStatus> status_;
-        std::shared_ptr<vk::Fence> fence;
-
+        std::shared_ptr<std::pair<vk::Fence, FenceStatus>> fence;
         std::shared_ptr<vk::Device> device;
 
         /**

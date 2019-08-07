@@ -10,7 +10,6 @@
 #include <vector>
 
 #include <ao/core/exception/exception.h>
-#include <ao/core/logger/logger.h>
 #include <vulkan/vulkan.hpp>
 
 #include "../container/pipeline_container.h"
@@ -70,16 +69,15 @@ namespace ao::vulkan {
         }
 
        protected:
-        core::Logger LOGGER = core::Logger::GetInstance<Engine>();
         std::shared_ptr<EngineSettings> settings_;
         std::atomic_bool enforce_resize;
         u32 current_frame;
 
+        std::unique_ptr<SemaphoreContainer> semaphores;
         vk::DebugUtilsMessengerEXT debug_callBack;
         std::shared_ptr<vk::Instance> instance;
         std::shared_ptr<Swapchain> swapchain;
         std::shared_ptr<Device> device;
-        SemaphoreContainer semaphores;
         std::vector<vk::Fence> fences;
         PipelineContainer pipelines;
         vk::RenderPass render_pass;

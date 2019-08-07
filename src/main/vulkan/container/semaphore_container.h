@@ -37,8 +37,6 @@ namespace ao::vulkan {
     /**
      * @brief Semaphore container
      *
-     * TODO: Disable copy
-     *
      */
     class SemaphoreContainer {
        public:
@@ -47,6 +45,7 @@ namespace ao::vulkan {
          *
          */
         SemaphoreContainer() = default;
+        SemaphoreContainer(SemaphoreContainer const&) = delete;
 
         /**
          * @brief Construct a new SemaphoreContainer object
@@ -93,6 +92,8 @@ namespace ao::vulkan {
          * @param size Size
          */
         virtual void resize(size_t size);
+
+        SemaphoreContainer& operator=(SemaphoreContainer const&) = delete;
 
        protected:
         std::shared_ptr<vk::Device> device;

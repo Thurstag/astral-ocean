@@ -62,16 +62,17 @@ if(APPLE)
 elseif(UNIX)
 	add_compile_definitions(BOOST_THREAD_USES_DATETIME)
 else()
+	if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+		add_compile_definitions(BOOST_THREAD_USE_LIB)
+	endif()
 endif()
 
 ################################### INCLUDE DEPENDENCIES ####################################
 
 # Try to find external libraries
-if(NOT CMAKE_VERSION VERSION_LESS 3.7.0)
-	foreach(DEPENDENCY ${DEPENDENCIES})
-		find_package(${DEPENDENCY} REQUIRED)
-	endforeach(DEPENDENCY)
-endif()
+foreach(DEPENDENCY ${DEPENDENCIES})
+	find_package(${DEPENDENCY} REQUIRED)
+endforeach(DEPENDENCY)
 
 # Check all external libraries
 foreach(DEPENDENCY ${DEPENDENCIES})

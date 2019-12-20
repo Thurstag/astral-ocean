@@ -26,7 +26,7 @@ TODO
 |                     |      Version      |
 | ------------------- | :---------------: |
 | Vulkan / Volk       |   **1.1.97.0**    |
-| Boost / Boost-cmake |    **1.70.0**     |
+| Boost / Boost-cmake |    **1.70.1**     |
 | Google Test         | **1.8.1**@88c15b5 |
 | FMT                 | **5.2.1**@6c95fb3 |
 

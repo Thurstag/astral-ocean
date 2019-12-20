@@ -2,7 +2,9 @@ sudo: required
 language: cpp
 
 branches:
-  only: master
+  only: 
+    - master
+    - develop
 
 matrix:
   include:
@@ -15,10 +17,24 @@ matrix:
         - sudo add-apt-repository -y ppa:ubuntu-toolchain-r/test
         - sudo apt-get update
         - sudo chmod +x tools/travis/linux/install.sh
-      install: travis_wait 30 "./tools/travis/linux/install.sh"
+      install: "./tools/travis/linux/install.sh"
       before_script:
         - sudo chmod +x tools/travis/linux/build.sh
       script: "./tools/travis/linux/build.sh"
+
+    - os: linux
+      env: CXX=/usr/bin/clang++
+      sudo: required
+      dist: bionic
+      compiler: clang
+      before_install: 
+        - sudo apt-get update
+        - sudo chmod +x tools/travis/linux-clang/install.sh
+      install: "./tools/travis/linux-clang/install.sh"
+      before_script:
+        - sudo chmod +x tools/travis/linux/build.sh
+      script: "./tools/travis/linux/build.sh"
+
     - os: osx
       osx_image: xcode10.1
       compiler: clang
